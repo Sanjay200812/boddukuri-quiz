@@ -166,10 +166,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (window.confirm('Are you sure you want to sign out? Your progress will remain securely saved.')) {
-                  onClose();
-                  onSignOut();
-                }
+                onClose();
+                onSignOut();
               }}
               className="w-full py-3 px-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-sm font-bold transition-all flex items-center justify-center gap-2"
             >

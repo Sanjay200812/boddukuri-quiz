@@ -195,11 +195,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Sign Out Button */}
             {onSignOut && (
               <button
-                onClick={() => {
-                  if (window.confirm('Sign out of Mahi’s account? Local progress will be kept safe.')) {
-                    onSignOut();
-                  }
-                }}
+                onClick={onSignOut}
                 title="Sign out"
                 className="hidden sm:flex items-center justify-center p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200/80 transition-colors"
               >

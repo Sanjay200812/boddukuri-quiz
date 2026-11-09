@@ -304,14 +304,9 @@ export function getUnreadNotificationCount(role?: 'admin' | 'student'): number {
 // -------------------------------------------------------------
 
 export function getAllAttempts(): QuizAttempt[] {
-  let rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
-  if (rawAttempts.length === 0) {
-    const hasExplicitReset = safeGet<boolean>('mahi_quiz_explicitly_reset_v1', false);
-    if (!hasExplicitReset) {
-      ensureMahiBaselineAttempt();
-      rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
-    }
-  }
+  // Do not manufacture a completed Day 01 attempt on login or on a new device.
+  // Historical restoration is an explicit admin action via the dashboard.
+  const rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
   // Sort descending by timestamp (newest first)
   return rawAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }

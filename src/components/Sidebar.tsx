@@ -329,11 +329,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <button
-            onClick={() => {
-              if (window.confirm(`Sign out of ${isStudent ? 'Mahi’s student' : 'Admin'} session?`)) {
-                onSignOut();
-              }
-            }}
+            onClick={onSignOut}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
               isStudent
                 ? 'text-rose-600 hover:bg-rose-50'
