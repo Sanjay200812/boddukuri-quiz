@@ -85,7 +85,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
       </div>
 
       {/* State Selector Tabs */}
-      <div className="bg-white p-2 sm:p-3 rounded-2xl border border-slate-200/90 shadow-soft overflow-x-auto flex items-center gap-1.5 scrollbar-thin">
+      <div className="bg-[#0f0f12] p-2 sm:p-3 rounded-2xl border border-slate-200/90 shadow-soft overflow-x-auto flex items-center gap-1.5 scrollbar-thin">
         {allStates.map((st, idx) => {
           const isSelected = st === selectedState;
 
@@ -99,11 +99,11 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
               className={`whitespace-nowrap px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shrink-0 ${
                 isSelected
                   ? 'bg-red-900 text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#2b1118]'
               }`}
             >
               <span className={`w-5 h-5 rounded-md text-[10px] flex items-center justify-center font-black ${
-                isSelected ? 'bg-red-950 text-red-300' : 'bg-slate-200 text-slate-600'
+                isSelected ? 'bg-red-950 text-red-300' : 'bg-[#3a1822] text-slate-600'
               }`}>
                 {idx + 1}
               </span>
@@ -117,7 +117,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-8 shadow-elevated">
         <div className="relative z-10 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider bg-white/20 text-red-300 backdrop-blur-sm border border-white/20">
+            <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider bg-[#0f0f12]/20 text-red-300 backdrop-blur-sm border border-white/20">
               {stateInfo.totalParks} Officially Notified National Parks
             </span>
             <span className="text-xs text-red-300">
@@ -135,7 +135,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
 
           {/* Tips for Mahi Card */}
           <div className="pt-2">
-            <div className="inline-flex items-center gap-2 p-3 sm:px-4 sm:py-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm text-red-300">
+            <div className="inline-flex items-center gap-2 p-3 sm:px-4 sm:py-2.5 rounded-2xl bg-[#0f0f12]/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm text-red-300">
               <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
               <span><strong>Mahi's Memory Trick:</strong> {stateInfo.tipsForMahi}</span>
             </div>
@@ -152,7 +152,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
             placeholder={`Search ${stateInfo.stateName}'s parks, wildlife, or districts...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-800 shadow-xs"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-[#0f0f12] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-800 shadow-xs"
           />
         </div>
 
@@ -166,7 +166,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
         {filteredParks.map((park, idx) => (
           <div
             key={idx}
-            className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-card hover:border-red-400 transition-all space-y-4"
+            className="bg-[#0f0f12] rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-card hover:border-red-400 transition-all space-y-4"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
@@ -179,7 +179,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-[#2b1118] text-slate-700 text-xs font-bold border border-slate-200">
                   <Calendar className="w-3.5 h-3.5 text-red-800" />
                   Est. {park.year}
                 </span>
@@ -194,7 +194,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
 
             {/* Geographical Location & River Biome */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
-              <div className="flex items-start gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+              <div className="flex items-start gap-2 bg-[#241014] p-3 rounded-2xl border border-slate-100">
                 <MapPin className="w-4 h-4 text-red-800 shrink-0 mt-0.5" />
                 <div>
                   <span className="text-slate-400 font-semibold block text-xs">District & Location</span>
@@ -203,7 +203,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
               </div>
 
               {park.riverOrBiome && (
-                <div className="flex items-start gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <div className="flex items-start gap-2 bg-[#241014] p-3 rounded-2xl border border-slate-100">
                   <Compass className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
                   <div>
                     <span className="text-slate-400 font-semibold block text-xs">River / Landscape</span>
@@ -233,7 +233,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
                   {park.famousWildlife.map((animal, aIdx) => (
                     <span
                       key={aIdx}
-                      className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 hover:bg-red-50 hover:border-red-300 transition-colors"
+                      className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-[#2b1118] text-slate-800 border border-slate-200 hover:bg-red-50 hover:border-red-300 transition-colors"
                     >
                       {animal}
                     </span>
@@ -254,7 +254,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
       </div>
 
       {/* Bottom Floating Bar */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-[#0f0f12] rounded-2xl p-5 border border-slate-200 shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">
             Ready to test your cumulative knowledge of {stateInfo.stateName}?

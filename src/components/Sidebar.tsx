@@ -178,7 +178,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`fixed top-0 bottom-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out flex flex-col ${
           isStudent
-            ? 'bg-white border-r border-red-100 text-slate-800 shadow-xl lg:shadow-none'
+            ? 'bg-[#0f0f12] border-r border-red-100 text-slate-800 shadow-xl lg:shadow-none'
             : 'bg-slate-950 border-r border-slate-800 text-slate-200 shadow-2xl lg:shadow-none'
         } ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -217,7 +217,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onClose}
             className={`p-1.5 rounded-xl lg:hidden transition-colors ${
-              isStudent ? 'hover:bg-slate-100 text-slate-500' : 'hover:bg-slate-800 text-slate-400'
+              isStudent ? 'hover:bg-[#2b1118] text-slate-500' : 'hover:bg-slate-800 text-slate-400'
             }`}
             aria-label="Close Navigation"
           >
@@ -227,7 +227,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* User Card */}
         <div className={`px-5 py-3.5 border-b text-xs flex items-center justify-between ${
-          isStudent ? 'border-slate-100 bg-slate-50/50' : 'border-slate-800/80 bg-slate-900/30'
+          isStudent ? 'border-slate-100 bg-[#241014]/50' : 'border-slate-800/80 bg-slate-900/30'
         }`}>
           <div className="truncate">
             <div className={`font-bold truncate ${isStudent ? 'text-slate-900' : 'text-slate-100'}`}>
@@ -311,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Sidebar Footer: Settings & Sign Out */}
         <div className={`p-4 border-t space-y-2 ${
-          isStudent ? 'border-red-100/80 bg-slate-50/40' : 'border-slate-800 bg-slate-900/40'
+          isStudent ? 'border-red-100/80 bg-[#241014]/40' : 'border-slate-800 bg-slate-900/40'
         }`}>
           <button
             onClick={() => {
@@ -320,7 +320,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
               isStudent
-                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-[#2b1118]'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >

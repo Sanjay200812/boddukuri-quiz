@@ -59,7 +59,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#0f0f12] w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -79,7 +79,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-[#2b1118] text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -93,7 +93,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <span>Learning Session</span>
             </h3>
 
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white border border-red-300">
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0f0f12] border border-red-300">
               <span className={`w-2 h-2 rounded-full ${
                 syncStatus === 'synced' ? 'bg-red-700' : syncStatus === 'offline' ? 'bg-slate-400' : 'bg-amber-500 animate-pulse'
               }`} />
@@ -116,7 +116,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="button"
                 onClick={onSyncNow}
-                className="px-3 py-1.5 rounded-xl bg-white border border-red-300 text-red-900 hover:bg-red-50 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-[#0f0f12] border border-red-300 text-red-900 hover:bg-red-50 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Sync Cloud Now</span>
@@ -136,7 +136,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={studentNameInput}
               onChange={(e) => setStudentNameInput(e.target.value)}
               placeholder="Mahi"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-800"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-[#0f0f12] text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-800"
             />
             <p className="text-[11px] text-slate-400 mt-1">
               Displayed on your dashboard and achievement reports.

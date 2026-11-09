@@ -87,7 +87,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-rose-200 shadow-card space-y-6">
+    <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border-2 border-rose-200 shadow-card space-y-6">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
@@ -110,11 +110,11 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold self-stretch sm:self-auto justify-center">
+        <div className="flex items-center bg-[#2b1118] p-1 rounded-xl text-xs font-semibold self-stretch sm:self-auto justify-center">
           <button
             onClick={() => setFilterType('all')}
             className={`px-3 py-1 rounded-lg transition-all ${
-              filterType === 'all' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600'
+              filterType === 'all' ? 'bg-[#0f0f12] text-slate-900 shadow-xs font-bold' : 'text-slate-600'
             }`}
           >
             All ({allMistakes.length})
@@ -122,7 +122,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
           <button
             onClick={() => setFilterType('incorrect')}
             className={`px-3 py-1 rounded-lg transition-all ${
-              filterType === 'incorrect' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600'
+              filterType === 'incorrect' ? 'bg-[#0f0f12] text-slate-900 shadow-xs font-bold' : 'text-slate-600'
             }`}
           >
             Incorrect ({attempt.incorrectCount})
@@ -131,7 +131,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
             <button
               onClick={() => setFilterType('unanswered')}
               className={`px-3 py-1 rounded-lg transition-all ${
-                filterType === 'unanswered' ? 'bg-white text-slate-900 shadow-xs font-bold' : 'text-slate-600'
+                filterType === 'unanswered' ? 'bg-[#0f0f12] text-slate-900 shadow-xs font-bold' : 'text-slate-600'
               }`}
             >
               Skipped ({attempt.unansweredCount})
@@ -159,7 +159,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
                   <span className="w-7 h-7 rounded-lg bg-slate-900 text-white font-black text-xs flex items-center justify-center">
                     {questionNumber < 10 ? `0${questionNumber}` : questionNumber}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-white text-slate-700 border border-slate-200">
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#0f0f12] text-slate-700 border border-slate-200">
                     {question.state}
                   </span>
                   {question.parkName && (
@@ -180,7 +180,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
 
                   <button
                     onClick={() => toggleReveal(question.id)}
-                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-white transition-colors"
+                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-[#0f0f12] transition-colors"
                     title={isTestingHidden ? 'Reveal Answer' : 'Hide Answer to test yourself'}
                   >
                     {isTestingHidden ? (
@@ -247,14 +247,14 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
 
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-slate-100 text-center text-xs text-slate-600 italic">
+                <div className="p-4 rounded-xl bg-[#2b1118] text-center text-xs text-slate-600 italic">
                   Answers hidden for self-testing. Can you recall the correct answer? Click "Reveal Answer" above to check!
                 </div>
               )}
 
               {/* Explanation & Key Fact Box */}
               {!isTestingHidden && (
-                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
+                <div className="p-4 rounded-xl bg-[#0f0f12] border border-slate-200 shadow-xs space-y-2">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-red-900">
                     <Sparkles className="w-4 h-4 text-red-800" />
                     <span>Why this is correct & Fact Sheet:</span>

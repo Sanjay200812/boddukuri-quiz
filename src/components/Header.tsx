@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-red-100 shadow-sm transition-all">
+    <header className="sticky top-0 z-30 bg-[#0f0f12]/95 backdrop-blur-md border-b border-red-100 shadow-sm transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
 
@@ -87,13 +87,13 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Navigation Links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-1 bg-slate-50/80 p-1 rounded-xl border border-slate-200/60">
+          <nav className="hidden md:flex items-center gap-1 bg-[#241014]/80 p-1 rounded-xl border border-slate-200/60">
             <button
               onClick={() => onNavigate('dashboard')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                 currentView === 'dashboard'
-                  ? 'bg-white text-red-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                  ? 'bg-[#0f0f12] text-red-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#2b1118]/60'
               }`}
             >
               <Home className="w-4 h-4" />
@@ -103,8 +103,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('progress')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                 currentView === 'progress'
-                  ? 'bg-white text-red-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                  ? 'bg-[#0f0f12] text-red-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#2b1118]/60'
               }`}
             >
               <BarChart3 className="w-4 h-4" />
@@ -114,8 +114,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('study')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                 currentView === 'study'
-                  ? 'bg-white text-red-900 shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                  ? 'bg-[#0f0f12] text-red-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#2b1118]/60'
               }`}
             >
               <BookOpen className="w-4 h-4" />
@@ -131,7 +131,7 @@ export const Header: React.FC<HeaderProps> = ({
               className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold shadow-sm transition-all ${
                 streakDays > 0
                   ? 'bg-amber-50 text-amber-900 border-amber-200 shadow-amber-500/5'
-                  : 'bg-slate-50 text-slate-500 border-slate-200'
+                  : 'bg-[#241014] text-slate-500 border-slate-200'
               }`}
             >
               <Flame className={`w-4 h-4 ${streakDays > 0 ? 'text-amber-500 fill-amber-500 animate-pulse' : 'text-slate-400'}`} />
@@ -170,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Cloud Sync Status Indicator */}
             <div
               title={`Cloud sync: ${syncStatus}${userEmail ? ` (${userEmail})` : ''}`}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#241014] border border-slate-200 text-xs font-semibold text-slate-700"
             >
               <span className={`w-2 h-2 rounded-full ${
                 syncStatus === 'synced'

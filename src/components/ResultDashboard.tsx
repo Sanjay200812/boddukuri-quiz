@@ -146,7 +146,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-red-500/15 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-red-300 text-xs sm:text-sm font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0f0f12]/10 backdrop-blur-md border border-white/20 text-red-300 text-xs sm:text-sm font-semibold">
             <Sparkles className="w-4 h-4 text-red-400" />
             <span>Boddukuri's Quiz #Mahi</span>
           </div>
@@ -166,7 +166,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
           {/* Performance Badge */}
           <div className="pt-2">
-            <span className="inline-block px-5 py-2 rounded-2xl bg-white text-red-950 font-black text-lg sm:text-xl shadow-lg border border-red-100">
+            <span className="inline-block px-5 py-2 rounded-2xl bg-[#0f0f12] text-red-950 font-black text-lg sm:text-xl shadow-lg border border-red-100">
               🏆 Performance: {attempt.performanceMessage}
             </span>
           </div>
@@ -176,7 +176,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
       {/* Freshly Unlocked Badges Celebration */}
       {freshBadges.length > 0 && (
         <div className="rounded-3xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-400 p-1 shadow-lg animate-scaleUp">
-          <div className="bg-white rounded-[22px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-[#0f0f12] rounded-[22px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4 text-center sm:text-left">
               <div className="w-14 h-14 rounded-2xl bg-amber-100 border border-amber-300 text-3xl flex items-center justify-center shrink-0 shadow-sm animate-bounce">
                 {freshBadges[0].icon}
@@ -202,7 +202,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
       )}
 
       {/* Main Score Visualization & Key Metrics */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card">
+      <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card">
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
 
@@ -263,7 +263,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3">
 
             {/* Total Questions */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div className="bg-[#241014] p-4 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1">
                 <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
                 Total Questions
@@ -296,7 +296,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             </div>
 
             {/* Unanswered */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div className="bg-[#241014] p-4 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1">
                 <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
                 Unanswered
@@ -318,7 +318,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             </div>
 
             {/* Time Taken */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+            <div className="bg-[#241014] p-4 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1">
                 <Clock className="w-3.5 h-3.5 text-slate-400" />
                 Time Taken
@@ -336,7 +336,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
       {/* State-by-State Cumulative Recall Breakdown */}
       {attempt.stateBreakdown && attempt.stateBreakdown.length > 0 && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-4">
+        <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MapPin className="w-5 h-5 text-red-900" />
@@ -349,14 +349,14 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {attempt.stateBreakdown.map((sb, idx) => (
-              <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div key={idx} className="p-3.5 rounded-2xl bg-[#241014] border border-slate-200/80 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 text-xs sm:text-sm">{sb.stateName}</span>
                   <span className="font-black text-red-900 text-xs">
                     {sb.correct}/{sb.total}
                   </span>
                 </div>
-                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[#3a1822] h-2 rounded-full overflow-hidden">
                   <div
                     className="bg-red-800 h-full rounded-full transition-all"
                     style={{ width: `${sb.percentage}%` }}
@@ -396,7 +396,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
       </div>
 
       {/* WHATSAPP RESULT SHARING SECTION */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-red-700/30 shadow-card space-y-4">
+      <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border-2 border-red-700/30 shadow-card space-y-4">
         <div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <span>🌿</span>
@@ -427,7 +427,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           {/* Native Web Share Button */}
           <button
             onClick={handleNativeShare}
-            className="px-5 py-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition-colors flex items-center justify-center gap-2"
+            className="px-5 py-4 rounded-2xl bg-[#2b1118] hover:bg-[#3a1822] text-slate-800 font-bold text-sm transition-colors flex items-center justify-center gap-2"
           >
             <Share2 className="w-4 h-4 text-slate-600" />
             <span>Share</span>
@@ -439,7 +439,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             className={`px-5 py-4 rounded-2xl border font-bold text-sm transition-all flex items-center justify-center gap-2 ${
               copied
                 ? 'bg-red-50 border-red-400 text-red-900'
-                : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                : 'bg-[#0f0f12] border-slate-200 text-slate-700 hover:bg-[#241014]'
             }`}
           >
             {copied ? (
@@ -520,7 +520,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
           <button
             onClick={onGoHome}
-            className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-800 font-bold text-sm hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-[#0f0f12] border border-slate-200 text-slate-800 font-bold text-sm hover:bg-[#241014] transition-colors shadow-sm flex items-center justify-center gap-2"
           >
             <Home className="w-4 h-4 text-slate-600" />
             <span>Home</span>

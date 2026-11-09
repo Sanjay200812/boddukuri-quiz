@@ -1684,7 +1684,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               : 'bg-red-950/80 text-red-400 border-red-900/80 hover:bg-red-950';
                           } else if (isUnanswered) {
                             badgeColor = isActiveNav
-                              ? 'bg-slate-200 text-slate-950 border-white ring-2 ring-slate-400'
+                              ? 'bg-[#3a1822] text-slate-950 border-white ring-2 ring-slate-400'
                               : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-700';
                           } else {
                             badgeColor = isActiveNav

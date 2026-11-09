@@ -21,7 +21,7 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
   const hasPracticedToday = todayItem?.completed ?? false;
 
   return (
-    <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-card hover:border-red-300 transition-all">
+    <div className="bg-[#0f0f12] rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-card hover:border-red-300 transition-all">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
 
         {/* Left: Streak Counter */}
@@ -29,7 +29,7 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md ${
             currentStreak > 0
               ? 'bg-gradient-to-tr from-amber-500 to-orange-500 shadow-amber-500/20'
-              : 'bg-slate-200 text-slate-400'
+              : 'bg-[#3a1822] text-slate-400'
           }`}>
             <Flame className={`w-7 h-7 ${currentStreak > 0 ? 'fill-white animate-bounce' : 'text-slate-400'}`} />
           </div>
@@ -84,7 +84,7 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
                     : 'bg-amber-50 text-amber-950 border-amber-300 ring-2 ring-amber-200 animate-pulse'
                   : day.completed
                   ? 'bg-red-50 text-red-950 border-red-300'
-                  : 'bg-slate-50 text-slate-400 border-slate-100'
+                  : 'bg-[#241014] text-slate-400 border-slate-100'
               }`}
             >
               <span className="text-[10px] font-bold uppercase tracking-wider mb-1">

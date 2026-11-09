@@ -63,7 +63,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
         {/* Backup / Settings Shortcut */}
         <button
           onClick={onOpenSettings}
-          className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm hover:bg-slate-50 shadow-xs flex items-center gap-2"
+          className="px-4 py-2 rounded-xl bg-[#0f0f12] border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm hover:bg-[#241014] shadow-xs flex items-center gap-2"
         >
           <Download className="w-4 h-4 text-red-800" />
           <span>Export / Backup Data</span>
@@ -73,13 +73,13 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
       {/* High Level Progress Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-card">
+        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-slate-200/90 shadow-card">
           <div className="text-xs font-semibold text-slate-500 mb-1">States Learned</div>
           <div className="text-3xl font-black text-slate-900">{overallProgress.totalStatesLearned}</div>
           <div className="text-[11px] text-slate-400 mt-1">Unique states mastered</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-card">
+        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-slate-200/90 shadow-card">
           <div className="text-xs font-semibold text-slate-500 mb-1">Completed Days</div>
           <div className="text-3xl font-black text-red-900">
             {overallProgress.totalCompletedDays} <span className="text-xs text-slate-400 font-normal">/ {DAILY_SCHEDULE.length}</span>
@@ -87,7 +87,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
           <div className="text-[11px] text-slate-400 mt-1">Daily pathways cleared</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-card">
+        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-slate-200/90 shadow-card">
           <div className="text-xs font-semibold text-slate-500 mb-1">Overall Accuracy</div>
           <div className="text-3xl font-black text-red-800">
             {overallProgress.overallAccuracy}%
@@ -95,7 +95,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
           <div className="text-[11px] text-slate-400 mt-1">Across all best scores</div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-card">
+        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-card">
           <div className="text-xs font-bold text-amber-900 mb-1 flex items-center gap-1">
             <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
             Learning Streak
@@ -109,7 +109,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
       </div>
 
       {/* Day by Day Mastery Breakdown */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-5">
+      <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-5">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <MapPin className="w-5 h-5 text-red-900" />
@@ -131,7 +131,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
                 className={`p-4 rounded-2xl border transition-all ${
                   isCompleted
                     ? 'border-red-300 bg-red-50/20'
-                    : 'border-slate-200 bg-slate-50/50'
+                    : 'border-slate-200 bg-[#241014]/50'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -169,7 +169,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
                       </strong>
                     </div>
                     {/* Score Bar */}
-                    <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-[#3a1822] h-2 rounded-full overflow-hidden">
                       <div
                         className={`h-full rounded-full ${
                           best.percentage >= 80 ? 'bg-red-800' : best.percentage >= 60 ? 'bg-amber-500' : 'bg-rose-500'
@@ -208,7 +208,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
       </div>
 
       {/* Complete Attempts Log */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-5">
+      <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
             <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -259,7 +259,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
                   const secs = att.timeTakenSeconds % 60;
 
                   return (
-                    <tr key={att.id} className="hover:bg-slate-50/80 transition-colors">
+                    <tr key={att.id} className="hover:bg-[#241014]/80 transition-colors">
                       <td className="py-3.5 font-medium text-slate-500 whitespace-nowrap">
                         {att.formattedDate}
                       </td>
@@ -289,7 +289,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
                       <td className="py-3.5 text-right whitespace-nowrap">
                         <button
                           onClick={() => onSelectAttempt(att)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-red-50 hover:text-red-900 text-slate-700 font-bold text-xs transition-colors inline-flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-xl bg-[#2b1118] hover:bg-red-50 hover:text-red-900 text-slate-700 font-bold text-xs transition-colors inline-flex items-center gap-1"
                         >
                           <FileText className="w-3.5 h-3.5" />
                           Answers

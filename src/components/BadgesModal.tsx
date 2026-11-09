@@ -29,7 +29,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
       <div
-        className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scaleUp"
+        className="bg-[#0f0f12] w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scaleUp"
         onClick={e => e.stopPropagation()}
       >
 
@@ -37,7 +37,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
         <div className="relative bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-8">
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="absolute top-5 right-5 p-2 rounded-full bg-[#0f0f12]/10 hover:bg-[#0f0f12]/20 text-white transition-colors"
             title="Close"
           >
             <X className="w-5 h-5" />
@@ -62,7 +62,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
               <span>Overall Progress</span>
               <span className="text-white">{unlockedCount} of {totalBadges} Badges Unlocked ({unlockPercentage}%)</span>
             </div>
-            <div className="w-full bg-white/20 h-2.5 rounded-full overflow-hidden">
+            <div className="w-full bg-[#0f0f12]/20 h-2.5 rounded-full overflow-hidden">
               <div
                 className="bg-gradient-to-r from-red-600 to-red-400 h-full rounded-full transition-all duration-700"
                 style={{ width: `${unlockPercentage}%` }}
@@ -72,7 +72,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
         </div>
 
         {/* Filter Pills */}
-        <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto scrollbar-thin text-xs font-semibold">
+        <div className="px-6 py-3 bg-[#241014] border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto scrollbar-thin text-xs font-semibold">
           <span className="text-slate-400 flex items-center gap-1 mr-1">
             <Filter className="w-3.5 h-3.5" /> Filter:
           </span>
@@ -83,7 +83,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
               className={`px-3 py-1.5 rounded-xl capitalize transition-all ${
                 selectedCategory === cat
                   ? 'bg-red-900 text-white font-bold shadow-xs'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                  : 'bg-[#0f0f12] text-slate-600 border border-slate-200 hover:bg-[#2b1118]'
               }`}
             >
               {cat === 'all' ? 'All Badges' : cat}
@@ -102,15 +102,15 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
                   key={badge.id}
                   className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 ${
                     isUnlocked
-                      ? 'bg-gradient-to-br from-white to-red-50/40 border-red-400 shadow-sm ring-1 ring-red-100'
-                      : 'bg-slate-50/60 border-slate-200 text-slate-400'
+                      ? 'bg-gradient-to-br from-[#0f0f12] to-red-50/40 border-red-400 shadow-sm ring-1 ring-red-100'
+                      : 'bg-[#241014]/60 border-slate-200 text-slate-400'
                   }`}
                 >
                   {/* Badge Icon */}
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-sm ${
                     isUnlocked
                       ? 'bg-red-100 border border-red-400 text-red-950'
-                      : 'bg-slate-200 border border-slate-300 text-slate-400 grayscale opacity-60'
+                      : 'bg-[#3a1822] border border-slate-300 text-slate-400 grayscale opacity-60'
                   }`}>
                     {badge.icon}
                   </div>
@@ -126,7 +126,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
                           <CheckCircle2 className="w-3 h-3 text-red-800" /> Unlocked
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-[#3a1822] px-2 py-0.5 rounded-full">
                           <Lock className="w-3 h-3" /> Locked
                         </span>
                       )}
@@ -143,7 +143,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
                           <span>Hint: {badge.rewardHint}</span>
                           <span className="font-bold text-slate-700">{badge.currentProgress || 0} / {badge.targetProgress}</span>
                         </div>
-                        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-[#3a1822] h-1.5 rounded-full overflow-hidden">
                           <div
                             className="bg-slate-400 h-full rounded-full"
                             style={{ width: `${Math.min(100, Math.round(((badge.currentProgress || 0) / badge.targetProgress) * 100))}%` }}
@@ -159,7 +159,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+        <div className="px-6 py-4 bg-[#241014] border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <span>Keep learning every day, Mahi! 💚</span>
           <button
             onClick={onClose}

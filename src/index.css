@@ -35,25 +35,25 @@
 
 /* Black + maroon product theme: keep white utility classes from becoming
    accidental light surfaces while preserving readable status colors. */
-[class*="bg-white"] {
+[class*="bg-[#0f0f12]"] {
   background-color: #0f0f12 !important;
 }
 
-[class*="from-white"],
-[class*="to-white"] {
+[class*="from-[#0f0f12]"],
+[class*="to-[#0f0f12]"] {
   --tw-gradient-from: #0f0f12 !important;
   --tw-gradient-to: rgb(15 15 18 / 0) !important;
 }
 
-[class*="bg-slate-50"] {
+[class*="bg-[#241014]"] {
   background-color: #241014 !important;
 }
 
-[class*="bg-slate-100"] {
+[class*="bg-[#2b1118]"] {
   background-color: #2b1118 !important;
 }
 
-[class*="bg-slate-200"] {
+[class*="bg-[#3a1822]"] {
   background-color: #3a1822 !important;
 }
 

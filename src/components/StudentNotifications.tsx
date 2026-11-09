@@ -77,11 +77,11 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
     <div className="max-w-4xl mx-auto space-y-6 pb-16 animate-fadeIn">
 
       {/* Top Header Card */}
-      <div className="rounded-3xl bg-white border border-red-100 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-[#0f0f12] border border-red-100 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
             onClick={onGoHome}
-            className="p-2.5 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-colors"
+            className="p-2.5 rounded-2xl bg-[#241014] hover:bg-[#2b1118] border border-slate-200 text-slate-700 transition-colors"
             title="Back to Dashboard"
             aria-label="Back to Dashboard"
           >
@@ -110,11 +110,11 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-          <div className="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+          <div className="flex bg-[#2b1118] p-1 rounded-xl text-xs font-semibold">
             <button
               onClick={() => setFilter('all')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                filter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                filter === 'all' ? 'bg-[#0f0f12] text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               All ({notifications.length})
@@ -122,7 +122,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
             <button
               onClick={() => setFilter('unread')}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                filter === 'unread' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                filter === 'unread' ? 'bg-[#0f0f12] text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               Unread ({unreadCount})
@@ -143,7 +143,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
 
       {/* Notifications List */}
       {filteredList.length === 0 ? (
-        <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center space-y-3">
+        <div className="rounded-3xl bg-[#0f0f12] border border-slate-200/80 p-12 text-center space-y-3">
           <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-800 flex items-center justify-center mx-auto shadow-inner">
             <Inbox className="w-7 h-7" />
           </div>
@@ -175,7 +175,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
                 className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                   isUnread
                     ? 'bg-red-50/40 border-red-300 ring-1 ring-red-400/60 shadow-sm'
-                    : 'bg-white border-slate-200/80 hover:border-slate-300'
+                    : 'bg-[#0f0f12] border-slate-200/80 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-start gap-3.5 flex-1">

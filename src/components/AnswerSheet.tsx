@@ -72,13 +72,13 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
     <div className="max-w-4xl mx-auto space-y-6 pb-24 animate-fadeIn">
 
       {/* Top Header & Sticky Navigation */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-soft space-y-4">
+      <div className="bg-[#0f0f12] rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-soft space-y-4">
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToResult}
-              className="p-2.5 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors"
+              className="p-2.5 rounded-2xl border border-slate-200 text-slate-700 hover:bg-[#2b1118] transition-colors"
               title="Back to Score Summary"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -102,14 +102,14 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => generateDayNotesPDF(quiz)}
-              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-[#0f0f12] border border-slate-200 text-slate-700 hover:bg-[#2b1118] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
               title="Download full revision notes and explanations PDF"
             >
               <Download className="w-3.5 h-3.5 text-red-800" />
               <span>Download PDF</span>
             </button>
 
-            <div className="flex items-center gap-3 bg-slate-50 px-4 py-1.5 rounded-2xl border border-slate-200 text-xs">
+            <div className="flex items-center gap-3 bg-[#241014] px-4 py-1.5 rounded-2xl border border-slate-200 text-xs">
               <div>
                 <span className="text-slate-400">Score:</span>{' '}
                 <strong className="text-red-900 text-sm">{attempt.marksObtained}/{attempt.maxMarks}</strong>
@@ -133,7 +133,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
               className={`px-3 py-1.5 rounded-xl transition-all ${
                 statusFilter === 'all'
                   ? 'bg-slate-900 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-[#2b1118] text-slate-600 hover:bg-[#3a1822]'
               }`}
             >
               All ({questions.length})
@@ -165,7 +165,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
               className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
                 statusFilter === 'unanswered'
                   ? 'bg-slate-700 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-[#2b1118] text-slate-600 hover:bg-[#3a1822]'
               }`}
             >
               <MinusCircle className="w-3.5 h-3.5" />
@@ -185,22 +185,22 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
           </div>
 
           {/* Section Filter */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold self-start sm:self-auto">
+          <div className="flex items-center gap-1 bg-[#2b1118] p-1 rounded-xl text-xs font-semibold self-start sm:self-auto">
             <button
               onClick={() => setSectionFilter('all')}
-              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'all' ? 'bg-[#0f0f12] text-slate-900 shadow-xs' : 'text-slate-500'}`}
             >
               Both Sections
             </button>
             <button
               onClick={() => setSectionFilter('previous')}
-              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'previous' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'previous' ? 'bg-[#0f0f12] text-slate-900 shadow-xs' : 'text-slate-500'}`}
             >
               Section A (Recall)
             </button>
             <button
               onClick={() => setSectionFilter('new')}
-              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'new' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'new' ? 'bg-[#0f0f12] text-slate-900 shadow-xs' : 'text-slate-500'}`}
             >
               Section B (New)
             </button>
@@ -213,7 +213,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
       {/* Questions Breakdown List */}
       <div className="space-y-5">
         {filteredQuestions.length === 0 ? (
-          <div className="bg-white rounded-3xl p-10 text-center border border-slate-200 text-slate-500 space-y-2">
+          <div className="bg-[#0f0f12] rounded-3xl p-10 text-center border border-slate-200 text-slate-500 space-y-2">
             <HelpCircle className="w-10 h-10 mx-auto text-slate-300" />
             <h4 className="font-bold text-slate-700">No questions match the selected filter</h4>
             <p className="text-xs">Try switching filters above to see more questions.</p>
@@ -232,11 +232,11 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
             return (
               <div
                 key={question.id}
-                className={`bg-white rounded-3xl p-6 sm:p-7 border-2 transition-all space-y-5 shadow-soft ${
+                className={`bg-[#0f0f12] rounded-3xl p-6 sm:p-7 border-2 transition-all space-y-5 shadow-soft ${
                   isCorrect
-                    ? 'border-red-300 bg-gradient-to-b from-white to-red-50/10'
+                    ? 'border-red-300 bg-gradient-to-b from-[#0f0f12] to-red-50/10'
                     : isIncorrect
-                    ? 'border-rose-200 bg-gradient-to-b from-white to-rose-50/10'
+                    ? 'border-rose-200 bg-gradient-to-b from-[#0f0f12] to-rose-50/10'
                     : 'border-slate-200'
                 }`}
               >
@@ -266,7 +266,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                       className={`p-1.5 rounded-xl border transition-all ${
                         bookmarksList.includes(question.id)
                           ? 'bg-amber-100 border-amber-300 text-amber-800'
-                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700'
+                          : 'bg-[#241014] border-slate-200 text-slate-400 hover:text-slate-700'
                       }`}
                       title={bookmarksList.includes(question.id) ? 'Remove Bookmark' : 'Bookmark this question'}
                     >
@@ -286,7 +286,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                       </span>
                     )}
                     {isUnanswered && (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#2b1118] text-slate-600 border border-slate-200">
                         <MinusCircle className="w-3.5 h-3.5 text-slate-500" />
                         Unanswered
                       </span>
@@ -311,7 +311,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                     const isUserPick = optIdx === selectedOption;
                     const letters = ['A', 'B', 'C', 'D'];
 
-                    let optionStyle = 'border-slate-200 bg-slate-50/50 text-slate-700';
+                    let optionStyle = 'border-slate-200 bg-[#241014]/50 text-slate-700';
                     let badge = null;
 
                     if (isOptionCorrect) {
@@ -340,7 +340,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                             ? 'bg-red-800 text-white'
                             : isUserPick && !isOptionCorrect
                             ? 'bg-rose-600 text-white'
-                            : 'bg-white border border-slate-300 text-slate-600'
+                            : 'bg-[#0f0f12] border border-slate-300 text-slate-600'
                         }`}>
                           {letters[optIdx]}
                         </span>
@@ -370,13 +370,13 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                   {(question.establishedYear || question.district || question.keyFeature) && (
                     <div className="pt-2 flex flex-wrap items-center gap-2 text-[11px] text-red-900">
                       {question.establishedYear && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-red-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#0f0f12] border border-red-300">
                           <Calendar className="w-3 h-3 text-red-800" />
                           Est. {question.establishedYear}
                         </span>
                       )}
                       {question.district && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-red-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#0f0f12] border border-red-300">
                           <MapPin className="w-3 h-3 text-red-800" />
                           {question.district}
                         </span>
@@ -392,10 +392,10 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
       </div>
 
       {/* Bottom Sticky Action Bar */}
-      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-4 border border-slate-200 shadow-elevated flex flex-wrap items-center justify-between gap-3">
+      <div className="sticky bottom-4 z-20 bg-[#0f0f12]/95 backdrop-blur-md rounded-2xl p-4 border border-slate-200 shadow-elevated flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={onBackToResult}
-          className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs sm:text-sm transition-colors flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-[#2b1118] hover:bg-[#3a1822] text-slate-800 font-bold text-xs sm:text-sm transition-colors flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Results
@@ -404,7 +404,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={onReattempt}
-            className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-bold text-xs sm:text-sm transition-colors shadow-xs flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-[#0f0f12] border border-slate-200 hover:bg-[#241014] text-slate-800 font-bold text-xs sm:text-sm transition-colors shadow-xs flex items-center gap-1.5"
           >
             <RotateCcw className="w-4 h-4" />
             Reattempt

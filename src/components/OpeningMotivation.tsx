@@ -76,7 +76,7 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
 
         <button
           onClick={onComplete}
-          className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs text-red-100 font-bold transition-all flex items-center gap-1.5 border border-white/15"
+          className="px-3.5 py-1.5 rounded-xl bg-[#0f0f12]/10 hover:bg-[#0f0f12]/20 active:scale-95 text-xs text-red-100 font-bold transition-all flex items-center gap-1.5 border border-white/15"
           title="Skip to learning portal"
         >
           <span>Skip</span>
@@ -112,7 +112,7 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
 
         {isFinished && (
           <div className="pt-6 animate-scaleUp">
-            <div className="p-4 rounded-2xl bg-white/10 border border-red-700/30 backdrop-blur-md mb-6">
+            <div className="p-4 rounded-2xl bg-[#0f0f12]/10 border border-red-700/30 backdrop-blur-md mb-6">
               <p className="text-xs sm:text-sm text-red-300 font-medium leading-relaxed flex items-center gap-2">
                 <Heart className="w-4 h-4 text-red-600 fill-red-600 shrink-0" />
                 <span>Every single day of learning is a step toward your highest achievement.</span>
@@ -136,7 +136,7 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
           <span>Daily Awakening Motivation</span>
           <span>{Math.min(100, Math.round(((currentLineIndex + 1) / lines.length) * 100))}%</span>
         </div>
-        <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+        <div className="w-full bg-[#0f0f12]/10 h-1 rounded-full overflow-hidden">
           <div
             className="bg-red-600 h-full rounded-full transition-all duration-500 ease-out"
             style={{ width: `${Math.min(100, Math.round(((currentLineIndex + 1) / lines.length) * 100))}%` }}
