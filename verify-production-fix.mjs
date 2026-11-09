@@ -20,7 +20,7 @@ console.log('✓ 1. Day 01 baseline attempt restoration and day management funct
 const dashboardCode = fs.readFileSync('src/components/Dashboard.tsx', 'utf8');
 assert(dashboardCode.includes('isInProgress = isUnlocked && !isCompleted && status === \'in-progress\''), 'isInProgress must require isUnlocked and !isCompleted');
 assert(dashboardCode.includes('clearInProgressQuiz(dayQuiz.id)'), 'Dashboard must auto-clear stale in-progress sessions for locked or completed days');
-assert(dashboardCode.includes('Unlocks at 8:29 PM IST'), 'Dashboard must show locked 8:29 PM IST button when locked');
+assert(dashboardCode.includes('Unlocks at 8:30 PM IST'), 'Dashboard must show the student-facing 8:30 PM IST unlock time');
 console.log('✓ 2. Strict day locking and in-progress session cleanup verified (Locked days never show Resume Quiz).');
 
 // 3. Verify Dedicated Student Notifications Component & Routing

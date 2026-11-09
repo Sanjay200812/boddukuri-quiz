@@ -307,7 +307,8 @@ export const App: React.FC = () => {
         setCurrentView('dashboard');
         break;
       case 'today-quiz':
-        handleStartQuiz(activeQuizId || 'day-01');
+        setCurrentView('dashboard');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
       case 'progress':
         setCurrentView('progress');

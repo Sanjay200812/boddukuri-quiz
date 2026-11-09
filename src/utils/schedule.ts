@@ -185,6 +185,36 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     totalQuestions: 14,
     isPublished: false,
     statusLabel: 'Scheduled'
+  },
+  {
+    dayNumber: 8,
+    quizId: 'semi-final',
+    title: 'Semi-Final Test',
+    theme: 'Comprehensive all-state assessment',
+    dateStr: '16-11-2026',
+    displayDate: '16 November 2026',
+    unlockIsoUTC: '2026-11-16T14:59:00Z',
+    states: ALL_28_STATES,
+    newStates: ALL_28_STATES,
+    totalQuestions: 40,
+    isPublished: false,
+    statusLabel: 'Locked',
+    isSpecialTest: true
+  },
+  {
+    dayNumber: 9,
+    quizId: 'grand-final',
+    title: 'Grand Test',
+    theme: 'Final all-state championship assessment',
+    dateStr: '17-11-2026',
+    displayDate: '17 November 2026',
+    unlockIsoUTC: '2026-11-17T14:59:00Z',
+    states: ALL_28_STATES,
+    newStates: ALL_28_STATES,
+    totalQuestions: 50,
+    isPublished: false,
+    statusLabel: 'Locked',
+    isSpecialTest: true
   }
 ];
 
@@ -323,7 +353,7 @@ export function getDayCountdown(dayNumberOrId: number | string, completedDayIds:
       seconds: 0,
       totalSeconds: 0,
       formattedCountdown: 'Available Now',
-      unlockTimeFormatted: '8:29 PM IST'
+      unlockTimeFormatted: '8:30 PM IST'
     };
   }
 
@@ -342,7 +372,7 @@ export function getDayCountdown(dayNumberOrId: number | string, completedDayIds:
       seconds: 0,
       totalSeconds: 0,
       formattedCountdown: 'Scheduled (Locked by Admin)',
-      unlockTimeFormatted: '8:29 PM IST'
+      unlockTimeFormatted: '8:30 PM IST'
     };
   }
 
@@ -362,7 +392,7 @@ export function getDayCountdown(dayNumberOrId: number | string, completedDayIds:
     seconds,
     totalSeconds,
     formattedCountdown: `${hStr}h ${mStr}m ${sStr}s`,
-    unlockTimeFormatted: '8:29 PM IST'
+    unlockTimeFormatted: '8:30 PM IST'
   };
 }
 

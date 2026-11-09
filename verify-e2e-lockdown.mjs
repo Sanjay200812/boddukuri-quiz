@@ -177,9 +177,11 @@ assert.strictEqual(isUnlockedLockedDay, false, 'Direct access to day-02 blocked'
 console.log('✓ Scenario 15 PASSED: Direct access to locked days strictly blocked.');
 
 // SCENARIO 16: No existing features or stored data broken
-assert.strictEqual(ALL_SCHEDULED_QUIZZES.length, 7, 'Exactly 7 daily quizzes in syllabus');
+assert.strictEqual(ALL_SCHEDULED_QUIZZES.length, 9, 'Exactly 7 daily quizzes plus 2 locked final tests in syllabus');
 assert.strictEqual(day01Quiz.totalQuestions, 30, 'Day 01 has 30 questions');
-console.log('✓ Scenario 16 PASSED: All 7 days and national park questions intact without regressions.');
+assert.strictEqual(ALL_SCHEDULED_QUIZZES.find(q => q.id === 'day-08')?.totalQuestions, 40, 'Semi-Final has 40 questions');
+assert.strictEqual(ALL_SCHEDULED_QUIZZES.find(q => q.id === 'day-09')?.totalQuestions, 50, 'Grand Test has 50 questions');
+console.log('✓ Scenario 16 PASSED: Seven daily quizzes plus locked 40-question and 50-question final tests are intact.');
 
 console.log('\n======================================================================');
 console.log('ALL 16 END-TO-END LOCKDOWN TEST SCENARIOS PASSED WITH ZERO ERRORS! 🚀');

@@ -178,7 +178,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <aside
         className={`fixed top-0 bottom-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out flex flex-col ${
           isStudent
-            ? 'bg-[#0f0f12] border-r border-red-100 text-slate-800 shadow-xl lg:shadow-none'
+            ? 'bg-[#0b0b0d] border-r border-red-950 text-stone-200 shadow-xl lg:shadow-none'
             : 'bg-slate-950 border-r border-slate-800 text-slate-200 shadow-2xl lg:shadow-none'
         } ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -257,12 +257,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left group ${
                       isActive
                         ? 'bg-red-900 text-white shadow-sm shadow-red-900/20'
-                        : 'text-slate-600 hover:text-red-900 hover:bg-red-50/70'
+                        : item.id === 'today-quiz'
+                          ? 'text-stone-300 bg-[#241014] border border-red-950 hover:text-white hover:bg-[#3a1822]'
+                          : 'text-stone-300 hover:text-red-300 hover:bg-[#241014]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-red-900'
+                        isActive ? 'text-white' : 'text-stone-400 group-hover:text-red-300'
                       }`} />
                       <span>{item.label}</span>
                     </div>

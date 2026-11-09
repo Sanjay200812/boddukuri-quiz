@@ -97,6 +97,24 @@ export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
     statusLabel: 'Locked',
     newStates: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
     totalQuestions: 14
+  },
+  {
+    dayNumber: 8,
+    title: 'Semi-Final Test',
+    quizDate: '16-11-2026',
+    displayDate: '16 November 2026',
+    statusLabel: 'Locked',
+    newStates: ALL_28_STATES,
+    totalQuestions: 40
+  },
+  {
+    dayNumber: 9,
+    title: 'Grand Test',
+    quizDate: '17-11-2026',
+    displayDate: '17 November 2026',
+    statusLabel: 'Locked',
+    newStates: ALL_28_STATES,
+    totalQuestions: 50
   }
 ];
 

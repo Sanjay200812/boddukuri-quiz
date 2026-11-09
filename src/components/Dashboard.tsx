@@ -132,7 +132,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="space-y-8 pb-16 animate-fadeIn">
+    <div className="relative space-y-8 pb-16 animate-fadeIn">
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050506]">
+        <div className="absolute -left-32 top-20 h-96 w-96 rounded-full bg-red-950/30 blur-3xl animate-pulse" />
+        <div className="absolute right-0 top-1/3 h-[32rem] w-[32rem] rounded-full bg-[#3a1822]/20 blur-3xl" />
+      </div>
 
       {/* Hero Welcome Banner */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-10 shadow-elevated">
@@ -175,7 +179,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </span>
                     ) : (
                       <span className="text-amber-300 flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> Unlocks at 8:29 PM IST ({targetCountdown.formattedCountdown})
+                        <Lock className="w-3 h-3" /> Unlocks at 8:30 PM IST ({targetCountdown.formattedCountdown})
                       </span>
                     )}
                     <span className="text-red-300/80 font-medium">• {targetQuiz.displayDate}</span>
@@ -464,7 +468,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div className="mb-3 p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs font-bold flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <Hourglass className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
-                        <span>Unlocks at 8:29 PM IST</span>
+                        <span>Unlocks at 8:30 PM IST</span>
                       </span>
                       <span className="font-mono text-amber-800 font-black">{countdown.formattedCountdown}</span>
                     </div>
@@ -593,7 +597,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-[#2b1118] cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         <Lock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Unlocks at 8:29 PM IST</span>
+                        <span>Unlocks at 8:30 PM IST</span>
                       </button>
                     ) : isInProgress ? (
                       <button

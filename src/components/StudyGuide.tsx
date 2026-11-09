@@ -166,7 +166,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
         {filteredParks.map((park, idx) => (
           <div
             key={idx}
-            className="bg-[#0f0f12] rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-card hover:border-red-400 transition-all space-y-4"
+            className="bg-[#0f0f12] rounded-2xl p-4 sm:p-5 border border-red-950 shadow-card hover:border-red-700 transition-all space-y-3"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
@@ -193,7 +193,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
             </div>
 
             {/* Geographical Location & River Biome */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs sm:text-sm">
               <div className="flex items-start gap-2 bg-[#241014] p-3 rounded-2xl border border-slate-100">
                 <MapPin className="w-4 h-4 text-red-800 shrink-0 mt-0.5" />
                 <div>
@@ -214,7 +214,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
             </div>
 
             {/* Key Feature & Description */}
-            <div className="p-4 rounded-2xl bg-red-50/50 border border-red-100/80 text-xs sm:text-sm text-slate-800 leading-relaxed space-y-1">
+            <div className="p-3 rounded-xl bg-[#241014] border border-red-950 text-xs sm:text-sm text-stone-200 leading-relaxed space-y-1">
               <span className="font-bold text-red-950 block text-xs uppercase tracking-wider">
                 🌟 Significant Features
               </span>

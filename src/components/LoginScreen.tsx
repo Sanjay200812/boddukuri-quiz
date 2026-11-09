@@ -294,7 +294,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           {authMethod === 'password' && (
             <form onSubmit={handleEmailPasswordSignIn} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-xs font-bold text-stone-200">
                   Email Address
                 </label>
                 <div className="relative">
@@ -309,13 +309,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 focus:border-red-700 focus:ring-2 focus:ring-red-300 text-sm font-medium transition-all outline-none"
+                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-red-900/80 bg-[#181014] text-white placeholder:text-stone-500 focus:border-red-500 focus:ring-2 focus:ring-red-900 text-sm font-medium transition-all outline-none [color-scheme:dark]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-xs font-bold text-stone-200">
                   Password
                 </label>
                 <div className="relative">
@@ -329,7 +329,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 focus:border-red-700 focus:ring-2 focus:ring-red-300 text-sm font-medium transition-all outline-none"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-red-900/80 bg-[#181014] text-white placeholder:text-stone-500 focus:border-red-500 focus:ring-2 focus:ring-red-900 text-sm font-medium transition-all outline-none [color-scheme:dark]"
                   />
                   <button
                     type="button"
@@ -366,7 +366,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           {authMethod === 'code' && (
             <form onSubmit={handleAccessCodeSignIn} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-700">
+                <label className="block text-xs font-bold text-stone-200">
                   Secret Access Code
                 </label>
                 <div className="relative">
@@ -380,7 +380,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={accessCode}
                     onChange={e => setAccessCode(e.target.value)}
                     placeholder="Enter your personal access code"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 focus:border-red-700 focus:ring-2 focus:ring-red-300 text-sm font-medium transition-all outline-none tracking-widest font-mono"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-red-500 bg-[#181014] text-white placeholder:text-stone-500 focus:border-red-400 focus:ring-2 focus:ring-red-900 text-sm font-bold transition-all outline-none tracking-widest font-mono [color-scheme:dark]"
                   />
                   <button
                     type="button"
