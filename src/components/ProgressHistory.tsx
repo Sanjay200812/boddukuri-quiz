@@ -9,6 +9,7 @@ import {
   getBestAttempt, 
   getCompletedDayIds 
 } from '../utils/storage';
+import { DAILY_SCHEDULE } from '../utils/schedule';
 import { 
   BarChart3, 
   Flame, 
@@ -81,7 +82,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
         <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-card">
           <div className="text-xs font-semibold text-slate-500 mb-1">Completed Days</div>
           <div className="text-3xl font-black text-emerald-700">
-            {overallProgress.totalCompletedDays} <span className="text-xs text-slate-400 font-normal">/ {quizzes.length}</span>
+            {overallProgress.totalCompletedDays} <span className="text-xs text-slate-400 font-normal">/ {DAILY_SCHEDULE.length}</span>
           </div>
           <div className="text-[11px] text-slate-400 mt-1">Daily pathways cleared</div>
         </div>

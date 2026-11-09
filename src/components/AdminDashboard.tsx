@@ -45,8 +45,11 @@ import {
   getInboxNotifications,
   markNotificationRead,
   markAllNotificationsRead,
-  deleteInboxNotification
+  deleteInboxNotification,
+  calculateCurrentStreak
 } from '../utils/storage';
+import { evaluateBadges } from '../utils/achievements';
+import { subscribeToQuizRealtime } from '../utils/realtime';
 import { 
   DAILY_SCHEDULE, 
   setDayAdminOverride, 
@@ -148,6 +151,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   useEffect(() => {
     void refreshAllData();
+
+    // Subscribe to Realtime events across devices & tabs
+    const unsubscribe = subscribeToQuizRealtime({
+      onQuizSubmitted: (payload) => {
+        setAttempts(prev => {
+          const filtered = prev.filter(a => a.id !== payload.attempt.id);
+          return [payload.attempt, ...filtered];
+        });
+        setCompletedDays(prev => Array.from(new Set([...prev, payload.attempt.quizId])));
+        if (payload.adminNotification) {
+          setNotifications(prev => {
+            const filtered = prev.filter(n => n.id !== payload.adminNotification!.id);
+            return [payload.adminNotification!, ...filtered];
+          });
+        }
+        setStatusMessage(`Realtime update: Mahi submitted ${payload.attempt.quizId.toUpperCase()} (${payload.attempt.percentage}%)!`);
+        setTimeout(() => setStatusMessage(null), 4000);
+      },
+      onProgressReset: () => {
+        setAttempts([]);
+        setCompletedDays([]);
+        setNotifications([]);
+        setStatusMessage('Realtime sync: All quiz progress has been reset.');
+        setTimeout(() => setStatusMessage(null), 4000);
+      },
+      onScheduleUpdated: () => {
+        void refreshAllData();
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const unreadInboxCount = useMemo(() => {
@@ -170,15 +204,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
   }, [attempts, selectedDayFilter, searchQuery]);
 
-  // Overall statistics for Mahi
+  // Overall statistics for Mahi (strictly derived from persisted records)
   const stats = useMemo(() => {
     const totalAttempts = attempts.length;
-    const completedCount = completedDays.length;
-    const bestPercentage = attempts.length > 0 ? Math.max(...attempts.map(a => a.percentage)) : 0;
-    const avgPercentage = attempts.length > 0 ? Math.round(attempts.reduce((acc, a) => acc + a.percentage, 0) / attempts.length) : 0;
+    const completedCount = getCompletedDayIds().length;
+    const bestPercentage = attempts.length > 0 ? Math.max(...attempts.map(a => a.percentage || 0)) : 0;
+    const avgPercentage = attempts.length > 0 ? Math.round(attempts.reduce((acc, a) => acc + (a.percentage || 0), 0) / attempts.length) : 0;
     const pendingRetakes = retakeRequests.filter(r => r.status === 'pending').length;
-    return { totalAttempts, completedCount, bestPercentage, avgPercentage, pendingRetakes };
-  }, [attempts, completedDays, retakeRequests]);
+    const currentStreak = calculateCurrentStreak(attempts);
+    const badges = evaluateBadges(attempts, currentStreak);
+    const unlockedBadges = badges.filter(b => b.unlocked);
+    return { 
+      totalAttempts, 
+      completedCount, 
+      bestPercentage, 
+      avgPercentage, 
+      pendingRetakes,
+      currentStreak,
+      unlockedBadges 
+    };
+  }, [attempts, retakeRequests]);
 
   // Handle Day lock toggle
   const handleToggleDayLock = async (quizId: string, currentUnlocked: boolean) => {
@@ -481,7 +526,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {stats.completedCount} <span className="text-sm font-semibold text-slate-500">/ 7</span>
                   </div>
                   <p className="text-[11px] text-emerald-400 font-semibold mt-1">
-                    Day 01 Complete (100%)
+                    {stats.completedCount > 0 ? `${stats.completedCount} of 7 Days Complete` : '0 Days Completed'}
                   </p>
                 </div>
 
@@ -494,7 +539,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {stats.bestPercentage}%
                   </div>
                   <p className="text-[11px] text-amber-300 font-semibold mt-1">
-                    30 / 30 Marks on Day 01
+                    {attempts.length > 0 ? `${stats.bestPercentage}% Highest Score` : '0% (No attempts yet)'}
                   </p>
                 </div>
 
@@ -504,10 +549,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <Flame className="w-4 h-4 text-orange-400" />
                   </div>
                   <div className="text-2xl sm:text-3xl font-black text-white">
-                    1 <span className="text-sm font-semibold text-slate-500">Day Active</span>
+                    {stats.currentStreak} <span className="text-sm font-semibold text-slate-500">{stats.currentStreak === 1 ? 'Day' : 'Days'}</span>
                   </div>
                   <p className="text-[11px] text-orange-400 font-semibold mt-1">
-                    Streak Protected
+                    {stats.currentStreak > 0 ? `${stats.currentStreak}-Day Active Streak` : '0 Days (Not started)'}
                   </p>
                 </div>
 
@@ -520,7 +565,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {unreadInboxCount} <span className="text-sm font-semibold text-slate-500">Unread</span>
                   </div>
                   <p className="text-[11px] text-sky-400 font-semibold mt-1">
-                    {notifications.length} Total Submissions
+                    {attempts.length} Total Submissions
                   </p>
                 </div>
 
@@ -559,44 +604,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                 </div>
 
-                {/* Day 01 Verified Test Case Highlight */}
-                <div className="p-4 rounded-2xl bg-slate-950/70 border border-emerald-500/30 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span className="text-xs font-black text-white uppercase tracking-wider">
-                        Latest Verified Submission: Day 01 National Parks Quiz
+                {/* Dynamic Submission Spotlight */}
+                {attempts.length === 0 ? (
+                  <div className="p-6 rounded-2xl bg-slate-950/70 border border-slate-800 text-center space-y-2">
+                    <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-1">
+                      <Sparkles className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <h4 className="text-sm font-bold text-white">No Quiz Attempts Recorded Yet</h4>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto">
+                      Day 01 National Parks Quiz (6 States, 30 Questions) is published and ready for Mahi to begin. Results and answer sheets will update here in real time.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-slate-950/70 border border-emerald-500/30 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        <span className="text-xs font-black text-white uppercase tracking-wider">
+                          Latest Submission: {getQuizForDay(attempts[0].quizId).title} National Parks Quiz
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-mono text-slate-400">
+                        {attempts[0].formattedDate} • Time: {Math.floor(attempts[0].timeTakenSeconds / 60)}m {attempts[0].timeTakenSeconds % 60}s
                       </span>
                     </div>
-                    <span className="text-[11px] font-mono text-slate-400">
-                      09 November 2026 • Time: 1m 26s (86s)
-                    </span>
-                  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                    <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Score</div>
-                      <div className="text-lg font-black text-emerald-400">30 / 30</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                      <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Score</div>
+                        <div className="text-lg font-black text-emerald-400">{attempts[0].marksObtained} / {attempts[0].maxMarks}</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Percentage</div>
+                        <div className="text-lg font-black text-emerald-400">{attempts[0].percentage}%</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Mistakes</div>
+                        <div className="text-lg font-black text-emerald-400">{attempts[0].incorrectCount}</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Performance</div>
+                        <div className="text-sm font-black text-amber-400 mt-1">{attempts[0].performanceMessage || 'Completed'}</div>
+                      </div>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Percentage</div>
-                      <div className="text-lg font-black text-emerald-400">100%</div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Mistakes</div>
-                      <div className="text-lg font-black text-emerald-400">0 (Clean)</div>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Performance</div>
-                      <div className="text-sm font-black text-amber-400 mt-1">Outstanding 🏆</div>
-                    </div>
-                  </div>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
-                    <span className="text-slate-400">
-                      States Covered: <strong className="text-white">MP, AP, TS, Kerala, Assam, Karnataka</strong>
-                    </span>
-                    {attempts.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs">
+                      <span className="text-slate-400">
+                        States Covered: <strong className="text-white">{attempts[0].statesCovered.join(', ')}</strong>
+                      </span>
                       <button
                         onClick={() => setInspectedAttempt(attempts[0])}
                         className="text-emerald-400 hover:text-emerald-300 font-bold underline flex items-center gap-1 text-xs"
@@ -604,9 +659,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <Eye className="w-3.5 h-3.5" />
                         <span>Inspect Full 30-Question Answer Sheet</span>
                       </button>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
 
               </div>
 
@@ -708,16 +763,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     Syllabus Progress
                   </h4>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-white">1</span>
-                    <span className="text-sm font-semibold text-slate-400">of 7 Days Completed (14%)</span>
+                    <span className="text-3xl font-black text-white">{stats.completedCount}</span>
+                    <span className="text-sm font-semibold text-slate-400">of 7 Days Completed ({Math.round((stats.completedCount / 7) * 100)}%)</span>
                   </div>
                   {/* Progress Bar */}
                   <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style={{ width: '14.28%' }} />
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
                   </div>
                   <div className="pt-1 text-[11px] text-slate-400 flex justify-between">
-                    <span>Day 01: Covered (6 States)</span>
-                    <span className="text-emerald-400 font-bold">30 Parks Mastered</span>
+                    <span>{stats.completedCount > 0 ? `Completed Days: ${stats.completedCount}` : 'No days completed yet'}</span>
+                    <span className="text-emerald-400 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
                   </div>
                 </div>
 
@@ -729,15 +784,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-950/60 border border-orange-800 text-orange-300 text-xs font-bold">
                       <Flame className="w-4 h-4 text-orange-400" />
-                      <span>1-Day Streak</span>
+                      <span>{stats.currentStreak}-Day Streak</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-800 text-amber-300 text-xs font-bold">
-                      <Award className="w-4 h-4 text-amber-400" />
-                      <span>Perfect Score</span>
-                    </div>
+                    {stats.bestPercentage === 100 && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-800 text-amber-300 text-xs font-bold">
+                        <Award className="w-4 h-4 text-amber-400" />
+                        <span>Perfect Score</span>
+                      </div>
+                    )}
                   </div>
                   <div className="pt-1 text-[11px] text-slate-400">
-                    Badges Earned: <strong className="text-slate-200">First Quiz</strong>, <strong className="text-amber-300">Perfect Score (100%)</strong>
+                    Badges Earned: <strong className="text-slate-200">
+                      {stats.unlockedBadges.length > 0 ? stats.unlockedBadges.map(b => b.title).join(', ') : 'No badges earned yet'}
+                    </strong>
                   </div>
                 </div>
 
@@ -1103,56 +1162,103 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </p>
               </div>
 
-              {/* State Performance Breakdown for Day 01 */}
-              <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-white">
-                  Day 01 State Mastery Breakdown (30 Parks)
-                </h3>
+              {/* Analytics KPI Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Completed Quizzes</div>
+                  <div className="text-2xl sm:text-3xl font-black text-white">{stats.completedCount}</div>
+                  <p className="text-[11px] text-emerald-400 font-semibold mt-1">Distinct days cleared</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Submissions</div>
+                  <div className="text-2xl sm:text-3xl font-black text-white">{attempts.length}</div>
+                  <p className="text-[11px] text-sky-400 font-semibold mt-1">Total recorded attempts</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Average Score</div>
+                  <div className="text-2xl sm:text-3xl font-black text-white">{stats.avgPercentage}%</div>
+                  <p className="text-[11px] text-teal-400 font-semibold mt-1">{attempts.length > 0 ? 'Mean accuracy' : '0% (No attempts)'}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
+                  <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Highest Score</div>
+                  <div className="text-2xl sm:text-3xl font-black text-white">{stats.bestPercentage}%</div>
+                  <p className="text-[11px] text-amber-300 font-semibold mt-1">{attempts.length > 0 ? 'Peak performance' : '0% (No attempts)'}</p>
+                </div>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {[
-                    { state: 'Madhya Pradesh', parks: 11, correct: 11, pct: 100 },
-                    { state: 'Assam', parks: 7, correct: 7, pct: 100 },
-                    { state: 'Kerala', parks: 6, correct: 6, pct: 100 },
-                    { state: 'Karnataka', parks: 5, correct: 5, pct: 100 },
-                    { state: 'Andhra Pradesh', parks: 3, correct: 3, pct: 100 },
-                    { state: 'Telangana', parks: 3, correct: 3, pct: 100 },
-                  ].map(item => (
-                    <div key={item.state} className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
-                      <div className="flex justify-between items-center text-xs">
-                        <span className="font-bold text-white">{item.state}</span>
-                        <span className="font-mono text-emerald-400 font-bold">{item.correct} / {item.parks} ({item.pct}%)</span>
-                      </div>
-                      <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${item.pct}%` }} />
-                      </div>
+              {attempts.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-2">
+                  <TrendingUp className="w-8 h-8 text-slate-600 mx-auto" />
+                  <h4 className="text-sm font-bold text-white">No Learning Analytics Data Yet</h4>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                    State breakdown, time efficiency, and accuracy analytics will be dynamically generated once Mahi completes a quiz.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* State Performance Breakdown */}
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                      {getQuizForDay(attempts[0].quizId).title} State Mastery Breakdown ({attempts[0].totalQuestions} Questions)
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {(() => {
+                        const quiz = getQuizForDay(attempts[0].quizId);
+                        const stateStats: Record<string, { total: number; correct: number }> = {};
+                        quiz.statesCovered.forEach(s => {
+                          stateStats[s] = { total: 0, correct: 0 };
+                        });
+                        quiz.questions.forEach(q => {
+                          const state = q.state;
+                          if (!stateStats[state]) stateStats[state] = { total: 0, correct: 0 };
+                          stateStats[state].total += 1;
+                          if (attempts[0].answers[q.id] === q.correctAnswer) {
+                            stateStats[state].correct += 1;
+                          }
+                        });
+                        return Object.entries(stateStats).map(([state, s]) => {
+                          const pct = s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0;
+                          return (
+                            <div key={state} className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="font-bold text-white">{state}</span>
+                                <span className="font-mono text-emerald-400 font-bold">{s.correct} / {s.total} ({pct}%)</span>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Time Efficiency Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Time Efficiency</h4>
-                  <div className="text-2xl font-black text-white">
-                    2.87 <span className="text-sm font-semibold text-slate-400">seconds / question</span>
                   </div>
-                  <p className="text-xs text-emerald-400">
-                    Outstanding speed: completed 30 questions in 1 minute 26 seconds.
-                  </p>
-                </div>
 
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Accuracy Rate</h4>
-                  <div className="text-2xl font-black text-emerald-400">
-                    100% <span className="text-sm font-semibold text-slate-400">clean sheet</span>
+                  {/* Time Efficiency & Accuracy Metrics */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Time Efficiency</h4>
+                      <div className="text-2xl font-black text-white">
+                        {(attempts[0].timeTakenSeconds / Math.max(1, attempts[0].totalQuestions)).toFixed(2)} <span className="text-sm font-semibold text-slate-400">seconds / question</span>
+                      </div>
+                      <p className="text-xs text-emerald-400">
+                        Completed {attempts[0].totalQuestions} questions in {Math.floor(attempts[0].timeTakenSeconds / 60)}m {attempts[0].timeTakenSeconds % 60}s.
+                      </p>
+                    </div>
+
+                    <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Accuracy Rate</h4>
+                      <div className="text-2xl font-black text-emerald-400">
+                        {attempts[0].percentage}% <span className="text-sm font-semibold text-slate-400">accuracy</span>
+                      </div>
+                      <p className="text-xs text-slate-300">
+                        {attempts[0].correctCount} correct, {attempts[0].incorrectCount} incorrect out of {attempts[0].totalQuestions} questions.
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-300">
-                    Zero mistakes recorded. All 30 national parks correctly identified.
-                  </p>
-                </div>
-              </div>
+                </>
+              )}
 
             </div>
           )}

@@ -1,0 +1,62 @@
+{
+  "backupVersion": "1.0",
+  "backupTimestamp": "2026-11-09T22:26:00.000Z",
+  "projectUrl": "https://oohxmqohiaspgawsqacv.supabase.co",
+  "environment": "production",
+  "preResetData": {
+    "attempts": [
+      {
+        "id": "attempt-mahi-day01-100",
+        "quizId": "day-01",
+        "dayNumber": 1,
+        "studentId": "00000000-0000-0000-0000-000000002002",
+        "studentName": "Mahi",
+        "studentEmail": "mahi@boddukuri.quiz",
+        "statesCovered": [
+          "Madhya Pradesh",
+          "Andhra Pradesh",
+          "Telangana",
+          "Kerala",
+          "Assam",
+          "Karnataka"
+        ],
+        "timestamp": "2026-11-09T14:56:00.000Z",
+        "formattedDate": "09 November 2026",
+        "quizDate": "2026-11-09",
+        "displayDate": "09 November 2026",
+        "totalQuestions": 30,
+        "correctCount": 30,
+        "incorrectCount": 0,
+        "unansweredCount": 0,
+        "marksObtained": 30,
+        "maxMarks": 30,
+        "percentage": 100,
+        "accuracy": 100,
+        "timeTakenSeconds": 86,
+        "performanceTier": "outstanding",
+        "performanceMessage": "Outstanding"
+      }
+    ],
+    "completedDays": [
+      "day-01"
+    ],
+    "notifications": [
+      {
+        "id": "notif-mahi-day01-complete",
+        "targetRole": "admin",
+        "type": "submission",
+        "title": "Mahi completed Day 01",
+        "message": "Mahi has successfully completed Day 01 with a score of 30/30 (100%).",
+        "quizId": "day-01",
+        "attemptId": "attempt-mahi-day01-100",
+        "dayNumber": 1,
+        "studentName": "Mahi",
+        "scoreText": "30/30",
+        "percentage": 100,
+        "timeTakenText": "1m 26s",
+        "read": false,
+        "createdAt": "2026-11-09T14:56:00.000Z"
+      }
+    ]
+  }
+}

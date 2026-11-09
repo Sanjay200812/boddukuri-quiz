@@ -2,6 +2,7 @@ import type { QuizAttempt, InProgressQuiz, OverallProgress, UserSettings, DailyQ
 import { DEFAULT_SANJU_WHATSAPP_NUMBER } from './whatsapp.ts';
 import { evaluateBadges } from './achievements.ts';
 import { getQuizForDay } from '../data/quizzes.ts';
+import { broadcastQuizEvent } from './realtime.ts';
 
 const STORAGE_KEYS = {
   ATTEMPTS: 'mahi_quiz_attempts_v1',
@@ -269,93 +270,13 @@ export function getUnreadNotificationCount(role?: 'admin' | 'student'): number {
 }
 
 // -------------------------------------------------------------
-// ATTEMPTS & BASELINE RECOVERY
+// ATTEMPTS STORAGE (CLEAN & AUTHORITATIVE)
 // -------------------------------------------------------------
-
-function getOrRecoverBaselineAttempts(rawAttempts: QuizAttempt[]): QuizAttempt[] {
-  const completed = safeGet<string[]>(STORAGE_KEYS.COMPLETED_DAYS, []);
-  if (completed.includes('day-01')) {
-    const hasDay01 = rawAttempts.some(a => a.quizId === 'day-01');
-    if (!hasDay01) {
-      const day01Quiz = getQuizForDay(1);
-      const answers: Record<string, number> = {};
-      day01Quiz.questions.forEach(q => {
-        answers[q.id] = q.correctAnswer;
-      });
-      const recoveredAttempt: QuizAttempt = {
-        id: 'attempt-mahi-day01-100',
-        quizId: 'day-01',
-        dayNumber: 1,
-        studentId: 'mahi_student',
-        studentName: 'Mahi',
-        studentEmail: 'mahi@boddukuri.quiz',
-        statesCovered: day01Quiz.statesCovered,
-        timestamp: '2026-11-09T14:56:00.000Z',
-        formattedDate: '09 November 2026',
-        quizDate: '2026-11-09',
-        displayDate: '09 November 2026',
-        answers,
-        totalQuestions: 30,
-        correctCount: 30,
-        incorrectCount: 0,
-        unansweredCount: 0,
-        marksObtained: 30,
-        maxMarks: 30,
-        percentage: 100,
-        accuracy: 100,
-        timeTakenSeconds: 86, // 1m 26s
-        sectionBreakdown: {
-          previous: { total: 0, correct: 0, incorrect: 0, unanswered: 0, percentage: 100 },
-          new: { total: 30, correct: 30, incorrect: 0, unanswered: 0, percentage: 100 }
-        },
-        stateBreakdown: day01Quiz.statesCovered.map(st => ({
-          stateName: st,
-          total: 5,
-          correct: 5,
-          percentage: 100
-        })),
-        performanceTier: 'outstanding',
-        performanceMessage: 'Outstanding',
-        quote: {
-          quote: 'Every day you learn something new, you become a better version of yourself.',
-          personalNote: 'Keep learning, Mahi! 💚'
-        }
-      };
-      const updated = [recoveredAttempt, ...rawAttempts];
-      safeSet(STORAGE_KEYS.ATTEMPTS, updated);
-      
-      // Also ensure baseline Admin Inbox notification exists
-      const existingNotifs = safeGet<InboxNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
-      if (!existingNotifs.some(n => n.quizId === 'day-01')) {
-        const notif: InboxNotification = {
-          id: 'notif-mahi-day01-complete',
-          targetRole: 'admin',
-          type: 'submission',
-          title: 'Mahi completed Day 01',
-          message: 'Mahi has successfully completed Day 01 with a score of 30/30 (100%).',
-          quizId: 'day-01',
-          attemptId: recoveredAttempt.id,
-          dayNumber: 1,
-          studentName: 'Mahi',
-          scoreText: '30/30',
-          percentage: 100,
-          timeTakenText: '1m 26s',
-          read: false,
-          createdAt: recoveredAttempt.timestamp
-        };
-        safeSet(STORAGE_KEYS.NOTIFICATIONS, [notif, ...existingNotifs]);
-      }
-      return updated;
-    }
-  }
-  return rawAttempts;
-}
 
 export function getAllAttempts(): QuizAttempt[] {
   const rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
-  const safeAttempts = getOrRecoverBaselineAttempts(rawAttempts);
   // Sort descending by timestamp (newest first)
-  return safeAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return rawAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 export function getAttemptsForQuiz(quizId: string): QuizAttempt[] {
@@ -375,6 +296,53 @@ export function getBestAttempt(quizId: string): QuizAttempt | null {
     if (current.percentage === best.percentage && current.timeTakenSeconds < best.timeTakenSeconds) return current;
     return best;
   }, attempts[0]);
+}
+
+/**
+ * Baseline attempt metadata reference for audit and verification (Day 01, 30 marks, 86 seconds, Outstanding)
+ */
+export function getOrRecoverBaselineAttempts(autoInject = false): QuizAttempt[] {
+  const day01Quiz = getQuizForDay('day-01');
+  const baselineAttempt: QuizAttempt = {
+    id: 'attempt-mahi-day01-100',
+    quizId: 'day-01',
+    dayNumber: 1,
+    studentId: '00000000-0000-0000-0000-000000002002',
+    studentName: 'Mahi',
+    studentEmail: 'mahi@boddukuri.quiz',
+    statesCovered: day01Quiz ? day01Quiz.statesCovered : [
+      'Madhya Pradesh', 'Andhra Pradesh', 'Telangana', 'Kerala', 'Assam', 'Karnataka'
+    ],
+    timestamp: '2026-11-09T14:56:00.000Z',
+    formattedDate: '09 November 2026',
+    quizDate: '2026-11-09',
+    displayDate: '09 November 2026',
+    answers: {},
+    totalQuestions: 30,
+    correctCount: 30,
+    incorrectCount: 0,
+    unansweredCount: 0,
+    marksObtained: 30,
+    maxMarks: 30,
+    percentage: 100,
+    accuracy: 100,
+    timeTakenSeconds: 86,
+    performanceTier: 'outstanding',
+    performanceMessage: 'Outstanding',
+    quote: {
+      quote: 'Every day you learn something new, you become a better version of yourself.',
+      personalNote: 'Keep learning, Mahi! 💚'
+    },
+    sectionBreakdown: {
+      previous: { total: 0, correct: 0, incorrect: 0, unanswered: 0, percentage: 0 },
+      new: { total: 30, correct: 30, incorrect: 0, unanswered: 0, percentage: 100 }
+    }
+  };
+
+  if (autoInject) {
+    saveQuizAttempt(baselineAttempt);
+  }
+  return [baselineAttempt];
 }
 
 export function saveQuizAttempt(attempt: QuizAttempt): void {
@@ -447,14 +415,27 @@ export function saveQuizAttempt(attempt: QuizAttempt): void {
   saveInboxNotification(studentNotif);
 
   markProgressChanged();
+
+  // Broadcast Realtime submission event
+  void broadcastQuizEvent('quiz_submitted', {
+    attempt: enrichedAttempt,
+    snapshot: getProgressSnapshot(),
+    adminNotification: adminNotif,
+    timestamp: enrichedAttempt.timestamp
+  });
 }
 
 // -------------------------------------------------------------
-// COMPLETED DAYS
+// COMPLETED DAYS (ACCURATELY DERIVED FROM PERSISTED ATTEMPTS)
 // -------------------------------------------------------------
 
 export function getCompletedDayIds(): string[] {
-  return safeGet<string[]>(STORAGE_KEYS.COMPLETED_DAYS, []);
+  const attempts = getAllAttempts();
+  const set = new Set<string>();
+  attempts.forEach(a => {
+    if (a.quizId) set.add(a.quizId);
+  });
+  return Array.from(set);
 }
 
 export function isQuizCompleted(quizId: string): boolean {
@@ -497,14 +478,17 @@ export function getQuizStatus(quizId: string): 'not-started' | 'in-progress' | '
 // -------------------------------------------------------------
 
 /**
- * Calculates continuous daily streak based on unique UTC/local days with at least 1 attempt
+ * Formats date strictly in Asia/Kolkata timezone (YYYY-MM-DD)
  */
-function getLocalDateString(dateInput: Date | string): string {
+export function getKolkataDateString(dateInput: Date | string | number): string {
   const d = new Date(dateInput);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  if (isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(d);
 }
 
 export interface DayStreakItem {
@@ -517,23 +501,23 @@ export interface DayStreakItem {
 }
 
 /**
- * Calculates continuous daily streak based on unique local calendar days
+ * Calculates continuous daily streak based on unique local calendar days in Asia/Kolkata timezone
  */
 export function calculateCurrentStreak(attempts: QuizAttempt[]): number {
   if (!attempts || attempts.length === 0) return 0;
 
-  // Get sorted unique dates (YYYY-MM-DD in local time)
+  // Get sorted unique dates (YYYY-MM-DD in Asia/Kolkata timezone)
   const uniqueDates = Array.from(
-    new Set(attempts.map(a => getLocalDateString(a.timestamp)))
+    new Set(attempts.map(a => getKolkataDateString(a.timestamp)).filter(Boolean))
   ).sort().reverse();
 
   if (uniqueDates.length === 0) return 0;
 
   const now = new Date();
-  const today = getLocalDateString(now);
-  const yesterday = getLocalDateString(new Date(now.getTime() - 86400000));
+  const today = getKolkataDateString(now);
+  const yesterday = getKolkataDateString(new Date(now.getTime() - 86400000));
 
-  // If latest attempt is neither today nor yesterday, streak is 0
+  // If latest attempt is neither today nor yesterday in Kolkata, streak is 0
   const mostRecentDate = uniqueDates[0];
   if (mostRecentDate !== today && mostRecentDate !== yesterday) {
     return 0;
@@ -565,7 +549,7 @@ export function calculateBestStreak(attempts: QuizAttempt[]): number {
   if (!attempts || attempts.length === 0) return 0;
 
   const uniqueDates = Array.from(
-    new Set(attempts.map(a => getLocalDateString(a.timestamp)))
+    new Set(attempts.map(a => getKolkataDateString(a.timestamp)).filter(Boolean))
   ).sort();
 
   if (uniqueDates.length === 0) return 0;
@@ -595,9 +579,9 @@ export function calculateBestStreak(attempts: QuizAttempt[]): number {
  * Returns streak breakdown for the current week (Monday to Sunday)
  */
 export function getWeeklyStreakDays(attempts: QuizAttempt[]): DayStreakItem[] {
-  const attemptDates = new Set(attempts.map(a => getLocalDateString(a.timestamp)));
+  const attemptDates = new Set(attempts.map(a => getKolkataDateString(a.timestamp)).filter(Boolean));
   const today = new Date();
-  const todayStr = getLocalDateString(today);
+  const todayStr = getKolkataDateString(today);
 
   // Get current week Monday
   const dayOfWeek = today.getDay(); // 0 is Sun, 1 is Mon...
@@ -611,7 +595,7 @@ export function getWeeklyStreakDays(attempts: QuizAttempt[]): DayStreakItem[] {
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
-    const dStr = getLocalDateString(d);
+    const dStr = getKolkataDateString(d);
     days.push({
       dateStr: dStr,
       dayShort: dayLabels[i][0],
@@ -797,16 +781,25 @@ export function resetDayProgress(quizId: string): void {
 }
 
 export function resetAllData(): void {
-  localStorage.removeItem(STORAGE_KEYS.ATTEMPTS);
-  localStorage.removeItem(STORAGE_KEYS.IN_PROGRESS);
-  localStorage.removeItem(STORAGE_KEYS.COMPLETED_DAYS);
-  localStorage.removeItem(STORAGE_KEYS.BOOKMARKS);
-  localStorage.removeItem(STORAGE_KEYS.RETAKE_REQUESTS);
+  if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEYS.ATTEMPTS);
+    localStorage.removeItem(STORAGE_KEYS.IN_PROGRESS);
+    localStorage.removeItem(STORAGE_KEYS.COMPLETED_DAYS);
+    localStorage.removeItem(STORAGE_KEYS.BOOKMARKS);
+    localStorage.removeItem(STORAGE_KEYS.RETAKE_REQUESTS);
+    localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
+    localStorage.removeItem('mahi_quiz_sync_meta_v1');
+    localStorage.removeItem('mahi_quiz_whatsapp_logs_v1');
+  }
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.removeItem('mahi_motivation_seen');
+  }
   saveUserSettings({
     sanjuWhatsAppNumber: DEFAULT_SANJU_WHATSAPP_NUMBER,
     studentName: 'Mahi'
   });
   markProgressChanged();
+  void broadcastQuizEvent('progress_reset', { by: 'admin', timestamp: new Date().toISOString() });
 }
 
 export const resetAllMahiProgress = resetAllData;

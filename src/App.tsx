@@ -32,6 +32,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Sidebar, type StudentNavView } from './components/Sidebar';
 import { getUnreadNotificationCount } from './utils/storage';
+import { subscribeToQuizRealtime } from './utils/realtime';
 import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID } from './utils/supabase';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 
@@ -193,6 +194,30 @@ export const App: React.FC = () => {
       window.removeEventListener('storage', onStorageChanged);
     };
   }, [refreshProgress, userId]);
+
+  // Supabase Realtime Listener (multi-device & cross-client live updates)
+  useEffect(() => {
+    const unsubscribe = subscribeToQuizRealtime({
+      onQuizSubmitted: () => {
+        refreshProgress();
+        if (userId) {
+          void performCloudSync(userId);
+        }
+      },
+      onScheduleUpdated: () => {
+        refreshProgress();
+      },
+      onProgressReset: () => {
+        refreshProgress();
+        setActiveAttempt(null);
+        setCurrentView('dashboard');
+      },
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [refreshProgress, userId, performCloudSync]);
 
   // Current active quiz object (supports Days 01 to 07)
   const currentQuiz: DailyQuiz = (() => {
