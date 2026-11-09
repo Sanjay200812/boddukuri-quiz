@@ -6,7 +6,7 @@ export interface NationalParkFact {
   year: number;
   district: string;
   riverOrBiome?: string;
-  famousWildlife: string[];
+  famousWildlife?: string[];
   keyFeature: string;
   unescoOrSpecialStatus?: string;
 }

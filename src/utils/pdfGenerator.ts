@@ -147,7 +147,7 @@ export function generateDayNotesPDF(quiz: DailyQuiz): void {
           doc.text(`District: ${park.district} | Estd: ${park.year}${park.riverOrBiome ? ` | River/Biome: ${park.riverOrBiome}` : ''}`, margin + 3, y + 9);
 
           doc.setTextColor(15, 81, 50);
-          const keyFactText = `Key Feature: ${park.keyFeature} | Wildlife: ${park.famousWildlife.join(', ')}`;
+          const keyFactText = `Key Feature: ${park.keyFeature}${park.famousWildlife?.length ? ` | Wildlife: ${park.famousWildlife.join(', ')}` : ''}`;
           const splitKeyFact = doc.splitTextToSize(keyFactText, contentWidth - 6);
           doc.text(splitKeyFact[0] || '', margin + 3, y + 13.5);
 

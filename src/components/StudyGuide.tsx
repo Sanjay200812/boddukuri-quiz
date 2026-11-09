@@ -51,7 +51,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
   const filteredParks = stateInfo.parks.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.famousWildlife.some(w => w.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.famousWildlife && p.famousWildlife.some(w => w.toLowerCase().includes(searchQuery.toLowerCase()))) ||
     p.keyFeature.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -224,21 +224,23 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
             </div>
 
             {/* Famous Wildlife Chips */}
-            <div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
-                🐾 Flagship & Endemic Wildlife:
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {park.famousWildlife.map((animal, aIdx) => (
-                  <span 
-                    key={aIdx}
-                    className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
-                  >
-                    {animal}
-                  </span>
-                ))}
+            {park.famousWildlife && park.famousWildlife.length > 0 && (
+              <div>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                  🐾 Flagship & Endemic Wildlife:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {park.famousWildlife.map((animal, aIdx) => (
+                    <span 
+                      key={aIdx}
+                      className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 transition-colors"
+                    >
+                      {animal}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {park.unescoOrSpecialStatus && (
               <div className="text-xs text-amber-900 bg-amber-50/80 p-3 rounded-xl border border-amber-200/80 flex items-center gap-2">
