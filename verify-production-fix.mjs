@@ -30,7 +30,7 @@ assert(notifsExists, 'StudentNotifications.tsx must exist');
 const appCode = fs.readFileSync('src/App.tsx', 'utf8');
 assert(appCode.includes('import { StudentNotifications }'), 'App.tsx must import StudentNotifications');
 assert(appCode.includes('currentView === \'notifications\''), 'App.tsx must support notifications view');
-assert(appCode.includes('case \'notifications\':\n        setCurrentView(\'notifications\');'), 'Student nav must route notifications to view, not settings');
+assert(/case 'notifications':\s*setCurrentView\('notifications'\);/.test(appCode), 'Student nav must route notifications to view, not settings');
 assert(!appCode.includes('case \'notifications\':\n        setIsSettingsOpen(true);'), 'Must not route notifications to settings');
 assert(appCode.includes('<StudentNotifications'), 'App.tsx must render StudentNotifications component');
 console.log('✓ 3. Student Notification center routing verified (Opens dedicated notifications view, NOT settings).');
