@@ -33,6 +33,46 @@
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Black + maroon product theme: keep white utility classes from becoming
+   accidental light surfaces while preserving readable status colors. */
+[class*="bg-white"] {
+  background-color: #0f0f12 !important;
+}
+
+[class*="from-white"],
+[class*="to-white"] {
+  --tw-gradient-from: #0f0f12 !important;
+  --tw-gradient-to: rgb(15 15 18 / 0) !important;
+}
+
+[class*="bg-slate-50"] {
+  background-color: #241014 !important;
+}
+
+[class*="bg-slate-100"] {
+  background-color: #2b1118 !important;
+}
+
+[class*="bg-slate-200"] {
+  background-color: #3a1822 !important;
+}
+
+[class*="border-slate-"] {
+  border-color: #542331 !important;
+}
+
+[class*="text-slate-900"],
+[class*="text-slate-800"],
+[class*="text-slate-700"] {
+  color: #f5e9eb !important;
+}
+
+[class*="text-slate-600"],
+[class*="text-slate-500"],
+[class*="text-slate-400"] {
+  color: #c9aeb5 !important;
+}
+
 @media print {
   body {
     background: white !important;
