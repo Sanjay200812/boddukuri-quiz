@@ -26,7 +26,9 @@ import {
   getCompletedDayIds,
   getRetakeStatusForQuiz,
   saveRetakeRequest,
-  consumeApprovedRetake
+  consumeApprovedRetake,
+  getInProgressQuiz,
+  clearInProgressQuiz
 } from '../utils/storage';
 import { evaluateBadges } from '../utils/achievements';
 import { StreakTracker } from './StreakTracker';
@@ -76,7 +78,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const targetQuiz = getQuizForDay(recommendedDayNumber);
   const isTargetUnlocked = isDayUnlocked(recommendedDayNumber, completedDayIds);
   const targetCountdown = getDayCountdown(recommendedDayNumber, completedDayIds);
-  const targetStatus = getQuizStatus(targetQuiz.id);
+  const targetStatus = isTargetUnlocked ? getQuizStatus(targetQuiz.id) : 'pending';
+
+  // Automatically clean up any stale in-progress sessions for locked days
+  useEffect(() => {
+    DAILY_SCHEDULE.forEach((item) => {
+      const dayQuiz = getQuizForDay(item.dayNumber);
+      const isUnlocked = isDayUnlocked(item.dayNumber, completedDayIds);
+      if (!isUnlocked && getInProgressQuiz(dayQuiz.id)) {
+        clearInProgressQuiz(dayQuiz.id);
+      }
+    });
+  }, [completedDayIds]);
 
   // Filter scheduled days
   const filteredSchedule = DAILY_SCHEDULE.filter(day => {
@@ -387,8 +400,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             const bestAttempt = getBestAttempt(dayQuiz.id);
             const latestAttempt = getLatestAttempt(dayQuiz.id);
             const isCompleted = status === 'completed';
-            const isInProgress = status === 'in-progress';
             const isUnlocked = isDayUnlocked(scheduleItem.dayNumber, completedDayIds);
+            const isInProgress = isUnlocked && status === 'in-progress';
             const countdown = getDayCountdown(scheduleItem.dayNumber, completedDayIds);
             const retakeStatus = getRetakeStatusForQuiz(dayQuiz.id);
 
@@ -428,19 +441,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                         Completed
                       </span>
-                    ) : isInProgress ? (
+                    ) : !isUnlocked ? (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                        <Lock className="w-3 h-3 text-slate-500" />
+                        Locked (8:29 PM)
+                      </span>
+                    ) : isUnlocked && isInProgress ? (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
                         <Clock className="w-3.5 h-3.5 text-amber-600" />
                         In Progress
                       </span>
-                    ) : isUnlocked ? (
+                    ) : (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         Available Now
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                        <Lock className="w-3 h-3 text-slate-500" />
-                        Locked (8:29 PM)
                       </span>
                     )}
                   </div>
@@ -573,7 +586,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </button>
                         )}
                       </>
-                    ) : isInProgress ? (
+                    ) : isUnlocked && isInProgress ? (
                       <button
                         onClick={() => onStartQuiz(dayQuiz.id)}
                         className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-amber-950 bg-amber-400 hover:bg-amber-500 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2"

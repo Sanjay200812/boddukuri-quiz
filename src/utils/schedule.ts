@@ -274,19 +274,15 @@ export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: s
     if (override.forceLocked === true) return false;
   }
 
-  // Day 01 is published and always available
-  if (quizId === 'day-01' || dayNumberOrId === 1) {
-    return true;
-  }
-
   const schedule = DAILY_SCHEDULE.find(s => s.quizId === quizId || s.dayNumber === dayNumberOrId);
   if (!schedule) return false;
 
-  // Rule 2: Keep Day 01 published and Days 02–07 scheduled/locked until explicitly published
+  // Day 01 is published. Days 02–07 remain scheduled/locked until explicitly published or unlocked by Admin.
   if (!schedule.isPublished) {
     return false;
   }
 
+  // Day 01 unlocks at sharp 8:29 PM IST (14:59:00Z UTC)
   const unlockTime = override?.customUnlockIsoUTC 
     ? new Date(override.customUnlockIsoUTC).getTime()
     : new Date(schedule.unlockIsoUTC).getTime();
@@ -340,12 +336,12 @@ export function getDayCountdown(dayNumberOrId: number | string, completedDayIds:
 
   if (diffMs <= 0) {
     return {
-      isUnlocked: true,
+      isUnlocked: false,
       hours: 0,
       minutes: 0,
       seconds: 0,
       totalSeconds: 0,
-      formattedCountdown: 'Scheduled (Awaiting Publish)',
+      formattedCountdown: 'Scheduled (Locked by Admin)',
       unlockTimeFormatted: '8:29 PM IST'
     };
   }
