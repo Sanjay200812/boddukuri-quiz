@@ -73,6 +73,8 @@ export interface QuizAttempt {
   statesCovered: string[];
   timestamp: string; // ISO string
   formattedDate: string;
+  quizDate?: string;
+  displayDate?: string;
   answers: Record<string, number>; // questionId -> selectedOptionIndex (0-3), or -1 if skipped
   totalQuestions: number;
   correctCount: number;

@@ -22,11 +22,17 @@ function formatStatesList(states: string[]): string {
 export function formatWhatsAppMessage(attempt: QuizAttempt): string {
   const dayStr = attempt.dayNumber < 10 ? `0${attempt.dayNumber}` : `${attempt.dayNumber}`;
   const statesFormatted = formatStatesList(attempt.statesCovered);
+  const minutes = Math.floor(attempt.timeTakenSeconds / 60);
+  const seconds = attempt.timeTakenSeconds % 60;
+  const timeFormatted = `${minutes}m ${seconds}s`;
+
+  const dateStr = attempt.displayDate || attempt.quizDate || '09 November 2026';
 
   return [
     `🌿 BODDUKURI'S QUIZ`,
     ``,
     `🎉 #Mahi – Day ${dayStr} Completed!`,
+    `📅 Date: ${dateStr}`,
     ``,
     `📚 States Covered:`,
     `${statesFormatted}`,
@@ -35,7 +41,9 @@ export function formatWhatsAppMessage(attempt: QuizAttempt): string {
     `Marks: ${attempt.marksObtained}/${attempt.maxMarks}`,
     `Correct: ${attempt.correctCount}`,
     `Incorrect: ${attempt.incorrectCount}`,
+    `Unanswered: ${attempt.unansweredCount || 0}`,
     `Percentage: ${attempt.percentage}%`,
+    `Time Taken: ${timeFormatted}`,
     ``,
     `🏆 Performance: ${attempt.performanceMessage}`,
     ``,

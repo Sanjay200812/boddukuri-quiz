@@ -11,10 +11,12 @@ import {
   getOverallProgress, 
   clearInProgressQuiz, 
   getAllAttempts, 
+  getCompletedDayIds,
   getProgressSnapshot, 
   mergeProgressSnapshot, 
   STORAGE_CHANGE_EVENT 
 } from './utils/storage';
+import { isDayUnlocked } from './utils/schedule';
 import { evaluateBadges } from './utils/achievements';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
@@ -28,7 +30,7 @@ import { BadgesModal } from './components/BadgesModal';
 import { OpeningMotivation } from './components/OpeningMotivation';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminDashboard } from './components/AdminDashboard';
-import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile } from './utils/supabase';
+import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession } from './utils/supabase';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -85,6 +87,23 @@ export const App: React.FC = () => {
 
   // Auth Gate: Check active session on mount & determine role
   useEffect(() => {
+    // 1. Check local persistent session (keeps session active across restarts & phones)
+    const localSaved = getLocalAuthSession();
+    if (localSaved?.email) {
+      setUserEmail(localSaved.email);
+      setUserRole(localSaved.role);
+      setUserProfile({
+        id: localSaved.userId || 'local-user',
+        email: localSaved.email,
+        role: localSaved.role,
+        fullName: localSaved.fullName
+      });
+      if (localSaved.userId) {
+        setUserId(localSaved.userId);
+        void performCloudSync(localSaved.userId);
+      }
+    }
+
     if (!supabase) {
       setSessionChecked(true);
       return;
@@ -120,7 +139,8 @@ export const App: React.FC = () => {
         if (event !== 'SIGNED_OUT') {
           void performCloudSync(user.id);
         }
-      } else {
+      } else if (event === 'SIGNED_OUT') {
+        clearLocalAuthSession();
         setUserEmail(null);
         setUserId(null);
         setUserProfile(null);
@@ -171,13 +191,24 @@ export const App: React.FC = () => {
     };
   }, [refreshProgress, userId]);
 
-  // Current active quiz object (supports Days 01 to 07, Semi-Final, Grand Final)
+  // Current active quiz object (supports Days 01 to 07)
   const currentQuiz: DailyQuiz = (() => {
-    return getQuizForDay(activeQuizId);
+    const found = getQuizForDay(activeQuizId);
+    const completedDayIds = getCompletedDayIds();
+    if (!isDayUnlocked(activeQuizId, completedDayIds) && userRole !== 'admin') {
+      return DAILY_QUIZZES[0];
+    }
+    return found;
   })();
 
-  // Handler: Start or resume a quiz
+  // Handler: Start or resume a quiz (Strict locking guard)
   const handleStartQuiz = (quizId: string) => {
+    const completedDayIds = getCompletedDayIds();
+    const isUnlocked = isDayUnlocked(quizId, completedDayIds);
+    if (!isUnlocked && userRole !== 'admin') {
+      alert("This day's quiz is scheduled and locked. Only Day 01 is currently published.");
+      return;
+    }
     setActiveQuizId(quizId);
     setCurrentView('quiz');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -234,8 +265,9 @@ export const App: React.FC = () => {
 
   // Handler: Sign out
   const handleSignOut = async () => {
+    clearLocalAuthSession();
     if (supabase) {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut().catch(() => {});
     }
     setUserEmail(null);
     setUserId(null);

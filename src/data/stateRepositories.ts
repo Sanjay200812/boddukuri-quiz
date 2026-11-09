@@ -1998,7 +1998,272 @@ export const STATE_REPOSITORIES: Record<string, StateData> = {
   },
 
   // ==========================================
-  // JAMMU & KASHMIR & LADAKH
+  // LADAKH (Day 05)
+  // ==========================================
+  'Ladakh': {
+    stateInfo: {
+      stateName: 'Ladakh',
+      capital: 'Leh',
+      totalParks: 1,
+      overview: 'Ladakh is home to Hemis National Park, the largest national park in India.',
+      tipsForMahi: 'Mastering the National Parks of Ladakh.',
+      parks: [
+        {
+          'name': 'Hemis National Park',
+          'year': 1981,
+          'district': 'Leh',
+          'keyFeature': 'Largest national park in India; global snow leopard capital.'
+        }
+      ]
+    },
+    questions: [
+      {
+        id: 'ladakh-q1',
+        state: 'Ladakh',
+        parkName: 'Hemis National Park',
+        question: 'In which state is Hemis National Park located?',
+        options: [
+          'Ladakh',
+          'Himachal Pradesh',
+          'Uttarakhand',
+          'Sikkim'
+        ],
+        correctAnswer: 0,
+        difficulty: 'easy',
+        explanation: 'Hemis National Park is located in Ladakh.',
+        establishedYear: 1981,
+        district: 'Leh',
+        keyFeature: 'Largest national park in India; global snow leopard capital.'
+      }
+    ]
+  },
+
+  // ==========================================
+  // JAMMU AND KASHMIR (Day 07)
+  // ==========================================
+  'Jammu and Kashmir': {
+    stateInfo: {
+      stateName: 'Jammu and Kashmir',
+      capital: 'Srinagar',
+      totalParks: 4,
+      overview: 'Jammu and Kashmir has 4 high-altitude Himalayan National Parks.',
+      tipsForMahi: 'Mastering the National Parks of Jammu and Kashmir.',
+      parks: [
+        {
+          'name': 'Dachigam National Park',
+          'year': 1981,
+          'district': 'Srinagar',
+          'keyFeature': 'Only natural home of the Hangul (Kashmir Stag).'
+        },
+        {
+          'name': 'Kishtwar National Park',
+          'year': 1981,
+          'district': 'Kishtwar',
+          'keyFeature': 'Rugged Himalayan high peaks sanctuary.'
+        },
+        {
+          'name': 'City Forest (Salim Ali) National Park',
+          'year': 1992,
+          'district': 'Srinagar',
+          'keyFeature': 'Named in honor of India\'s Birdman Dr. Salim Ali.'
+        },
+        {
+          'name': 'Kazinag National Park',
+          'year': 2007,
+          'district': 'Baramulla',
+          'keyFeature': 'Crucial refuge for the Markhor (wild goat).'
+        }
+      ]
+    },
+    questions: [
+      {
+        id: 'jammu-and-kashmir-q1',
+        state: 'Jammu and Kashmir',
+        parkName: 'Dachigam National Park',
+        question: 'In which state is Dachigam National Park located?',
+        options: [
+          'Jammu and Kashmir',
+          'Himachal Pradesh',
+          'Uttarakhand',
+          'Punjab'
+        ],
+        correctAnswer: 0,
+        difficulty: 'easy',
+        explanation: 'Dachigam National Park is located in Jammu and Kashmir.',
+        establishedYear: 1981,
+        district: 'Srinagar',
+        keyFeature: 'Only natural home of the Hangul (Kashmir Stag).'
+      },
+      {
+        id: 'jammu-and-kashmir-q2',
+        state: 'Jammu and Kashmir',
+        parkName: 'Kishtwar National Park',
+        question: 'In which state is Kishtwar National Park located?',
+        options: [
+          'Himachal Pradesh',
+          'Jammu and Kashmir',
+          'Uttarakhand',
+          'Rajasthan'
+        ],
+        correctAnswer: 1,
+        difficulty: 'easy',
+        explanation: 'Kishtwar National Park is located in Jammu and Kashmir.',
+        establishedYear: 1981,
+        district: 'Kishtwar',
+        keyFeature: 'Rugged Himalayan high peaks sanctuary.'
+      },
+      {
+        id: 'jammu-and-kashmir-q3',
+        state: 'Jammu and Kashmir',
+        parkName: 'City Forest (Salim Ali) National Park',
+        question: 'In which state is City Forest (Salim Ali) National Park located?',
+        options: [
+          'Rajasthan',
+          'Uttarakhand',
+          'Jammu and Kashmir',
+          'Himachal Pradesh'
+        ],
+        correctAnswer: 2,
+        difficulty: 'easy',
+        explanation: 'City Forest (Salim Ali) National Park is located in Jammu and Kashmir.',
+        establishedYear: 1992,
+        district: 'Srinagar',
+        keyFeature: 'Named in honor of India\'s Birdman Dr. Salim Ali.'
+      },
+      {
+        id: 'jammu-and-kashmir-q4',
+        state: 'Jammu and Kashmir',
+        parkName: 'Kazinag National Park',
+        question: 'In which state is Kazinag National Park located?',
+        options: [
+          'Punjab',
+          'Himachal Pradesh',
+          'Uttarakhand',
+          'Jammu and Kashmir'
+        ],
+        correctAnswer: 3,
+        difficulty: 'easy',
+        explanation: 'Kazinag National Park is located in Jammu and Kashmir.',
+        establishedYear: 2007,
+        district: 'Baramulla',
+        keyFeature: 'Crucial refuge for the Markhor (wild goat).'
+      }
+    ]
+  },
+
+  // Alias for Jammu & Kashmir
+  'Jammu & Kashmir': {
+    stateInfo: {
+      stateName: 'Jammu and Kashmir',
+      capital: 'Srinagar',
+      totalParks: 4,
+      overview: 'Jammu and Kashmir has 4 high-altitude Himalayan National Parks.',
+      tipsForMahi: 'Mastering the National Parks of Jammu and Kashmir.',
+      parks: [
+        {
+          'name': 'Dachigam National Park',
+          'year': 1981,
+          'district': 'Srinagar',
+          'keyFeature': 'Only natural home of the Hangul (Kashmir Stag).'
+        },
+        {
+          'name': 'Kishtwar National Park',
+          'year': 1981,
+          'district': 'Kishtwar',
+          'keyFeature': 'Rugged Himalayan high peaks sanctuary.'
+        },
+        {
+          'name': 'City Forest (Salim Ali) National Park',
+          'year': 1992,
+          'district': 'Srinagar',
+          'keyFeature': 'Named in honor of India\'s Birdman Dr. Salim Ali.'
+        },
+        {
+          'name': 'Kazinag National Park',
+          'year': 2007,
+          'district': 'Baramulla',
+          'keyFeature': 'Crucial refuge for the Markhor (wild goat).'
+        }
+      ]
+    },
+    questions: [
+      {
+        id: 'jammu-kashmir-q1',
+        state: 'Jammu and Kashmir',
+        parkName: 'Dachigam National Park',
+        question: 'In which state is Dachigam National Park located?',
+        options: [
+          'Jammu and Kashmir',
+          'Himachal Pradesh',
+          'Uttarakhand',
+          'Punjab'
+        ],
+        correctAnswer: 0,
+        difficulty: 'easy',
+        explanation: 'Dachigam National Park is located in Jammu and Kashmir.',
+        establishedYear: 1981,
+        district: 'Srinagar',
+        keyFeature: 'Only natural home of the Hangul (Kashmir Stag).'
+      },
+      {
+        id: 'jammu-kashmir-q2',
+        state: 'Jammu and Kashmir',
+        parkName: 'Kishtwar National Park',
+        question: 'In which state is Kishtwar National Park located?',
+        options: [
+          'Himachal Pradesh',
+          'Jammu and Kashmir',
+          'Uttarakhand',
+          'Rajasthan'
+        ],
+        correctAnswer: 1,
+        difficulty: 'easy',
+        explanation: 'Kishtwar National Park is located in Jammu and Kashmir.',
+        establishedYear: 1981,
+        district: 'Kishtwar',
+        keyFeature: 'Rugged Himalayan high peaks sanctuary.'
+      },
+      {
+        id: 'jammu-kashmir-q3',
+        state: 'Jammu and Kashmir',
+        parkName: 'City Forest (Salim Ali) National Park',
+        question: 'In which state is City Forest (Salim Ali) National Park located?',
+        options: [
+          'Rajasthan',
+          'Uttarakhand',
+          'Jammu and Kashmir',
+          'Himachal Pradesh'
+        ],
+        correctAnswer: 2,
+        difficulty: 'easy',
+        explanation: 'City Forest (Salim Ali) National Park is located in Jammu and Kashmir.',
+        establishedYear: 1992,
+        district: 'Srinagar',
+        keyFeature: 'Named in honor of India\'s Birdman Dr. Salim Ali.'
+      },
+      {
+        id: 'jammu-kashmir-q4',
+        state: 'Jammu and Kashmir',
+        parkName: 'Kazinag National Park',
+        question: 'In which state is Kazinag National Park located?',
+        options: [
+          'Punjab',
+          'Himachal Pradesh',
+          'Uttarakhand',
+          'Jammu and Kashmir'
+        ],
+        correctAnswer: 3,
+        difficulty: 'easy',
+        explanation: 'Kazinag National Park is located in Jammu and Kashmir.',
+        establishedYear: 2007,
+        district: 'Baramulla',
+        keyFeature: 'Crucial refuge for the Markhor (wild goat).'
+      }
+    ]
+  },
+
+  // ==========================================
+  // JAMMU & KASHMIR & LADAKH (Combined backward-compatibility)
   // ==========================================
   'Jammu & Kashmir & Ladakh': {
     stateInfo: {
@@ -4052,3 +4317,7 @@ export const STATE_REPOSITORIES: Record<string, StateData> = {
   },
 
 };
+
+// State Name Aliases for flexible matching
+STATE_REPOSITORIES['Andaman and Nicobar Islands'] = STATE_REPOSITORIES['Andaman & Nicobar Islands'];
+

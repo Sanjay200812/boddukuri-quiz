@@ -53,52 +53,42 @@ from auth.users where email = 'mahi@boddukuri.quiz'
 on conflict (id) do update set role = 'student';
 ```
 
-### Step 3.2: Create Sanju's Admin Account in Supabase Auth
-1. Go to **Authentication → Users → Add User → Create User**.
-2. Enter Sanju's email and password (e.g., `sanju@boddukuri.quiz`).
-3. Set **Auto Confirm User?** to **Yes**.
-4. Run this SQL snippet to assign the `'admin'` role:
+### Step 3.2: Verify / Assign Sanju's Admin Account in Supabase Auth
+If Sanju's admin user (`boddukurisanjay@gmail.com` or `sanju@boddukuri.quiz`) already exists in Supabase Auth, verify his role in `public.profiles`:
 ```sql
 insert into public.profiles (id, email, full_name, role)
 select id, email, 'Sanju', 'admin'
-from auth.users where email = 'sanju@boddukuri.quiz'
+from auth.users where email in ('boddukurisanjay@gmail.com', 'sanju@boddukuri.quiz')
 on conflict (id) do update set role = 'admin';
 ```
 
 ---
 
-## 4. Setting Up Server-Side Access Codes (Optional but Recommended)
+## 4. Setting Up Server-Side Access Codes
 
-Both Mahi (Student) and Sanju (Admin) can log in using their personal secret access codes directly from the "Access Code" tab on the login screen.
-
-Access codes are stored as **SHA-256 hex hashes** on the backend. Neither plain text codes nor hashes are ever exposed to the client bundle.
-
-To set up an access code for a user:
+Both Mahi (Student PIN: `2002`) and Sanju (Admin PIN: `2718`) can log in directly using the "Access Code" tab on the login screen.
+The application includes client-side SHA-256 cryptographic verification and rate limiting (5 attempts $\to$ 15-minute lockout). To also sync them server-side into `public.access_codes`:
 
 ```sql
--- Example: Register an access code for Mahi
--- Replace 'MAHI_SECRET_ACCESS_CODE' with your chosen code
--- Replace 'mahi_auth_ticket_password' with the password set in Auth for Mahi
+-- Register access code for Mahi (PIN 2002)
 insert into public.access_codes (user_id, email, auth_ticket, code_hash)
 select 
   id, 
   email, 
   'mahi_auth_ticket_password', 
-  encode(digest('MAHI_SECRET_ACCESS_CODE', 'sha256'), 'hex')
+  '6c94e35ccc352d4e9ef0b99562cff995a5741ce8de8ad11b568892934daee366'
 from auth.users 
 where email = 'mahi@boddukuri.quiz';
 
--- Example: Register an access code for Sanju (Admin)
--- Replace 'SANJU_ADMIN_ACCESS_CODE' with your chosen admin code
--- Replace 'sanju_auth_ticket_password' with Sanju's Supabase password
+-- Register access code for Sanju (PIN 2718)
 insert into public.access_codes (user_id, email, auth_ticket, code_hash)
 select 
   id, 
   email, 
   'sanju_auth_ticket_password', 
-  encode(digest('SANJU_ADMIN_ACCESS_CODE', 'sha256'), 'hex')
+  'c47e82e01e20ad22f816159eb3c3c048308ffca5b116cfc0c9aaaf012ee5b729'
 from auth.users 
-where email = 'sanju@boddukuri.quiz';
+where email in ('boddukurisanjay@gmail.com', 'sanju@boddukuri.quiz');
 ```
 
 When entered in the login form:

@@ -34,33 +34,34 @@ export const ALL_28_STATES: string[] = [
   'Kerala',
   'Assam',
   'Karnataka',
+  'Andaman and Nicobar Islands',
+  'Goa',
+  'Sikkim',
+  'Nagaland',
   'Maharashtra',
   'Gujarat',
-  'Goa',
-  'Rajasthan',
-  'Tamil Nadu',
-  'Uttarakhand',
-  'Himachal Pradesh',
-  'Jammu & Kashmir & Ladakh',
-  'Haryana',
+  'Jharkhand',
   'West Bengal',
   'Odisha',
-  'Chhattisgarh',
-  'Uttar Pradesh',
+  'Tripura',
   'Bihar',
-  'Jharkhand',
-  'Arunachal Pradesh',
+  'Uttarakhand',
+  'Haryana',
   'Meghalaya',
+  'Uttar Pradesh',
+  'Ladakh',
+  'Tamil Nadu',
+  'Himachal Pradesh',
   'Manipur',
   'Mizoram',
-  'Nagaland',
-  'Tripura',
-  'Sikkim',
-  'Andaman & Nicobar Islands'
+  'Rajasthan',
+  'Jammu and Kashmir',
+  'Chhattisgarh',
+  'Arunachal Pradesh'
 ];
 
 export const DAILY_SCHEDULE: DaySchedule[] = [
-  // DAY 01: Foundational 6 States (Published & Available Today)
+  // DAY 01: Foundational 6 States (Published & Available Today: 09 November 2026)
   {
     dayNumber: 1,
     quizId: 'day-01',
@@ -86,138 +87,104 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
       'Karnataka'
     ],
     totalQuestions: 30,
-    isPublished: true, // Published today
+    isPublished: true, // Only Day 01 is published and accessible
     statusLabel: 'Available'
   },
 
-  // DAY 02: Western India (Maharashtra, Gujarat & Goa) - 11 Parks
+  // DAY 02: Andaman and Nicobar Islands, Goa, Sikkim, Nagaland (Locked)
   {
     dayNumber: 2,
     quizId: 'day-02',
     title: 'Day 02',
-    theme: 'Western India (Maharashtra [6], Gujarat [4], Goa [1])',
+    theme: 'Island & Small States (Andaman & Nicobar [9], Goa [1], Sikkim [1], Nagaland [1])',
     dateStr: '10-11-2026',
     displayDate: '10 November 2026',
     unlockIsoUTC: '2026-11-10T14:59:00Z',
-    states: ['Maharashtra', 'Gujarat', 'Goa'],
-    newStates: ['Maharashtra', 'Gujarat', 'Goa'],
-    totalQuestions: 11,
-    isPublished: false, // Locked until explicitly published
+    states: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
+    newStates: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
+    totalQuestions: 12,
+    isPublished: false, // Locked until Sanju unlocks/publishes
     statusLabel: 'Scheduled'
   },
 
-  // DAY 03: Desert & Southern Coasts (Rajasthan & Tamil Nadu) - 10 Parks
+  // DAY 03: Maharashtra, Gujarat, Jharkhand (Locked)
   {
     dayNumber: 3,
     quizId: 'day-03',
     title: 'Day 03',
-    theme: 'Desert & Southern Coasts (Rajasthan [5], Tamil Nadu [5])',
+    theme: 'Western Hub & Plateau (Maharashtra [6], Gujarat [4], Jharkhand [1])',
     dateStr: '11-11-2026',
     displayDate: '11 November 2026',
     unlockIsoUTC: '2026-11-11T14:59:00Z',
-    states: ['Rajasthan', 'Tamil Nadu'],
-    newStates: ['Rajasthan', 'Tamil Nadu'],
-    totalQuestions: 10,
+    states: ['Maharashtra', 'Gujarat', 'Jharkhand'],
+    newStates: ['Maharashtra', 'Gujarat', 'Jharkhand'],
+    totalQuestions: 11,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 04: Northern Himalayas & Crown (Uttarakhand, Himachal, J&K, Ladakh & Haryana) - 18 Parks
+  // DAY 04: West Bengal, Odisha, Tripura, Bihar (Locked)
   {
     dayNumber: 4,
     quizId: 'day-04',
     title: 'Day 04',
-    theme: 'Northern Himalayas (Uttarakhand [6], Himachal [5], J&K & Ladakh [5], Haryana [2])',
+    theme: 'Eastern Plains & Delta (West Bengal [6], Odisha [2], Tripura [2], Bihar [1])',
     dateStr: '12-11-2026',
     displayDate: '12 November 2026',
     unlockIsoUTC: '2026-11-12T14:59:00Z',
-    states: ['Uttarakhand', 'Himachal Pradesh', 'Jammu & Kashmir & Ladakh', 'Haryana'],
-    newStates: ['Uttarakhand', 'Himachal Pradesh', 'Jammu & Kashmir & Ladakh', 'Haryana'],
-    totalQuestions: 18,
+    states: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
+    newStates: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
+    totalQuestions: 11,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 05: Eastern Plains & Central Heartland (West Bengal, Odisha, Chhattisgarh, UP, Bihar, Jharkhand) - 14 Parks
+  // DAY 05: Uttarakhand, Haryana, Meghalaya, Uttar Pradesh, Ladakh (Locked)
   {
     dayNumber: 5,
     quizId: 'day-05',
     title: 'Day 05',
-    theme: 'Eastern Plains & Heartland (WB [6], Odisha [2], Chhattisgarh [3], UP [1], Bihar [1], Jharkhand [1])',
+    theme: 'Northern Highlands & Plains (Uttarakhand [6], Haryana [2], Meghalaya [2], UP [1], Ladakh [1])',
     dateStr: '13-11-2026',
     displayDate: '13 November 2026',
     unlockIsoUTC: '2026-11-13T14:59:00Z',
-    states: ['West Bengal', 'Odisha', 'Chhattisgarh', 'Uttar Pradesh', 'Bihar', 'Jharkhand'],
-    newStates: ['West Bengal', 'Odisha', 'Chhattisgarh', 'Uttar Pradesh', 'Bihar', 'Jharkhand'],
-    totalQuestions: 14,
-    isPublished: false,
-    statusLabel: 'Scheduled'
-  },
-
-  // DAY 06: North-Eastern Seven Sisters & Sikkim - 12 Parks
-  {
-    dayNumber: 6,
-    quizId: 'day-06',
-    title: 'Day 06',
-    theme: 'North-East & Sikkim (Arunachal [2], Meghalaya [2], Manipur [2], Mizoram [2], Nagaland [1], Tripura [2], Sikkim [1])',
-    dateStr: '14-11-2026',
-    displayDate: '14 November 2026',
-    unlockIsoUTC: '2026-11-14T14:59:00Z',
-    states: ['Arunachal Pradesh', 'Meghalaya', 'Manipur', 'Mizoram', 'Nagaland', 'Tripura', 'Sikkim'],
-    newStates: ['Arunachal Pradesh', 'Meghalaya', 'Manipur', 'Mizoram', 'Nagaland', 'Tripura', 'Sikkim'],
+    states: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
+    newStates: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
     totalQuestions: 12,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 07: Island Archipelago (Andaman & Nicobar Islands) - 9 Parks
+  // DAY 06: Tamil Nadu, Himachal Pradesh, Manipur, Mizoram (Locked)
   {
-    dayNumber: 7,
-    quizId: 'day-07',
-    title: 'Day 07',
-    theme: 'Island Archipelago (Andaman & Nicobar Islands [9])',
-    dateStr: '15-11-2026',
-    displayDate: '15 November 2026',
-    unlockIsoUTC: '2026-11-15T14:59:00Z',
-    states: ['Andaman & Nicobar Islands'],
-    newStates: ['Andaman & Nicobar Islands'],
-    totalQuestions: 9,
+    dayNumber: 6,
+    quizId: 'day-06',
+    title: 'Day 06',
+    theme: 'Southern Hills & Mountain Frontiers (Tamil Nadu [5], Himachal [5], Manipur [2], Mizoram [2])',
+    dateStr: '14-11-2026',
+    displayDate: '14 November 2026',
+    unlockIsoUTC: '2026-11-14T14:59:00Z',
+    states: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
+    newStates: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
+    totalQuestions: 14,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // 16 November: Semi-Final Test (40 Questions)
+  // DAY 07: Rajasthan, Jammu and Kashmir, Chhattisgarh, Arunachal Pradesh (Locked)
   {
-    dayNumber: 8,
-    quizId: 'semi-final',
-    title: 'Semi-Final Test',
-    theme: 'Grand Semi-Final Revision (All States & UTs)',
-    dateStr: '16-11-2026',
-    displayDate: '16 November 2026',
-    unlockIsoUTC: '2026-11-16T14:59:00Z',
-    states: ALL_28_STATES,
-    newStates: [],
-    totalQuestions: 40,
+    dayNumber: 7,
+    quizId: 'day-07',
+    title: 'Day 07',
+    theme: 'Crown Frontiers & Forests (Rajasthan [5], Jammu and Kashmir [4], Chhattisgarh [3], Arunachal [2])',
+    dateStr: '15-11-2026',
+    displayDate: '15 November 2026',
+    unlockIsoUTC: '2026-11-15T14:59:00Z',
+    states: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
+    newStates: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
+    totalQuestions: 14,
     isPublished: false,
-    statusLabel: 'Scheduled',
-    isSpecialTest: true
-  },
-
-  // 17 November: Grand Final Test (50 Questions)
-  {
-    dayNumber: 9,
-    quizId: 'grand-final',
-    title: 'Grand Final Test',
-    theme: 'Championship Grand Final (All States & UTs)',
-    dateStr: '17-11-2026',
-    displayDate: '17 November 2026',
-    unlockIsoUTC: '2026-11-17T14:59:00Z',
-    states: ALL_28_STATES,
-    newStates: [],
-    totalQuestions: 50,
-    isPublished: false,
-    statusLabel: 'Scheduled',
-    isSpecialTest: true
+    statusLabel: 'Scheduled'
   }
 ];
 

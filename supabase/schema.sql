@@ -80,10 +80,10 @@ begin
     new.email,
     -- If email matches Sanju's known email pattern, default to admin; else student
     case 
-      when lower(new.email) in ('sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz', 'sanju@boddukuri.quiz') then 'admin'
+      when lower(new.email) in ('boddukurisanjay@gmail.com', 'sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz', 'sanju@boddukuri.quiz') then 'admin'
       else 'student'
     end,
-    coalesce(new.raw_user_meta_data->>'full_name', case when lower(new.email) in ('sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz') then 'Sanju (Admin)' else 'Mahi' end)
+    coalesce(new.raw_user_meta_data->>'full_name', case when lower(new.email) in ('boddukurisanjay@gmail.com', 'sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz') then 'Sanju (Admin)' else 'Mahi' end)
   )
   on conflict (id) do update
   set email = excluded.email, updated_at = now();
@@ -309,3 +309,11 @@ begin
   values (auth.uid(), v_email, p_action, p_target, p_details);
 end;
 $$;
+
+-- 10. Security Grants for Client Access
+grant execute on function public.verify_access_code(text, text) to anon, authenticated;
+grant execute on function public.is_admin() to authenticated, anon;
+grant select on public.profiles to authenticated;
+grant select on public.admin_schedule_config to anon, authenticated;
+grant select, insert, update on public.quiz_progress to authenticated;
+

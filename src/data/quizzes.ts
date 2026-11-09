@@ -38,85 +38,65 @@ export const DAILY_CONFIGS: DayConfig[] = [
 
 export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
   DAILY_CONFIGS[0],
-  // DAY 02: Western India (Maharashtra [6], Gujarat [4], Goa [1]) - 11 Parks
+  // DAY 02: Andaman and Nicobar Islands, Goa, Sikkim, Nagaland (Locked)
   {
     dayNumber: 2,
     title: 'Day 02',
     quizDate: '10-11-2026',
     displayDate: '10 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Maharashtra', 'Gujarat', 'Goa'],
-    totalQuestions: 11
+    newStates: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
+    totalQuestions: 12
   },
-  // DAY 03: Desert & Southern Coasts (Rajasthan [5], Tamil Nadu [5]) - 10 Parks
+  // DAY 03: Maharashtra, Gujarat, Jharkhand (Locked)
   {
     dayNumber: 3,
     title: 'Day 03',
     quizDate: '11-11-2026',
     displayDate: '11 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Rajasthan', 'Tamil Nadu'],
-    totalQuestions: 10
+    newStates: ['Maharashtra', 'Gujarat', 'Jharkhand'],
+    totalQuestions: 11
   },
-  // DAY 04: Northern Himalayas (Uttarakhand [6], Himachal [5], J&K & Ladakh [5], Haryana [2]) - 18 Parks
+  // DAY 04: West Bengal, Odisha, Tripura, Bihar (Locked)
   {
     dayNumber: 4,
     title: 'Day 04',
     quizDate: '12-11-2026',
     displayDate: '12 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Uttarakhand', 'Himachal Pradesh', 'Jammu & Kashmir & Ladakh', 'Haryana'],
-    totalQuestions: 18
+    newStates: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
+    totalQuestions: 11
   },
-  // DAY 05: Eastern Plains & Heartland (West Bengal [6], Odisha [2], Chhattisgarh [3], UP [1], Bihar [1], Jharkhand [1]) - 14 Parks
+  // DAY 05: Uttarakhand, Haryana, Meghalaya, Uttar Pradesh, Ladakh (Locked)
   {
     dayNumber: 5,
     title: 'Day 05',
     quizDate: '13-11-2026',
     displayDate: '13 November 2026',
     statusLabel: 'Locked',
-    newStates: ['West Bengal', 'Odisha', 'Chhattisgarh', 'Uttar Pradesh', 'Bihar', 'Jharkhand'],
-    totalQuestions: 14
+    newStates: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
+    totalQuestions: 12
   },
-  // DAY 06: North-East & Sikkim (Arunachal [2], Meghalaya [2], Manipur [2], Mizoram [2], Nagaland [1], Tripura [2], Sikkim [1]) - 12 Parks
+  // DAY 06: Tamil Nadu, Himachal Pradesh, Manipur, Mizoram (Locked)
   {
     dayNumber: 6,
     title: 'Day 06',
     quizDate: '14-11-2026',
     displayDate: '14 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Arunachal Pradesh', 'Meghalaya', 'Manipur', 'Mizoram', 'Nagaland', 'Tripura', 'Sikkim'],
-    totalQuestions: 12
+    newStates: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
+    totalQuestions: 14
   },
-  // DAY 07: Island Archipelago (Andaman & Nicobar Islands [9]) - 9 Parks
+  // DAY 07: Rajasthan, Jammu and Kashmir, Chhattisgarh, Arunachal Pradesh (Locked)
   {
     dayNumber: 7,
     title: 'Day 07',
     quizDate: '15-11-2026',
     displayDate: '15 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Andaman & Nicobar Islands'],
-    totalQuestions: 9
-  },
-  // 16 November: Semi-Final Test (40 Questions across all states)
-  {
-    dayNumber: 8,
-    title: 'Semi-Final Test',
-    quizDate: '16-11-2026',
-    displayDate: '16 November 2026',
-    statusLabel: 'Locked',
-    newStates: [],
-    totalQuestions: 40
-  },
-  // 17 November: Grand Final Test (50 Questions across all states)
-  {
-    dayNumber: 9,
-    title: 'Grand Final Test',
-    quizDate: '17-11-2026',
-    displayDate: '17 November 2026',
-    statusLabel: 'Locked',
-    newStates: [],
-    totalQuestions: 50
+    newStates: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
+    totalQuestions: 14
   }
 ];
 
@@ -227,13 +207,8 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_CONFIGS): Da
       });
     }
 
-    const quizId = dayNumber === 8 
-      ? 'semi-final' 
-      : dayNumber === 9 
-      ? 'grand-final' 
-      : `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`;
-
-    const statesCovered = dayNumber <= 7 ? (dayNumber === 1 ? config.newStates : config.newStates) : ALL_28_STATES;
+    const quizId = `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`;
+    const statesCovered = config.newStates;
 
     quizzes.push({
       id: quizId,

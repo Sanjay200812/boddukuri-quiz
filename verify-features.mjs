@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { DAILY_QUIZZES } from './src/data/quizzes.ts';
 import { evaluateBadges } from './src/utils/achievements.ts';
-import { calculateCurrentStreak, calculateBestStreak, getWeeklyStreakDays } from './src/utils/storage.ts';
+import { calculateCurrentStreak, getWeeklyStreakDays } from './src/utils/storage.ts';
 
 console.log('--- VERIFYING SPECIAL FEATURES ---');
 
