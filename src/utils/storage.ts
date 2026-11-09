@@ -7,7 +7,11 @@ const STORAGE_KEYS = {
   IN_PROGRESS: 'mahi_quiz_in_progress_v1',
   SETTINGS: 'mahi_quiz_settings_v1',
   COMPLETED_DAYS: 'mahi_quiz_completed_days_v1',
+  BOOKMARKS: 'mahi_quiz_bookmarks_v1',
 };
+
+export const STORAGE_CHANGE_EVENT = 'mahi-quiz-storage-changed';
+function notifyStorageChanged(): void { if (typeof window !== 'undefined') window.dispatchEvent(new Event(STORAGE_CHANGE_EVENT)); }
 
 // Safe JSON parser helper
 function safeGet<T>(key: string, fallback: T): T {
@@ -28,6 +32,89 @@ function safeSet<T>(key: string, value: T): void {
     console.error(`Failed to write ${key} to localStorage:`, err);
   }
 }
+
+export interface ProgressSnapshot {
+  version: 1;
+  updatedAt: string;
+  settingsUpdatedAt: string;
+  settings: UserSettings;
+  attempts: QuizAttempt[];
+  completedDays: string[];
+  inProgress: Record<string, InProgressQuiz>;
+  bookmarks?: string[];
+}
+
+export function getBookmarks(): string[] {
+  return safeGet<string[]>(STORAGE_KEYS.BOOKMARKS, []);
+}
+
+export function isBookmarked(questionId: string): boolean {
+  return getBookmarks().includes(questionId);
+}
+
+export function toggleBookmark(questionId: string): boolean {
+  const current = getBookmarks();
+  const exists = current.includes(questionId);
+  const updated = exists ? current.filter(id => id !== questionId) : [...current, questionId];
+  safeSet(STORAGE_KEYS.BOOKMARKS, updated);
+  markProgressChanged();
+  return !exists;
+}
+
+export function getProgressSnapshot(): ProgressSnapshot {
+  const meta = safeGet<{ updatedAt?: string; settingsUpdatedAt?: string }>('mahi_quiz_sync_meta_v1', {});
+  return { 
+    version: 1, 
+    updatedAt: meta.updatedAt || new Date(0).toISOString(), 
+    settingsUpdatedAt: meta.settingsUpdatedAt || new Date(0).toISOString(), 
+    settings: getUserSettings(), 
+    attempts: getAllAttempts(), 
+    completedDays: getCompletedDayIds(), 
+    inProgress: safeGet<Record<string, InProgressQuiz>>(STORAGE_KEYS.IN_PROGRESS, {}),
+    bookmarks: getBookmarks()
+  };
+}
+
+function saveSyncMeta(updatedAt: string, settingsUpdatedAt: string): void { safeSet('mahi_quiz_sync_meta_v1', { updatedAt, settingsUpdatedAt }); }
+
+export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnapshot {
+  const local = getProgressSnapshot();
+  const attempts = new Map<string, QuizAttempt>();
+  [...local.attempts, ...(incoming.attempts || [])].forEach(attempt => { 
+    const old = attempts.get(attempt.id); 
+    if (!old || new Date(attempt.timestamp).getTime() > new Date(old.timestamp).getTime()) attempts.set(attempt.id, attempt); 
+  });
+  
+  const inProgress = { ...local.inProgress };
+  Object.entries(incoming.inProgress || {}).forEach(([id, value]) => { 
+    if (!inProgress[id] || new Date(value.lastUpdated).getTime() > new Date(inProgress[id].lastUpdated).getTime()) inProgress[id] = value; 
+  });
+  
+  const mergedBookmarks = Array.from(new Set([...(local.bookmarks || []), ...(incoming.bookmarks || [])]));
+  const incomingSettings = new Date(incoming.settingsUpdatedAt || 0).getTime() > new Date(local.settingsUpdatedAt || 0).getTime();
+  
+  const merged: ProgressSnapshot = { 
+    version: 1, 
+    updatedAt: new Date(Math.max(new Date(local.updatedAt).getTime(), new Date(incoming.updatedAt || 0).getTime(), Date.now())).toISOString(), 
+    settingsUpdatedAt: incomingSettings ? incoming.settingsUpdatedAt : local.settingsUpdatedAt, 
+    settings: incomingSettings ? incoming.settings : local.settings, 
+    attempts: Array.from(attempts.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), 
+    completedDays: Array.from(new Set([...(local.completedDays || []), ...(incoming.completedDays || [])])), 
+    inProgress,
+    bookmarks: mergedBookmarks
+  };
+  
+  safeSet(STORAGE_KEYS.ATTEMPTS, merged.attempts); 
+  safeSet(STORAGE_KEYS.COMPLETED_DAYS, merged.completedDays); 
+  safeSet(STORAGE_KEYS.IN_PROGRESS, merged.inProgress); 
+  safeSet(STORAGE_KEYS.SETTINGS, merged.settings); 
+  safeSet(STORAGE_KEYS.BOOKMARKS, merged.bookmarks);
+  saveSyncMeta(merged.updatedAt, merged.settingsUpdatedAt); 
+  notifyStorageChanged(); 
+  return merged;
+}
+
+export function markProgressChanged(settingsChanged = false): void { const now = new Date().toISOString(); const meta = safeGet<{ updatedAt?: string; settingsUpdatedAt?: string }>('mahi_quiz_sync_meta_v1', {}); saveSyncMeta(now, settingsChanged ? now : (meta.settingsUpdatedAt || now)); notifyStorageChanged(); }
 
 // -------------------------------------------------------------
 // ATTEMPTS
@@ -73,6 +160,7 @@ export function saveQuizAttempt(attempt: QuizAttempt): void {
 
   // Clear in-progress session for this quiz
   clearInProgressQuiz(attempt.quizId);
+  markProgressChanged();
 }
 
 // -------------------------------------------------------------
@@ -100,6 +188,7 @@ export function saveInProgressQuiz(data: InProgressQuiz): void {
   const map = safeGet<Record<string, InProgressQuiz>>(STORAGE_KEYS.IN_PROGRESS, {});
   map[data.quizId] = data;
   safeSet(STORAGE_KEYS.IN_PROGRESS, map);
+  markProgressChanged();
 }
 
 export function clearInProgressQuiz(quizId: string): void {
@@ -107,6 +196,7 @@ export function clearInProgressQuiz(quizId: string): void {
   if (map[quizId]) {
     delete map[quizId];
     safeSet(STORAGE_KEYS.IN_PROGRESS, map);
+    markProgressChanged();
   }
 }
 
@@ -335,6 +425,7 @@ export function getUserSettings(): UserSettings {
 
 export function saveUserSettings(settings: UserSettings): void {
   safeSet(STORAGE_KEYS.SETTINGS, settings);
+  markProgressChanged(true);
 }
 
 // -------------------------------------------------------------
@@ -348,6 +439,7 @@ export interface BackupData {
   attempts: QuizAttempt[];
   completedDays: string[];
   inProgress: Record<string, InProgressQuiz>;
+  bookmarks?: string[];
 }
 
 export function exportBackupData(): string {
@@ -357,7 +449,8 @@ export function exportBackupData(): string {
     settings: getUserSettings(),
     attempts: getAllAttempts(),
     completedDays: getCompletedDayIds(),
-    inProgress: safeGet<Record<string, InProgressQuiz>>(STORAGE_KEYS.IN_PROGRESS, {})
+    inProgress: safeGet<Record<string, InProgressQuiz>>(STORAGE_KEYS.IN_PROGRESS, {}),
+    bookmarks: getBookmarks()
   };
   return JSON.stringify(data, null, 2);
 }
@@ -373,6 +466,7 @@ export function importBackupData(jsonString: string): { success: boolean; messag
     if (data.attempts) safeSet(STORAGE_KEYS.ATTEMPTS, data.attempts);
     if (data.completedDays) safeSet(STORAGE_KEYS.COMPLETED_DAYS, data.completedDays);
     if (data.inProgress) safeSet(STORAGE_KEYS.IN_PROGRESS, data.inProgress);
+    if (data.bookmarks && Array.isArray(data.bookmarks)) safeSet(STORAGE_KEYS.BOOKMARKS, data.bookmarks);
 
     return { 
       success: true, 
@@ -387,6 +481,7 @@ export function resetAllData(): void {
   localStorage.removeItem(STORAGE_KEYS.ATTEMPTS);
   localStorage.removeItem(STORAGE_KEYS.IN_PROGRESS);
   localStorage.removeItem(STORAGE_KEYS.COMPLETED_DAYS);
+  localStorage.removeItem(STORAGE_KEYS.BOOKMARKS);
   saveUserSettings({
     sanjuWhatsAppNumber: DEFAULT_SANJU_WHATSAPP_NUMBER,
     studentName: 'Mahi'

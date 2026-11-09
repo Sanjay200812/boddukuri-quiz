@@ -13,8 +13,12 @@ import {
   HelpCircle, 
   Sparkles, 
   Calendar, 
-  MapPin
+  MapPin,
+  Bookmark,
+  Download
 } from 'lucide-react';
+import { toggleBookmark, getBookmarks } from '../utils/storage';
+import { generateDayNotesPDF } from '../utils/pdfGenerator';
 
 interface AnswerSheetProps {
   attempt: QuizAttempt;
@@ -31,10 +35,16 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
   onReattempt,
   onGoHome,
 }) => {
-  const [statusFilter, setStatusFilter] = useState<'all' | 'correct' | 'incorrect' | 'unanswered'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'correct' | 'incorrect' | 'unanswered' | 'bookmarked'>('all');
   const [sectionFilter, setSectionFilter] = useState<'all' | 'previous' | 'new'>('all');
+  const [bookmarksList, setBookmarksList] = useState<string[]>(() => getBookmarks());
 
   const questions = quiz.questions;
+
+  const handleToggle = (qId: string) => {
+    toggleBookmark(qId);
+    setBookmarksList(getBookmarks());
+  };
 
   // Filter questions based on selections
   const filteredQuestions = questions.filter(q => {
@@ -43,11 +53,13 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
     const isCorrect = isAnswered && selected === q.correctAnswer;
     const isIncorrect = isAnswered && selected !== q.correctAnswer;
     const isUnanswered = !isAnswered;
+    const isSaved = bookmarksList.includes(q.id);
 
     // Filter by status
     if (statusFilter === 'correct' && !isCorrect) return false;
     if (statusFilter === 'incorrect' && !isIncorrect) return false;
     if (statusFilter === 'unanswered' && !isUnanswered) return false;
+    if (statusFilter === 'bookmarked' && !isSaved) return false;
 
     // Filter by section
     if (sectionFilter === 'previous' && q.section !== 'previous') return false;
@@ -86,16 +98,27 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
             </div>
           </div>
 
-          {/* Quick Score Capsule */}
-          <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-200 text-xs">
-            <div>
-              <span className="text-slate-400">Score:</span>{' '}
-              <strong className="text-emerald-800 text-sm">{attempt.marksObtained}/{attempt.maxMarks}</strong>
-            </div>
-            <div className="w-px h-4 bg-slate-300" />
-            <div>
-              <span className="text-slate-400">Accuracy:</span>{' '}
-              <strong className="text-slate-900 text-sm">{attempt.percentage}%</strong>
+          {/* Quick Score Capsule & PDF Button */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => generateDayNotesPDF(quiz)}
+              className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              title="Download full revision notes and explanations PDF"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Download PDF</span>
+            </button>
+
+            <div className="flex items-center gap-3 bg-slate-50 px-4 py-1.5 rounded-2xl border border-slate-200 text-xs">
+              <div>
+                <span className="text-slate-400">Score:</span>{' '}
+                <strong className="text-emerald-800 text-sm">{attempt.marksObtained}/{attempt.maxMarks}</strong>
+              </div>
+              <div className="w-px h-4 bg-slate-300" />
+              <div>
+                <span className="text-slate-400">Accuracy:</span>{' '}
+                <strong className="text-slate-900 text-sm">{attempt.percentage}%</strong>
+              </div>
             </div>
           </div>
         </div>
@@ -147,6 +170,17 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
             >
               <MinusCircle className="w-3.5 h-3.5" />
               Unanswered ({attempt.unansweredCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('bookmarked')}
+              className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
+                statusFilter === 'bookmarked' 
+                  ? 'bg-amber-600 text-white shadow-sm' 
+                  : 'bg-amber-50 text-amber-900 hover:bg-amber-100'
+              }`}
+            >
+              <Bookmark className="w-3.5 h-3.5" />
+              Bookmarked ({bookmarksList.length})
             </button>
           </div>
 
@@ -224,8 +258,21 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                     </span>
                   </div>
 
-                  {/* Status Indicator Badge */}
-                  <div>
+                  {/* Status Indicator & Bookmark Badge */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleToggle(question.id)}
+                      className={`p-1.5 rounded-xl border transition-all ${
+                        bookmarksList.includes(question.id)
+                          ? 'bg-amber-100 border-amber-300 text-amber-800'
+                          : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700'
+                      }`}
+                      title={bookmarksList.includes(question.id) ? 'Remove Bookmark' : 'Bookmark this question'}
+                    >
+                      <Bookmark className={`w-3.5 h-3.5 ${bookmarksList.includes(question.id) ? 'fill-amber-600' : ''}`} />
+                    </button>
+
                     {isCorrect && (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />

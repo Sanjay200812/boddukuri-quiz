@@ -8,7 +8,13 @@ import {
   Trash2, 
   AlertTriangle, 
   CheckCircle2, 
-  Save
+  Save,
+  Cloud,
+  LogOut,
+  Sparkles,
+  RefreshCw,
+  Sliders,
+  ShieldCheck
 } from 'lucide-react';
 import { 
   getUserSettings, 
@@ -17,17 +23,28 @@ import {
   importBackupData, 
   resetAllData 
 } from '../utils/storage';
+import { isDevUnlockAllEnabled, setDevUnlockAll } from '../utils/schedule';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDataChanged: () => void;
+  userEmail?: string | null;
+  syncStatus?: 'synced' | 'offline' | 'pending';
+  onSyncNow?: () => void;
+  onSignOut?: () => void;
+  onReplayMotivation?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   onDataChanged,
+  userEmail,
+  syncStatus = 'synced',
+  onSyncNow,
+  onSignOut,
+  onReplayMotivation,
 }) => {
   const [settings, setSettings] = useState(getUserSettings());
   const [phoneInput, setPhoneInput] = useState(settings.sanjuWhatsAppNumber);
@@ -36,12 +53,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [importStatus, setImportStatus] = useState<{ message: string; success?: boolean } | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [confirmInput, setConfirmInput] = useState('');
+  const [devUnlock, setDevUnlock] = useState(isDevUnlockAllEnabled());
 
   if (!isOpen) return null;
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    // Clean phone number
     const cleanNumber = phoneInput.replace(/\D/g, '');
     const newSettings = {
       ...settings,
@@ -52,6 +69,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setSettings(newSettings);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
+    onDataChanged();
+  };
+
+  const handleToggleDevUnlock = (enabled: boolean) => {
+    setDevUnlock(enabled);
+    setDevUnlockAll(enabled);
     onDataChanged();
   };
 
@@ -86,7 +109,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       }
     };
     reader.readAsText(file);
-    // Reset file input value
     e.target.value = '';
   };
 
@@ -114,10 +136,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </span>
             <div>
               <h2 className="text-xl font-bold text-slate-900">
-                Settings & Data Backup
+                Settings & Account
               </h2>
               <p className="text-xs text-slate-500">
-                Configure WhatsApp numbers and backup your local progress
+                Manage cloud sync, WhatsApp configuration, and learning options
               </p>
             </div>
           </div>
@@ -130,7 +152,89 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        {/* WhatsApp & User Configuration */}
+        {/* 1. Account & Supabase Cloud Sync Section */}
+        <div className="space-y-3 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+              <Cloud className="w-4 h-4 text-emerald-700" />
+              <span>Supabase Cloud Sync</span>
+            </h3>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white border border-emerald-200">
+              <span className={`w-2 h-2 rounded-full ${
+                syncStatus === 'synced' ? 'bg-emerald-500' : syncStatus === 'offline' ? 'bg-slate-400' : 'bg-amber-500 animate-pulse'
+              }`} />
+              <span className="capitalize text-slate-700">{syncStatus}</span>
+            </div>
+          </div>
+
+          <div className="text-xs text-slate-600 flex flex-col gap-1">
+            <div className="flex items-center gap-1 font-semibold text-slate-700">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Signed in as: <strong>{userEmail || 'Authenticated User'}</strong></span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Progress, badges, streaks, and bookmarks sync securely with your Supabase account.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-emerald-100/70">
+            {onSyncNow && (
+              <button
+                type="button"
+                onClick={onSyncNow}
+                className="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Sync Cloud Now</span>
+              </button>
+            )}
+
+            {onSignOut && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to sign out? Your local progress is saved.')) {
+                    onClose();
+                    onSignOut();
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-xs font-bold transition-all flex items-center gap-1.5 ml-auto"
+              >
+                <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                <span>Sign Out</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 2. Motivational Intro Replay */}
+        {onReplayMotivation && (
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-3">
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-emerald-600" />
+                <span>Opening Motivation Screen</span>
+              </h4>
+              <p className="text-[11px] text-slate-500">
+                Replay Mahi's personalized daily motivation message
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onReplayMotivation();
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-colors shadow-xs"
+            >
+              Replay Screen
+            </button>
+          </div>
+        )}
+
+        {/* 3. Sanju's WhatsApp Configuration */}
         <form onSubmit={handleSaveSettings} className="space-y-4">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <Phone className="w-4 h-4 text-emerald-600" />
@@ -142,15 +246,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Recipient WhatsApp Number (International format without + or spaces)
               </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
-                  placeholder="e.g. 917075920852"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
-                />
-              </div>
+              <input
+                type="text"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                placeholder="e.g. 917075920852"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
+              />
               <p className="text-[11px] text-slate-400 mt-1">
                 Results will be pre-filled to this number when Mahi clicks "Share on WhatsApp". Format: 91XXXXXXXXXX.
               </p>
@@ -187,20 +289,43 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
         </form>
 
-        {/* JSON Backup & Restore Section */}
+        {/* 4. Developer / Sanju's Testing Options */}
+        <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+              <Sliders className="w-4 h-4 text-emerald-600" />
+              <span>Developer & Testing Mode</span>
+            </h3>
+
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={devUnlock} 
+                onChange={(e) => handleToggleDevUnlock(e.target.checked)} 
+                className="sr-only peer" 
+              />
+              <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            <strong>Dev: Unlock All Days</strong> — allows Sanju to preview and test any upcoming day quiz (Days 02 to 07) before the 8:30 PM IST scheduled unlock time.
+          </p>
+        </div>
+
+        {/* 5. JSON Backup & Restore Section */}
         <div className="space-y-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
             <Download className="w-4 h-4 text-emerald-600" />
-            <span>Backup & Restore (Offline LocalStorage)</span>
+            <span>Local Backup & Restore (JSON)</span>
           </h3>
 
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
             <p className="text-xs text-slate-600 leading-relaxed">
-              Since all progress is saved locally in your browser's LocalStorage, you can export a JSON backup file to keep your completed days and score records safe.
+              Export a JSON file to keep an offline backup of all completed days, scores, bookmarks, and badges.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
-              {/* Export Button */}
               <button
                 type="button"
                 onClick={handleExportJSON}
@@ -210,7 +335,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <span>Export Progress (.json)</span>
               </button>
 
-              {/* Import Button */}
               <label className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-800 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer">
                 <Upload className="w-4 h-4 text-teal-600" />
                 <span>Import Progress (.json)</span>
@@ -234,7 +358,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
         </div>
 
-        {/* Reset Progress Section */}
+        {/* 6. Reset Progress Section */}
         <div className="pt-2 border-t border-slate-100 space-y-3">
           <div className="flex items-center justify-between">
             <div>

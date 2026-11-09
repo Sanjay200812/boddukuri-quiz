@@ -109,3 +109,4 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
     </div>
   );
 };
+

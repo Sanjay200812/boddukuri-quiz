@@ -154,3 +154,4 @@ export function getFreshlyUnlockedBadges(latestAttempt: QuizAttempt, allAttempts
   const priorUnlockedIds = new Set(priorBadges.filter(b => b.unlocked).map(b => b.id));
   return currentBadges.filter(b => b.unlocked && !priorUnlockedIds.has(b.id));
 }
+

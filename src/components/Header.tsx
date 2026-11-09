@@ -7,7 +7,8 @@ import {
   Settings as SettingsIcon,
   Home,
   CheckCircle2,
-  Award
+  Award,
+  LogOut
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -19,6 +20,9 @@ interface HeaderProps {
   unlockedBadgesCount?: number;
   completedQuizzesCount: number;
   totalQuizzesCount: number;
+  syncStatus?: 'synced' | 'offline' | 'pending';
+  userEmail?: string | null;
+  onSignOut?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,6 +34,9 @@ export const Header: React.FC<HeaderProps> = ({
   unlockedBadgesCount = 0,
   completedQuizzesCount,
   totalQuizzesCount,
+  syncStatus = 'synced',
+  userEmail,
+  onSignOut,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 shadow-sm transition-all">
@@ -133,6 +140,21 @@ export const Header: React.FC<HeaderProps> = ({
               <span>{completedQuizzesCount}/{totalQuizzesCount} Done</span>
             </div>
 
+            {/* Cloud Sync Status Indicator */}
+            <div 
+              title={`Cloud sync: ${syncStatus}${userEmail ? ` (${userEmail})` : ''}`}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+            >
+              <span className={`w-2 h-2 rounded-full ${
+                syncStatus === 'synced' 
+                  ? 'bg-emerald-500' 
+                  : syncStatus === 'offline' 
+                  ? 'bg-slate-400' 
+                  : 'bg-amber-500 animate-pulse'
+              }`} />
+              <span className="hidden sm:inline capitalize">{syncStatus}</span>
+            </div>
+
             {/* Settings & Backup Modal Trigger */}
             <button
               onClick={onOpenSettings}
@@ -142,6 +164,21 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
+
+            {/* Sign Out Button */}
+            {onSignOut && (
+              <button
+                onClick={() => {
+                  if (window.confirm('Sign out of Mahi’s account? Local progress will be kept safe.')) {
+                    onSignOut();
+                  }
+                }}
+                title="Sign out"
+                className="hidden sm:flex items-center justify-center p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-slate-200/80 transition-colors"
+              >
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            )}
           </div>
 
         </div>

@@ -104,6 +104,8 @@ export interface InProgressQuiz {
   answers: Record<string, number>;
   flaggedQuestionIds: string[];
   timeElapsedSeconds: number;
+  questionExpiresAt?: number;
+  questionSecondsLeft?: number;
   lastUpdated: string;
 }
 

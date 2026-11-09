@@ -8,7 +8,9 @@ import type {
 import { 
   getInProgressQuiz, 
   saveInProgressQuiz, 
-  saveQuizAttempt 
+  saveQuizAttempt,
+  isBookmarked,
+  toggleBookmark 
 } from '../utils/storage';
 import { getPerformanceTier } from '../data/quotes';
 import { playOptionClickSound } from '../utils/sound';
@@ -21,7 +23,9 @@ import {
   AlertCircle, 
   Grid, 
   LogOut, 
-  Send
+  Send,
+  Bookmark,
+  Hourglass
 } from 'lucide-react';
 
 interface QuizRunnerProps {
@@ -29,6 +33,8 @@ interface QuizRunnerProps {
   onFinishQuiz: (attempt: QuizAttempt) => void;
   onExit: () => void;
 }
+
+const QUESTION_LIMIT_SECONDS = 60;
 
 export const QuizRunner: React.FC<QuizRunnerProps> = ({
   quiz,
@@ -45,18 +51,66 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
   const [showPaletteModal, setShowPaletteModal] = useState<boolean>(false);
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
 
+  // 60-Second Per-Question Timer (mobile-friendly with refresh preservation)
+  const [questionSecondsLeft, setQuestionSecondsLeft] = useState<number>(() => {
+    if (savedState?.questionExpiresAt && savedState.currentQuestionIndex === (savedState.currentQuestionIndex || 0)) {
+      const remaining = Math.max(1, Math.ceil((savedState.questionExpiresAt - Date.now()) / 1000));
+      if (remaining > 0 && remaining <= QUESTION_LIMIT_SECONDS) {
+        return remaining;
+      }
+    }
+    return savedState?.questionSecondsLeft && savedState.questionSecondsLeft > 0 
+      ? savedState.questionSecondsLeft 
+      : QUESTION_LIMIT_SECONDS;
+  });
+
+  const [questionExpiresAt, setQuestionExpiresAt] = useState<number>(() => {
+    if (savedState?.questionExpiresAt && savedState.questionExpiresAt > Date.now()) {
+      return savedState.questionExpiresAt;
+    }
+    return Date.now() + QUESTION_LIMIT_SECONDS * 1000;
+  });
+
   const questions: QuizQuestion[] = quiz.questions;
   const currentQuestion = questions[currentIndex];
 
-  // Live timer tick
+  const [bookmarked, setBookmarked] = useState<boolean>(() => isBookmarked(currentQuestion.id));
+
+  useEffect(() => {
+    setBookmarked(isBookmarked(currentQuestion.id));
+  }, [currentQuestion.id]);
+
+  const handleToggleBookmark = () => {
+    const nextState = toggleBookmark(currentQuestion.id);
+    setBookmarked(nextState);
+  };
+
+  // Live timer tick for total time & 60s per-question timer with auto-advance
   useEffect(() => {
     const timer = setInterval(() => {
       setSecondsElapsed(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
-  // Autosave in-progress state whenever answers or index change
+      setQuestionSecondsLeft(prev => {
+        if (prev <= 1) {
+          // Timer hit 0s -> auto advance to next question
+          if (currentIndex < questions.length - 1) {
+            setCurrentIndex(curr => curr + 1);
+            setQuestionExpiresAt(Date.now() + QUESTION_LIMIT_SECONDS * 1000);
+            return QUESTION_LIMIT_SECONDS;
+          } else {
+            // Reached end of quiz
+            setShowSubmitModal(true);
+            return 0;
+          }
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentIndex, questions.length]);
+
+  // Autosave in-progress state whenever answers, index or timers change
   useEffect(() => {
     saveInProgressQuiz({
       quizId: quiz.id,
@@ -65,9 +119,11 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       answers,
       flaggedQuestionIds: flaggedIds,
       timeElapsedSeconds: secondsElapsed,
+      questionExpiresAt,
+      questionSecondsLeft,
       lastUpdated: new Date().toISOString()
     });
-  }, [quiz.id, quiz.dayNumber, currentIndex, answers, flaggedIds, secondsElapsed]);
+  }, [quiz.id, quiz.dayNumber, currentIndex, answers, flaggedIds, secondsElapsed, questionExpiresAt, questionSecondsLeft]);
 
   // Handle option select
   const handleSelectOption = (optionIndex: number) => {
@@ -87,16 +143,20 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
     );
   };
 
-  // Navigation handlers
+  // Navigation handlers (resets per-question timer to 60s)
   const handlePrev = () => {
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
+      setQuestionSecondsLeft(QUESTION_LIMIT_SECONDS);
+      setQuestionExpiresAt(Date.now() + QUESTION_LIMIT_SECONDS * 1000);
     }
   };
 
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1);
+      setQuestionSecondsLeft(QUESTION_LIMIT_SECONDS);
+      setQuestionExpiresAt(Date.now() + QUESTION_LIMIT_SECONDS * 1000);
     } else {
       setShowSubmitModal(true);
     }
@@ -105,6 +165,8 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
   // Jump directly to question
   const handleJumpToQuestion = (index: number) => {
     setCurrentIndex(index);
+    setQuestionSecondsLeft(QUESTION_LIMIT_SECONDS);
+    setQuestionExpiresAt(Date.now() + QUESTION_LIMIT_SECONDS * 1000);
     setShowPaletteModal(false);
   };
 
@@ -386,17 +448,48 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       </div>
 
       {/* Question Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-6">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-6 relative overflow-hidden">
         
-        {/* Question Text */}
-        <div className="space-y-2">
+        {/* 60-Second Mini Progress Bar */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100">
+          <div 
+            className={`h-full transition-all duration-1000 ${
+              questionSecondsLeft <= 10 
+                ? 'bg-rose-500 animate-pulse' 
+                : questionSecondsLeft <= 20 
+                ? 'bg-amber-400' 
+                : 'bg-emerald-500'
+            }`}
+            style={{ width: `${(questionSecondsLeft / QUESTION_LIMIT_SECONDS) * 100}%` }}
+          />
+        </div>
+
+        {/* Question Header & 60-Second Timer Badge */}
+        <div className="flex items-center justify-between gap-3 pt-1">
           <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">
             Question #{currentIndex + 1}
           </div>
-          <h3 className="text-lg sm:text-2xl font-bold text-slate-900 leading-snug">
-            {currentQuestion.question}
-          </h3>
+
+          {/* 60s Countdown Timer Badge */}
+          <div 
+            title="60 seconds limit per question. Advances automatically at 0s."
+            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border transition-all ${
+              questionSecondsLeft <= 10
+                ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
+                : questionSecondsLeft <= 20
+                ? 'bg-amber-50 text-amber-900 border-amber-300'
+                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+            }`}
+          >
+            <Hourglass className={`w-3.5 h-3.5 ${questionSecondsLeft <= 10 ? 'text-rose-600 animate-spin' : 'text-emerald-700'}`} />
+            <span>{questionSecondsLeft}s Left</span>
+          </div>
         </div>
+
+        {/* Question Text */}
+        <h3 className="text-lg sm:text-2xl font-bold text-slate-900 leading-snug">
+          {currentQuestion.question}
+        </h3>
 
         {/* 4 Options Grid */}
         <div className="space-y-3 pt-2">
@@ -440,20 +533,39 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
           })}
         </div>
 
-        {/* Bottom helper tip */}
-        <div className="pt-2 text-xs text-slate-400 flex items-center justify-between">
-          <span>Tip: You can use keys 1-4 on your keyboard to select options</span>
-          <button
-            onClick={handleToggleFlag}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
-              flaggedIds.includes(currentQuestion.id)
-                ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
-            }`}
-          >
-            <Flag className={`w-3.5 h-3.5 ${flaggedIds.includes(currentQuestion.id) ? 'fill-amber-600 text-amber-600' : ''}`} />
-            {flaggedIds.includes(currentQuestion.id) ? 'Flagged for Review' : 'Mark for Review'}
-          </button>
+        {/* Bottom helper tip, Bookmark & Flag */}
+        <div className="pt-2 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+          <span className="hidden sm:inline">Tip: You can use keys 1-4 on your keyboard</span>
+          <div className="flex items-center gap-2 ml-auto">
+            {/* Bookmark button */}
+            <button
+              type="button"
+              onClick={handleToggleBookmark}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                bookmarked
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : 'text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200'
+              }`}
+              title="Bookmark question for review"
+            >
+              <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-amber-600 text-amber-600' : 'text-slate-500'}`} />
+              <span>{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+            </button>
+
+            {/* Flag for review */}
+            <button
+              type="button"
+              onClick={handleToggleFlag}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                flaggedIds.includes(currentQuestion.id)
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : 'text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Flag className={`w-3.5 h-3.5 ${flaggedIds.includes(currentQuestion.id) ? 'fill-amber-600 text-amber-600' : ''}`} />
+              <span>{flaggedIds.includes(currentQuestion.id) ? 'Flagged' : 'Flag'}</span>
+            </button>
+          </div>
         </div>
 
       </div>

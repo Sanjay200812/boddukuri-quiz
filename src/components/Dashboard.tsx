@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Play, 
   RotateCcw, 
   CheckCircle2, 
   Clock, 
-  HelpCircle, 
   Award, 
   Flame, 
   TrendingUp, 
@@ -12,15 +11,19 @@ import {
   ChevronRight, 
   BookOpen, 
   ArrowRight, 
-  MapPin,
   Calendar,
   Lock,
-  Zap
+  Zap,
+  Download,
+  Hourglass
 } from 'lucide-react';
 import type { DailyQuiz, OverallProgress, QuizAttempt } from '../types/quiz';
-import { getQuizStatus, getBestAttempt, getLatestAttempt, getAllAttempts } from '../utils/storage';
+import { getQuizStatus, getBestAttempt, getLatestAttempt, getAllAttempts, getCompletedDayIds } from '../utils/storage';
 import { evaluateBadges } from '../utils/achievements';
 import { StreakTracker } from './StreakTracker';
+import { DAILY_SCHEDULE, isDayUnlocked, getDayCountdown, getRecommendedTargetDay } from '../utils/schedule';
+import { getQuizForDay } from '../data/quizzes';
+import { generateDayNotesPDF } from '../utils/pdfGenerator';
 
 interface DashboardProps {
   quizzes: DailyQuiz[];
@@ -32,7 +35,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
-  quizzes,
+  quizzes: _quizzes,
   overallProgress,
   onStartQuiz,
   onViewResult,
@@ -40,24 +43,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenBadges,
 }) => {
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [, setTick] = useState<number>(Date.now());
+
+  // 1-second live ticker to keep countdowns accurate and live
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick(Date.now());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const allAttempts = getAllAttempts();
+  const completedDayIds = getCompletedDayIds();
   const allBadges = evaluateBadges(allAttempts, overallProgress.currentStreak);
   const unlockedCount = allBadges.filter(b => b.unlocked).length;
 
-  // Filter quizzes according to tab
-  const filteredQuizzes = quizzes.filter(quiz => {
-    const status = getQuizStatus(quiz.id);
+  // Determine current target day
+  const recommendedDayNumber = getRecommendedTargetDay(completedDayIds);
+  const targetQuiz = getQuizForDay(recommendedDayNumber);
+  const isTargetUnlocked = isDayUnlocked(recommendedDayNumber, completedDayIds);
+  const targetCountdown = getDayCountdown(recommendedDayNumber, completedDayIds);
+  const targetStatus = getQuizStatus(targetQuiz.id);
+
+  // Filter scheduled days
+  const filteredSchedule = DAILY_SCHEDULE.filter(day => {
+    const dayQuiz = getQuizForDay(day.dayNumber);
+    const status = getQuizStatus(dayQuiz.id);
     if (filter === 'completed') return status === 'completed';
     if (filter === 'pending') return status !== 'completed';
     return true;
   });
 
-  // Find next uncompleted day or default to Day 1
-  const nextQuiz = quizzes.find(q => getQuizStatus(q.id) !== 'completed') || quizzes[0];
-  const nextQuizStatus = getQuizStatus(nextQuiz.id);
-
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-8 pb-16 animate-fadeIn">
       
       {/* Hero Welcome Banner */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-forest-950 text-white p-6 sm:p-10 shadow-elevated">
@@ -80,42 +98,60 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </p>
 
           <p className="text-sm sm:text-base text-emerald-200/90 mb-8 max-w-2xl leading-relaxed">
-            Your daily cumulative learning platform for India's National Parks. Every daily quiz retains all previously learned states while introducing newly studied states to build permanent recall!
+            Your daily cumulative learning platform for India's National Parks (09 Nov – 15 Nov 2026). Every daily quiz retains all previously learned states while introducing newly studied states to build permanent recall!
           </p>
 
-          {/* Call to action: Next Day Target */}
-          {nextQuiz && (
-            <div className="inline-flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner">
+          {/* Call to action: Recommended Today's Target */}
+          {targetQuiz && (
+            <div className="inline-flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner w-full max-w-2xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
-                  {nextQuiz.dayNumber < 10 ? `0${nextQuiz.dayNumber}` : nextQuiz.dayNumber}
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base shadow-md ${
+                  isTargetUnlocked ? 'bg-emerald-500 text-white' : 'bg-amber-500/90 text-white'
+                }`}>
+                  {targetQuiz.dayNumber < 10 ? `0${targetQuiz.dayNumber}` : targetQuiz.dayNumber}
                 </div>
                 <div>
-                  <div className="text-xs uppercase tracking-wider text-emerald-300 font-bold flex items-center gap-2">
-                    <span>{nextQuizStatus === 'in-progress' ? 'Resume Current Session' : "Today's Target — Day 01"}</span>
-                    <span className="text-emerald-200/90 font-medium">• {nextQuiz.displayDate || '09 November 2026'}</span>
+                  <div className="text-xs uppercase tracking-wider font-extrabold flex items-center gap-2">
+                    {isTargetUnlocked ? (
+                      <span className="text-emerald-300">
+                        {targetStatus === 'in-progress' ? 'Resume Current Session' : targetStatus === 'completed' ? "Day Completed — Ready to Reattempt" : "Today's Target — Available Now"}
+                      </span>
+                    ) : (
+                      <span className="text-amber-300 flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> Unlocks at 8:30 PM IST ({targetCountdown.formattedCountdown})
+                      </span>
+                    )}
+                    <span className="text-emerald-200/80 font-medium">• {targetQuiz.displayDate}</span>
                   </div>
                   <div className="text-base font-bold text-white">
-                    {nextQuiz.title}: {nextQuiz.statesCovered.length} States Pool ({nextQuiz.totalQuestions} Questions)
+                    {targetQuiz.title}: {targetQuiz.statesCovered.length} States Pool ({targetQuiz.totalQuestions} Questions)
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:ml-auto w-full sm:w-auto">
+                {isTargetUnlocked ? (
+                  <button
+                    onClick={() => onStartQuiz(targetQuiz.id)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-sm hover:bg-emerald-50 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+                  >
+                    <Play className="w-4 h-4 fill-emerald-900" />
+                    {targetStatus === 'in-progress' ? 'Resume Quiz' : targetStatus === 'completed' ? 'Reattempt Quiz' : 'Start Today\'s Quiz'}
+                  </button>
+                ) : (
+                  <div className="text-xs font-bold text-amber-200 bg-amber-950/60 border border-amber-400/30 px-3.5 py-2 rounded-xl flex items-center gap-2">
+                    <Hourglass className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                    <span>Countdown: {targetCountdown.formattedCountdown}</span>
+                  </div>
+                )}
+
                 <button
-                  onClick={() => onStartQuiz(nextQuiz.id)}
-                  className="px-5 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-sm hover:bg-emerald-50 active:scale-95 transition-all shadow-md flex items-center gap-2"
+                  onClick={() => generateDayNotesPDF(targetQuiz)}
+                  className="px-3 py-2.5 rounded-xl bg-emerald-700/80 text-white hover:bg-emerald-600 text-xs font-bold transition-colors flex items-center gap-1.5 border border-white/20"
+                  title="Download complete notes, fact sheets and questions PDF"
                 >
-                  <Play className="w-4 h-4 fill-emerald-900" />
-                  {nextQuizStatus === 'in-progress' ? 'Resume Quiz' : 'Start Today\'s Quiz'}
-                </button>
-                <button
-                  onClick={() => onOpenStudyGuide(nextQuiz.statesCovered[0])}
-                  className="px-3.5 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 text-sm font-semibold transition-colors flex items-center gap-1.5"
-                  title="Read brief facts before quiz"
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span className="hidden sm:inline">Quick Notes</span>
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">PDF</span>
                 </button>
               </div>
             </div>
@@ -123,87 +159,65 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </section>
 
-      {/* 6 Key Metrics Grid as required in Section 8 */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-emerald-600" />
-          Overall Learning Progress
+      {/* Overview Statistics Cards */}
+      <section className="space-y-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-emerald-700" />
+          <span>Learning Analytics</span>
         </h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           
-          {/* 1. Total states learned */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-soft hover:border-emerald-200 transition-colors">
+          {/* Card 1: Completed Quizzes */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-card hover:shadow-elevated transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-500">States Learned</span>
-              <MapPin className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-900">
-              {overallProgress.totalStatesLearned}
-            </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">States mastered</div>
-          </div>
-
-          {/* 2. Total completed days */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-soft hover:border-emerald-200 transition-colors">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-500">Completed Days</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Completed Days</span>
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="text-2xl font-black text-emerald-700">
-              {overallProgress.totalCompletedDays}
-              <span className="text-xs text-slate-400 font-normal ml-1">/ {overallProgress.totalDaysAvailable}</span>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+              {overallProgress.totalCompletedDays} / {DAILY_SCHEDULE.length}
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">Daily quizzes cleared</div>
+            <div className="text-[11px] text-slate-400 mt-1">
+              {Math.round((overallProgress.totalCompletedDays / DAILY_SCHEDULE.length) * 100)}% of 7-day schedule
+            </div>
           </div>
 
-          {/* 3. Total quizzes attempted */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-soft hover:border-emerald-200 transition-colors">
+          {/* Card 2: States Mastered */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-card hover:shadow-elevated transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-500">Quizzes Attempted</span>
-              <HelpCircle className="w-4 h-4 text-emerald-600" />
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">States Mastered</span>
+              <BookOpen className="w-4 h-4 text-teal-600" />
             </div>
-            <div className="text-2xl font-black text-slate-900">
-              {overallProgress.totalQuizzesAttempted}
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+              {overallProgress.totalStatesLearned}
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">Total sessions taken</div>
+            <div className="text-[11px] text-slate-400 mt-1">Across completed daily pools</div>
           </div>
 
-          {/* 4. Overall accuracy */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-soft hover:border-emerald-200 transition-colors">
+          {/* Card 3: Overall Accuracy */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-card hover:shadow-elevated transition-shadow">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-500">Overall Accuracy</span>
-              <Award className="w-4 h-4 text-teal-600" />
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Overall Accuracy</span>
+              <Award className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="text-2xl font-black text-teal-700">
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
               {overallProgress.overallAccuracy}%
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">Based on best scores</div>
+            <div className="text-[11px] text-slate-400 mt-1">
+              {overallProgress.overallMarks}/{overallProgress.overallMaxMarks} Best Marks
+            </div>
           </div>
 
-          {/* 5. Overall marks */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-soft hover:border-emerald-200 transition-colors">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-slate-500">Overall Marks</span>
-              <FileCheck className="w-4 h-4 text-emerald-600" />
-            </div>
-            <div className="text-2xl font-black text-slate-900">
-              {overallProgress.overallMarks}
-              <span className="text-xs text-slate-400 font-normal ml-1">/ {overallProgress.overallMaxMarks}</span>
-            </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">Points obtained</div>
-          </div>
-
-          {/* 6. Current streak */}
-          <div className="bg-white p-4 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-soft hover:border-amber-300 transition-colors">
+          {/* Card 4: Learning Streak */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 sm:p-5 rounded-2xl border border-amber-200 shadow-card hover:shadow-elevated transition-shadow">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-amber-900">Current Streak</span>
               <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />
             </div>
-            <div className="text-2xl font-black text-amber-700">
+            <div className="text-2xl sm:text-3xl font-black text-amber-700">
               {overallProgress.currentStreak} {overallProgress.currentStreak === 1 ? 'Day' : 'Days'}
             </div>
-            <div className="text-[11px] text-amber-800/80 mt-0.5">Consistent daily habit</div>
+            <div className="text-[11px] text-amber-800/80 mt-1">Consistent daily habit</div>
           </div>
 
         </div>
@@ -242,7 +256,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           )}
         </div>
 
-        {/* 4 Spotlight Badges: First Quiz, Perfect Score, 7-Day Streak, 3-Day Streak */}
+        {/* 4 Spotlight Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {allBadges.slice(0, 4).map(badge => (
             <div
@@ -276,7 +290,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </p>
               </div>
 
-              {/* Progress bar if locked */}
               {!badge.unlocked && badge.targetProgress && (
                 <div className="mt-2.5 pt-2 border-t border-slate-100">
                   <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
@@ -292,85 +305,83 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </section>
 
-      {/* Daily Quizzes Section */}
+      {/* Daily Quizzes Section (09 Nov to 15 Nov Schedule) */}
       <section className="space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-              Daily Quiz
+              Daily Learning Schedule (09 Nov – 15 Nov 2026)
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Day 01 • 09 November 2026 — 6 States Covered (30 Questions)
+              Content unlocks at 8:30 PM IST each day. Completed days remain permanently accessible for revision.
             </p>
           </div>
 
-          {quizzes.length > 1 && (
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-              <button
-                onClick={() => setFilter('all')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  filter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                All Days ({quizzes.length})
-              </button>
-              <button
-                onClick={() => setFilter('pending')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  filter === 'pending' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Pending
-              </button>
-              <button
-                onClick={() => setFilter('completed')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  filter === 'completed' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Completed ({overallProgress.totalCompletedDays})
-              </button>
-            </div>
-          )}
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                filter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              All Days ({DAILY_SCHEDULE.length})
+            </button>
+            <button
+              onClick={() => setFilter('pending')}
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                filter === 'pending' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setFilter('completed')}
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                filter === 'completed' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Completed ({overallProgress.totalCompletedDays})
+            </button>
+          </div>
         </div>
 
         {/* Quizzes Grid */}
-        <div className={`grid grid-cols-1 ${quizzes.length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : 'max-w-3xl'} gap-5`}>
-          {filteredQuizzes.map((quiz) => {
-            const status = getQuizStatus(quiz.id);
-            const bestAttempt = getBestAttempt(quiz.id);
-            const latestAttempt = getLatestAttempt(quiz.id);
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredSchedule.map((scheduleItem) => {
+            const dayQuiz = getQuizForDay(scheduleItem.dayNumber);
+            const status = getQuizStatus(dayQuiz.id);
+            const bestAttempt = getBestAttempt(dayQuiz.id);
+            const latestAttempt = getLatestAttempt(dayQuiz.id);
             const isCompleted = status === 'completed';
             const isInProgress = status === 'in-progress';
-            const isUpcoming = !isCompleted && !isInProgress && quiz.dayNumber > overallProgress.totalCompletedDays + 1;
+            const isUnlocked = isDayUnlocked(scheduleItem.dayNumber, completedDayIds);
+            const countdown = getDayCountdown(scheduleItem.dayNumber, completedDayIds);
 
             return (
               <div 
-                key={quiz.id}
+                key={scheduleItem.dayNumber}
                 className={`relative flex flex-col justify-between rounded-2xl bg-white border p-5 sm:p-6 transition-all duration-200 hover:shadow-elevated group ${
                   isCompleted 
                     ? 'border-emerald-200/90 bg-gradient-to-b from-white to-emerald-50/20' 
                     : isInProgress
                     ? 'border-amber-300 ring-2 ring-amber-100'
-                    : isUpcoming
-                    ? 'border-slate-200/60 bg-slate-50/50 opacity-90'
-                    : 'border-slate-200 shadow-card hover:border-slate-300'
+                    : isUnlocked
+                    ? 'border-slate-200 shadow-card hover:border-slate-300'
+                    : 'border-slate-200/70 bg-slate-50/50 opacity-90'
                 }`}
               >
                 {/* Top Row: Day Badge & Status */}
                 <div>
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="px-2.5 py-1 rounded-lg text-xs font-black tracking-wide bg-slate-900 text-white">
-                        {quiz.title}
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-black tracking-wide ${
+                        isUnlocked ? 'bg-slate-900 text-white' : 'bg-slate-400 text-white'
+                      }`}>
+                        Day {scheduleItem.dayNumber < 10 ? `0${scheduleItem.dayNumber}` : scheduleItem.dayNumber}
                       </span>
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                         <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                        {quiz.displayDate} ({quiz.quizDate})
-                      </span>
-                      <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                        <HelpCircle className="w-3.5 h-3.5" />
-                        {quiz.totalQuestions} Questions (~5 per state)
+                        {scheduleItem.displayDate}
                       </span>
                     </div>
 
@@ -381,31 +392,42 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         Completed
                       </span>
                     ) : isInProgress ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 animate-pulse">
                         <Clock className="w-3.5 h-3.5 text-amber-600" />
                         In Progress
                       </span>
-                    ) : (
+                    ) : isUnlocked ? (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Quiz Status: Available
+                        Available Now
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                        <Lock className="w-3 h-3 text-slate-500" />
+                        Locked (8:30 PM)
                       </span>
                     )}
                   </div>
 
-                  {/* Day States Heading */}
-                  <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-emerald-800 transition-colors mb-2">
-                    {quiz.statesCovered.length} States Learning Pool
-                  </h3>
+                  {/* Countdown notice if locked */}
+                  {!isUnlocked && (
+                    <div className="mb-3 p-2.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs font-bold flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Hourglass className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                        <span>Unlocks at 8:30 PM IST</span>
+                      </span>
+                      <span className="font-mono text-amber-800 font-black">{countdown.formattedCountdown}</span>
+                    </div>
+                  )}
 
                   {/* States List Chips */}
                   <div className="space-y-2 mb-4 text-xs">
                     <div>
                       <span className="font-bold text-slate-500 uppercase tracking-wider block text-[10px] mb-1">
-                        📚 States Covered ({quiz.statesCovered.length}):
+                        📚 States Covered ({scheduleItem.states.length}):
                       </span>
                       <div className="flex flex-wrap gap-1">
-                        {quiz.statesCovered.map((st, sIdx) => {
-                          const isNew = quiz.newStatesIntroduced.includes(st);
+                        {scheduleItem.states.map((st, sIdx) => {
+                          const isNew = scheduleItem.newStates.includes(st);
                           return (
                             <span
                               key={sIdx}
@@ -415,33 +437,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                   : 'bg-slate-100 text-slate-700 border border-slate-200'
                               }`}
                             >
-                              {st} {isNew && quiz.dayNumber > 1 && '⭐ (New)'}
+                              {st} {isNew && scheduleItem.dayNumber > 1 && '⭐ (New)'}
                             </span>
                           );
                         })}
                       </div>
                     </div>
 
-                    {/* Breakdown Details */}
-                    {quiz.previousStates.length > 0 && (
-                      <div className="text-[11px] text-slate-500 pt-1 flex items-center justify-between">
-                        <span>Revision: <strong>{quiz.previousStates.length} states</strong></span>
-                        <span>New today: <strong>{quiz.newStatesIntroduced.join(', ')}</strong></span>
-                      </div>
-                    )}
+                    <div className="text-[11px] text-slate-500 pt-1 flex items-center justify-between">
+                      <span>30 Questions Pool</span>
+                      {scheduleItem.newStates.length > 0 && scheduleItem.dayNumber > 1 && (
+                        <span>New: <strong>{scheduleItem.newStates.join(', ')}</strong></span>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Study Notes Link */}
-                  <div className="bg-slate-50/80 rounded-xl p-3 border border-slate-100 mb-4 text-xs text-slate-600 flex items-center justify-between">
-                    <span className="font-semibold text-slate-700 flex items-center gap-1">
-                      <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
-                      Study Fact Sheets:
-                    </span>
+                  {/* Action Bar: Study Notes & PDF Download */}
+                  <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-100 mb-4 text-xs flex items-center justify-between gap-2">
                     <button 
-                      onClick={() => onOpenStudyGuide(quiz.statesCovered[0])}
-                      className="text-emerald-700 hover:text-emerald-800 font-bold hover:underline inline-flex items-center gap-0.5 text-xs"
+                      onClick={() => onOpenStudyGuide(scheduleItem.states[0])}
+                      className="text-emerald-800 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1 text-xs"
                     >
-                      Open Guide <ChevronRight className="w-3.5 h-3.5" />
+                      <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Study Notes</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+
+                    <button
+                      onClick={() => generateDayNotesPDF(dayQuiz)}
+                      className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
+                      title="Download complete notes, fact sheets and questions PDF"
+                    >
+                      <Download className="w-3 h-3 text-emerald-600" />
+                      <span>Download PDF</span>
                     </button>
                   </div>
 
@@ -473,15 +501,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <>
                       <button
                         onClick={() => onViewResult(latestAttempt || bestAttempt!)}
-                        className="flex-1 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5"
+                        className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5"
                       >
                         <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
                         View Result
                       </button>
                       <button
-                        onClick={() => onStartQuiz(quiz.id)}
+                        onClick={() => onStartQuiz(dayQuiz.id)}
                         title="Reattempts are saved independently without overwriting previous scores!"
-                        className="flex-1 px-3 py-2 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-1.5"
+                        className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-1.5"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         Reattempt
@@ -489,19 +517,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </>
                   ) : isInProgress ? (
                     <button
-                      onClick={() => onStartQuiz(quiz.id)}
+                      onClick={() => onStartQuiz(dayQuiz.id)}
                       className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-amber-950 bg-amber-400 hover:bg-amber-500 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2"
                     >
                       <Play className="w-4 h-4 fill-amber-950" />
                       Resume Quiz
                     </button>
-                  ) : (
+                  ) : isUnlocked ? (
                     <button
-                      onClick={() => onStartQuiz(quiz.id)}
+                      onClick={() => onStartQuiz(dayQuiz.id)}
                       className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 group-hover:bg-emerald-800"
                     >
                       <Play className="w-4 h-4 fill-white" />
-                      Start Day Quiz ({quiz.totalQuestions} Qs)
+                      Start Day Quiz (30 Qs)
+                    </button>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <Lock className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Unlocks at 8:30 PM IST</span>
                     </button>
                   )}
                 </div>

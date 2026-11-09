@@ -47,6 +47,64 @@ export const DAILY_CONFIGS: DayConfig[] = [
   }
 ];
 
+export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
+  DAILY_CONFIGS[0],
+  {
+    dayNumber: 2,
+    title: 'Day 02',
+    quizDate: '10-11-2026',
+    displayDate: '10 November 2026',
+    statusLabel: 'Locked',
+    newStates: ['Tamil Nadu'],
+    totalQuestions: 30
+  },
+  {
+    dayNumber: 3,
+    title: 'Day 03',
+    quizDate: '11-11-2026',
+    displayDate: '11 November 2026',
+    statusLabel: 'Locked',
+    newStates: ['Rajasthan'],
+    totalQuestions: 30
+  },
+  {
+    dayNumber: 4,
+    title: 'Day 04',
+    quizDate: '12-11-2026',
+    displayDate: '12 November 2026',
+    statusLabel: 'Locked',
+    newStates: ['Gujarat'],
+    totalQuestions: 30
+  },
+  {
+    dayNumber: 5,
+    title: 'Day 05',
+    quizDate: '13-11-2026',
+    displayDate: '13 November 2026',
+    statusLabel: 'Locked',
+    newStates: ['Uttarakhand'],
+    totalQuestions: 30
+  },
+  {
+    dayNumber: 6,
+    title: 'Day 06',
+    quizDate: '14-11-2026',
+    displayDate: '14 November 2026',
+    statusLabel: 'Locked',
+    newStates: ['West Bengal'],
+    totalQuestions: 30
+  },
+  {
+    dayNumber: 7,
+    title: 'Day 07',
+    quizDate: '15-11-2026',
+    displayDate: '15 November 2026',
+    statusLabel: 'Locked',
+    newStates: ['Odisha'],
+    totalQuestions: 30
+  }
+];
+
 /**
  * Distributes totalQuestions as evenly as possible across the given number of states
  * e.g. 30 questions across 6 states => [5, 5, 5, 5, 5, 5]
@@ -65,11 +123,11 @@ function distributeCounts(total: number, numBuckets: number): number[] {
 /**
  * Automatically builds the cumulative daily quizzes from the configuration and state repositories
  */
-export function buildCumulativeQuizzes(): DailyQuiz[] {
+export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_CONFIGS): DailyQuiz[] {
   const quizzes: DailyQuiz[] = [];
   let cumulativeStates: string[] = [];
 
-  for (const config of DAILY_CONFIGS) {
+  for (const config of configs) {
     const dayNumber = config.dayNumber;
     const targetTotal = config.totalQuestions || 30;
     const previousStates = [...cumulativeStates];
@@ -134,5 +192,16 @@ export function buildCumulativeQuizzes(): DailyQuiz[] {
   return quizzes;
 }
 
-// Generate the master DAILY_QUIZZES list
-export const DAILY_QUIZZES: DailyQuiz[] = buildCumulativeQuizzes();
+// Master DAILY_QUIZZES list (contains ONLY Day 01 for test verification)
+export const DAILY_QUIZZES: DailyQuiz[] = buildCumulativeQuizzes(DAILY_CONFIGS);
+
+// All scheduled quizzes for the 09 Nov to 15 Nov schedule
+export const ALL_SCHEDULED_QUIZZES: DailyQuiz[] = buildCumulativeQuizzes(ALL_SCHEDULED_CONFIGS);
+
+/**
+ * Returns the quiz for a given day number (Days 01 through 07)
+ */
+export function getQuizForDay(dayNumber: number): DailyQuiz {
+  const found = ALL_SCHEDULED_QUIZZES.find(q => q.dayNumber === dayNumber);
+  return found || DAILY_QUIZZES[0];
+}
