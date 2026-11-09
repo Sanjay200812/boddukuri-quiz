@@ -30,7 +30,9 @@ import { BadgesModal } from './components/BadgesModal';
 import { OpeningMotivation } from './components/OpeningMotivation';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminDashboard } from './components/AdminDashboard';
-import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession } from './utils/supabase';
+import { Sidebar, type StudentNavView } from './components/Sidebar';
+import { getUnreadNotificationCount } from './utils/storage';
+import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID } from './utils/supabase';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -47,6 +49,7 @@ export const App: React.FC = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userRole, setUserRole] = useState<UserRole>('student');
   const [isAdminPreviewingStudent, setIsAdminPreviewingStudent] = useState<boolean>(false);
+  const [isStudentSidebarOpen, setIsStudentSidebarOpen] = useState<boolean>(false);
 
   const [syncStatus, setSyncStatus] = useState<'synced' | 'offline' | 'pending'>(() => 
     typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'synced'
@@ -218,6 +221,12 @@ export const App: React.FC = () => {
   const handleFinishQuiz = (attempt: QuizAttempt) => {
     setActiveAttempt(attempt);
     refreshProgress();
+    // Persist to Supabase cloud immediately upon submission
+    const currentUid = userId || MAHI_STUDENT_ID;
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+      const snap = getProgressSnapshot();
+      void saveCloudProgress(currentUid, snap);
+    }
     setCurrentView('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -260,6 +269,57 @@ export const App: React.FC = () => {
   const handleOpenStudyGuide = (stateName?: string) => {
     setStudyGuideInitialState(stateName);
     setCurrentView('study');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handler: Student Navigation from Sidebar
+  const handleStudentNav = (view: StudentNavView) => {
+    setIsStudentSidebarOpen(false);
+    refreshProgress();
+    switch (view) {
+      case 'dashboard':
+        setCurrentView('dashboard');
+        break;
+      case 'today-quiz':
+        handleStartQuiz(activeQuizId || 'day-01');
+        break;
+      case 'progress':
+        setCurrentView('progress');
+        break;
+      case 'my-results': {
+        const attempts = getAllAttempts();
+        if (attempts.length > 0) {
+          handleViewResult(attempts[0]);
+        } else {
+          setCurrentView('progress');
+        }
+        break;
+      }
+      case 'review-mistakes': {
+        const attempts = getAllAttempts();
+        if (attempts.length > 0) {
+          handleReviewAnswers(attempts[0]);
+        } else {
+          setCurrentView('progress');
+        }
+        break;
+      }
+      case 'achievements':
+      case 'streak':
+        setIsBadgesModalOpen(true);
+        break;
+      case 'notifications':
+        setIsSettingsOpen(true);
+        break;
+      case 'settings':
+        setIsSettingsOpen(true);
+        break;
+      case 'help':
+        handleOpenStudyGuide();
+        break;
+      default:
+        setCurrentView('dashboard');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -363,130 +423,163 @@ export const App: React.FC = () => {
   // STUDENT LEARNING PORTAL (OR ADMIN PREVIEWING STUDENT VIEW)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7FAF7] text-slate-800">
+    <div className="min-h-screen flex flex-col bg-[#F7FAF7] text-slate-800 font-sans">
       
-      {/* Admin Preview Mode Floating Bar */}
-      {userRole === 'admin' && isAdminPreviewingStudent && (
-        <div className="bg-slate-950 text-amber-300 px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-slate-800 sticky top-0 z-50">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Sanju Admin: Previewing Student Interface</span>
-          </div>
-          <button
-            onClick={() => setIsAdminPreviewingStudent(false)}
-            className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-colors flex items-center gap-1"
-          >
-            <ArrowLeft className="w-3 h-3" />
-            <span>Return to Admin Dashboard</span>
-          </button>
-        </div>
-      )}
-
-      {/* Sticky Header with branding, streak counter & navigation */}
-      <Header
-        currentView={currentView}
-        onNavigate={(view) => {
-          refreshProgress();
-          setCurrentView(view);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenBadges={() => setIsBadgesModalOpen(true)}
+      {/* Responsive Sidebar for Student */}
+      <Sidebar
+        role="student"
+        isOpen={isStudentSidebarOpen}
+        onClose={() => setIsStudentSidebarOpen(false)}
+        currentStudentView={
+          currentView === 'dashboard' ? 'dashboard' :
+          currentView === 'progress' ? 'progress' :
+          currentView === 'quiz' ? 'today-quiz' :
+          currentView === 'result' ? 'my-results' :
+          currentView === 'review' ? 'review-mistakes' :
+          currentView === 'study' ? 'help' : 'dashboard'
+        }
+        onStudentNavigate={handleStudentNav}
+        unreadNotifsCount={getUnreadNotificationCount('student')}
         streakDays={overallProgress.currentStreak}
-        unlockedBadgesCount={overallProgress.unlockedBadgesCount}
-        completedQuizzesCount={overallProgress.totalCompletedDays}
-        totalQuizzesCount={DAILY_QUIZZES.length}
-        syncStatus={syncStatus}
+        userName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
         userEmail={userEmail}
         onSignOut={handleSignOut}
+        onOpenSettings={() => {
+          setIsStudentSidebarOpen(false);
+          setIsSettingsOpen(true);
+        }}
       />
 
-      {/* Main Body Content View */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        
-        {/* VIEW 1: DASHBOARD */}
-        {currentView === 'dashboard' && (
-          <Dashboard
-            quizzes={DAILY_QUIZZES}
-            overallProgress={overallProgress}
-            onStartQuiz={handleStartQuiz}
-            onViewResult={handleViewResult}
-            onOpenStudyGuide={handleOpenStudyGuide}
-            onOpenBadges={() => setIsBadgesModalOpen(true)}
-            userEmail={userEmail}
-          />
-        )}
+      {/* Main Content Area (With left margin on desktop to accommodate persistent sidebar) */}
+      <div className="lg:pl-72 flex-1 flex flex-col min-w-0">
 
-        {/* VIEW 2: QUIZ RUNNER */}
-        {currentView === 'quiz' && (
-          <QuizRunner
-            key={activeQuizId}
-            quiz={currentQuiz}
-            onFinishQuiz={handleFinishQuiz}
-            onExit={handleGoHome}
-          />
-        )}
-
-        {/* VIEW 3: RESULT DASHBOARD */}
-        {currentView === 'result' && activeAttempt && (
-          <ResultDashboard
-            attempt={activeAttempt}
-            quiz={currentQuiz}
-            onReviewAnswers={() => handleReviewAnswers()}
-            onReattempt={handleReattempt}
-            onGoHome={handleGoHome}
-            userEmail={userEmail}
-          />
-        )}
-
-        {/* VIEW 4: ANSWER SHEET & EXPLANATIONS */}
-        {currentView === 'review' && activeAttempt && (
-          <AnswerSheet
-            attempt={activeAttempt}
-            quiz={currentQuiz}
-            onBackToResult={() => setCurrentView('result')}
-            onReattempt={handleReattempt}
-            onGoHome={handleGoHome}
-          />
-        )}
-
-        {/* VIEW 5: PROGRESS & ATTEMPTS HISTORY */}
-        {currentView === 'progress' && (
-          <ProgressHistory
-            quizzes={DAILY_QUIZZES}
-            overallProgress={overallProgress}
-            onSelectAttempt={handleReviewAnswers}
-            onStartQuiz={handleStartQuiz}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onGoHome={handleGoHome}
-          />
-        )}
-
-        {/* VIEW 6: NATIONAL PARKS STUDY GUIDE */}
-        {currentView === 'study' && (
-          <StudyGuide
-            quizzes={DAILY_QUIZZES}
-            initialState={studyGuideInitialState}
-            onStartQuiz={handleStartQuiz}
-            onGoHome={handleGoHome}
-          />
-        )}
-
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-200/80 bg-white py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-            <span>🌿 Boddukuri's Quiz</span>
-            <span className="text-emerald-700 font-extrabold">#Mahi</span>
-            <span>• Learn. Revise. Remember. Achieve.</span>
+        {/* Admin Preview Mode Floating Bar */}
+        {userRole === 'admin' && isAdminPreviewingStudent && (
+          <div className="bg-slate-950 text-amber-300 px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-slate-800 sticky top-0 z-50">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Sanju Admin: Previewing Student Interface</span>
+            </div>
+            <button
+              onClick={() => setIsAdminPreviewingStudent(false)}
+              className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-colors flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              <span>Return to Admin Dashboard</span>
+            </button>
           </div>
-          <div className="text-slate-400">
-            Cumulative National Parks learning platform (09 Nov – 15 Nov 2026).
+        )}
+
+        {/* Sticky Header with branding, streak counter & navigation */}
+        <Header
+          currentView={currentView}
+          onNavigate={(view) => {
+            refreshProgress();
+            setCurrentView(view);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenBadges={() => setIsBadgesModalOpen(true)}
+          onToggleSidebar={() => setIsStudentSidebarOpen(prev => !prev)}
+          unreadNotifsCount={getUnreadNotificationCount('student')}
+          onOpenNotifications={() => setIsSettingsOpen(true)}
+          streakDays={overallProgress.currentStreak}
+          unlockedBadgesCount={overallProgress.unlockedBadgesCount}
+          completedQuizzesCount={overallProgress.totalCompletedDays}
+          totalQuizzesCount={DAILY_QUIZZES.length}
+          syncStatus={syncStatus}
+          userEmail={userEmail}
+          onSignOut={handleSignOut}
+        />
+
+        {/* Main Body Content View */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          
+          {/* VIEW 1: DASHBOARD */}
+          {currentView === 'dashboard' && (
+            <Dashboard
+              quizzes={DAILY_QUIZZES}
+              overallProgress={overallProgress}
+              onStartQuiz={handleStartQuiz}
+              onViewResult={handleViewResult}
+              onOpenStudyGuide={handleOpenStudyGuide}
+              onOpenBadges={() => setIsBadgesModalOpen(true)}
+              userEmail={userEmail}
+            />
+          )}
+
+          {/* VIEW 2: QUIZ RUNNER */}
+          {currentView === 'quiz' && (
+            <QuizRunner
+              key={activeQuizId}
+              quiz={currentQuiz}
+              onFinishQuiz={handleFinishQuiz}
+              onExit={handleGoHome}
+            />
+          )}
+
+          {/* VIEW 3: RESULT DASHBOARD */}
+          {currentView === 'result' && activeAttempt && (
+            <ResultDashboard
+              attempt={activeAttempt}
+              quiz={currentQuiz}
+              onReviewAnswers={() => handleReviewAnswers()}
+              onReattempt={handleReattempt}
+              onGoHome={handleGoHome}
+              userEmail={userEmail}
+            />
+          )}
+
+          {/* VIEW 4: ANSWER SHEET & EXPLANATIONS */}
+          {currentView === 'review' && activeAttempt && (
+            <AnswerSheet
+              attempt={activeAttempt}
+              quiz={currentQuiz}
+              onBackToResult={() => setCurrentView('result')}
+              onReattempt={handleReattempt}
+              onGoHome={handleGoHome}
+            />
+          )}
+
+          {/* VIEW 5: PROGRESS & ATTEMPTS HISTORY */}
+          {currentView === 'progress' && (
+            <ProgressHistory
+              quizzes={DAILY_QUIZZES}
+              overallProgress={overallProgress}
+              onSelectAttempt={handleReviewAnswers}
+              onStartQuiz={handleStartQuiz}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onGoHome={handleGoHome}
+            />
+          )}
+
+          {/* VIEW 6: NATIONAL PARKS STUDY GUIDE */}
+          {currentView === 'study' && (
+            <StudyGuide
+              quizzes={DAILY_QUIZZES}
+              initialState={studyGuideInitialState}
+              onStartQuiz={handleStartQuiz}
+              onGoHome={handleGoHome}
+            />
+          )}
+
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-slate-200/80 bg-white py-6 text-center text-xs text-slate-500">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 font-semibold text-slate-700">
+              <span>🌿 Boddukuri's Quiz</span>
+              <span className="text-emerald-700 font-extrabold">#Mahi</span>
+              <span>• Learn. Revise. Remember. Achieve.</span>
+            </div>
+            <div className="text-slate-400">
+              Cumulative National Parks learning platform (09 Nov – 15 Nov 2026).
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+
+      </div>
 
       {/* Settings & Account Modal (Shows only Change Name & Log Out for students) */}
       <SettingsModal

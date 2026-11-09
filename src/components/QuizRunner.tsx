@@ -282,6 +282,11 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
     const attempt: QuizAttempt = {
       id: `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      submissionId: `sub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      studentId: 'mahi_student',
+      studentName: 'Mahi',
+      studentEmail: 'mahi@boddukuri.quiz',
+      status: 'completed',
       quizId: quiz.id,
       dayNumber: quiz.dayNumber,
       statesCovered: quiz.statesCovered,

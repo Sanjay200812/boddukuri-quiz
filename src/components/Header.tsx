@@ -6,20 +6,24 @@ import {
   BarChart3, 
   Settings as SettingsIcon,
   Home,
-  CheckCircle2,
   Award,
-  LogOut
+  LogOut,
+  Menu,
+  Bell
 } from 'lucide-react';
 
 interface HeaderProps {
-  currentView: 'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review';
-  onNavigate: (view: 'dashboard' | 'progress' | 'study') => void;
+  currentView: 'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | string;
+  onNavigate: (view: any) => void;
   onOpenSettings: () => void;
   onOpenBadges?: () => void;
+  onToggleSidebar?: () => void;
+  unreadNotifsCount?: number;
+  onOpenNotifications?: () => void;
   streakDays: number;
   unlockedBadgesCount?: number;
-  completedQuizzesCount: number;
-  totalQuizzesCount: number;
+  completedQuizzesCount?: number;
+  totalQuizzesCount?: number;
   syncStatus?: 'synced' | 'offline' | 'pending';
   userEmail?: string | null;
   onSignOut?: () => void;
@@ -30,10 +34,13 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigate,
   onOpenSettings,
   onOpenBadges,
+  onToggleSidebar,
+  unreadNotifsCount = 0,
+  onOpenNotifications,
   streakDays,
   unlockedBadgesCount = 0,
-  completedQuizzesCount,
-  totalQuizzesCount,
+  completedQuizzesCount: _completedQuizzesCount,
+  totalQuizzesCount: _totalQuizzesCount,
   syncStatus = 'synced',
   userEmail,
   onSignOut,
@@ -43,26 +50,39 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Logo & Brand */}
-          <div 
-            onClick={() => onNavigate('dashboard')}
-            className="flex items-center gap-3 cursor-pointer group"
-          >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-emerald-800 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-200" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors">
-                  Boddukuri's Quiz
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 tracking-wide border border-emerald-200/60">
-                  #Mahi
-                </span>
+          {/* Left: Sidebar Toggle & Brand */}
+          <div className="flex items-center gap-3">
+            {onToggleSidebar && (
+              <button
+                onClick={onToggleSidebar}
+                className="p-2 rounded-xl text-slate-700 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
+                aria-label="Toggle navigation menu"
+                title="Open menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+            )}
+
+            <div 
+              onClick={() => onNavigate('dashboard')}
+              className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group"
+            >
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-emerald-800 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-5 h-5 text-emerald-200" />
               </div>
-              <p className="text-xs text-slate-500 hidden sm:block">
-                Learn. Revise. Remember. Achieve.
-              </p>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors">
+                    Boddukuri's Quiz
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 tracking-wide border border-emerald-200/60">
+                    #Mahi
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 hidden sm:block">
+                  Learn. Revise. Remember. Achieve.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -103,19 +123,19 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </nav>
 
-          {/* Right Badges & Settings */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right: Badges, Notifications & Settings */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
             {/* Streak Counter */}
             <div 
               title={`${streakDays} days consecutive learning streak!`}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold shadow-sm transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold shadow-sm transition-all ${
                 streakDays > 0 
                   ? 'bg-amber-50 text-amber-900 border-amber-200 shadow-amber-500/5' 
                   : 'bg-slate-50 text-slate-500 border-slate-200'
               }`}
             >
               <Flame className={`w-4 h-4 ${streakDays > 0 ? 'text-amber-500 fill-amber-500 animate-pulse' : 'text-slate-400'}`} />
-              <span>{streakDays} {streakDays === 1 ? 'Day' : 'Days'}</span>
+              <span>{streakDays} <span className="hidden sm:inline">{streakDays === 1 ? 'Day' : 'Days'}</span></span>
             </div>
 
             {/* Badges Trophy Trigger */}
@@ -123,27 +143,34 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onOpenBadges}
                 title={`${unlockedBadgesCount} Badges Unlocked! Click to open Trophy Cabinet`}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs sm:text-sm font-bold shadow-xs transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs sm:text-sm font-bold shadow-xs transition-colors"
               >
                 <Award className="w-4 h-4 text-amber-600" />
                 <span className="hidden sm:inline">{unlockedBadgesCount} Badges</span>
-                <span className="sm:hidden">{unlockedBadgesCount}</span>
               </button>
             )}
 
-            {/* Quizzes Completed Counter */}
-            <div 
-              title={`${completedQuizzesCount} of ${totalQuizzesCount} daily quizzes completed`}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs sm:text-sm font-semibold"
-            >
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>{completedQuizzesCount}/{totalQuizzesCount} Done</span>
-            </div>
+            {/* Notifications Trigger */}
+            {onOpenNotifications && (
+              <button
+                onClick={onOpenNotifications}
+                title="Notifications"
+                className="relative p-2 rounded-xl text-slate-600 hover:text-emerald-800 hover:bg-emerald-50 border border-slate-200 transition-colors"
+                aria-label="Notifications"
+              >
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+                {unreadNotifsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white font-black text-[10px] flex items-center justify-center animate-pulse">
+                    {unreadNotifsCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* Cloud Sync Status Indicator */}
             <div 
               title={`Cloud sync: ${syncStatus}${userEmail ? ` (${userEmail})` : ''}`}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
             >
               <span className={`w-2 h-2 rounded-full ${
                 syncStatus === 'synced' 
@@ -152,17 +179,17 @@ export const Header: React.FC<HeaderProps> = ({
                   ? 'bg-slate-400' 
                   : 'bg-amber-500 animate-pulse'
               }`} />
-              <span className="hidden sm:inline capitalize">{syncStatus}</span>
+              <span className="hidden lg:inline capitalize">{syncStatus}</span>
             </div>
 
-            {/* Settings & Backup Modal Trigger */}
+            {/* Settings Icon - Clearly Visible on Mobile & Desktop */}
             <button
               onClick={onOpenSettings}
-              title="Settings & JSON Backup"
-              className="p-2 sm:p-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 transition-colors"
+              title="Settings & Preferences"
+              className="p-2 sm:p-2.5 rounded-xl text-slate-700 hover:text-emerald-900 hover:bg-emerald-50 border border-slate-200/90 shadow-2xs transition-all active:scale-95"
               aria-label="Settings"
             >
-              <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 hover:text-emerald-800" />
             </button>
 
             {/* Sign Out Button */}

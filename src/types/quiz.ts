@@ -75,6 +75,11 @@ export interface QuizAttempt {
   formattedDate: string;
   quizDate?: string;
   displayDate?: string;
+  studentId?: string;
+  studentName?: string;
+  studentEmail?: string;
+  submissionId?: string;
+  status?: 'completed' | 'in-progress';
   answers: Record<string, number>; // questionId -> selectedOptionIndex (0-3), or -1 if skipped
   totalQuestions: number;
   correctCount: number;
@@ -150,6 +155,7 @@ export interface UserProfile {
   email: string;
   role: UserRole;
   fullName: string;
+  displayName?: string;
 }
 
 export interface RetakeRequest {
@@ -164,4 +170,24 @@ export interface RetakeRequest {
   reviewedAt?: string;
   reviewedBy?: string;
   adminNotes?: string;
+}
+
+export interface InboxNotification {
+  id: string;
+  userId?: string;
+  targetRole: 'admin' | 'student';
+  type: 'submission' | 'achievement' | 'retake' | 'system';
+  title: string;
+  message: string;
+  quizId?: string;
+  attemptId?: string;
+  dayNumber?: number;
+  studentName?: string;
+  scoreText?: string;
+  percentage?: number;
+  timeTakenText?: string;
+  read: boolean;
+  isRead?: boolean;
+  createdAt: string;
+  readAt?: string;
 }

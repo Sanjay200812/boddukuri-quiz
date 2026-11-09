@@ -46,11 +46,15 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 // ACCESS CODE VERIFICATION & RATE-LIMITING
 // -------------------------------------------------------------
 
+export const MAHI_STUDENT_ID = '00000000-0000-0000-0000-000000002002';
+export const SANJU_ADMIN_ID = '00000000-0000-0000-0000-000000002718';
+
 export interface AccessCodeVerifyResult {
   success: boolean;
   role?: UserRole;
   email?: string;
   fullName?: string;
+  userId?: string;
   authTicket?: string;
   locked?: boolean;
   secondsRemaining?: number;
@@ -223,7 +227,8 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
         success: true,
         role: 'student',
         email: 'mahi@boddukuri.quiz',
-        fullName: 'Mahi'
+        fullName: 'Mahi',
+        userId: MAHI_STUDENT_ID
       };
     }
 
@@ -233,7 +238,8 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
         success: true,
         role: 'admin',
         email: 'boddukurisanjay@gmail.com',
-        fullName: 'Sanju'
+        fullName: 'Sanju',
+        userId: SANJU_ADMIN_ID
       };
     }
 
@@ -269,28 +275,44 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
 // QUIZ PROGRESS SYNC
 // -------------------------------------------------------------
 
+function normalizeUserId(userId?: string | null): string {
+  if (!userId) return MAHI_STUDENT_ID;
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (uuidRegex.test(userId)) return userId;
+  if (userId.toLowerCase().includes('admin') || userId.toLowerCase().includes('sanju')) return SANJU_ADMIN_ID;
+  return MAHI_STUDENT_ID;
+}
+
 export async function loadCloudProgress(userId: string): Promise<ProgressSnapshot | null> {
   if (!supabase) return null;
+  const cleanId = normalizeUserId(userId);
   try {
     const { data, error } = await supabase
       .from('quiz_progress')
       .select('payload')
-      .eq('user_id', userId)
+      .eq('user_id', cleanId)
       .maybeSingle();
     if (error) throw error;
     return (data?.payload as ProgressSnapshot | undefined) || null;
   } catch (err) {
-    console.warn('Load cloud progress error:', err);
+    console.warn('Load cloud progress advisory:', err);
     return null;
   }
 }
 
 export async function saveCloudProgress(userId: string, payload: ProgressSnapshot): Promise<void> {
   if (!supabase) return;
-  const { error } = await supabase
-    .from('quiz_progress')
-    .upsert({ user_id: userId, payload, updated_at: payload.updatedAt });
-  if (error) throw error;
+  const cleanId = normalizeUserId(userId);
+  try {
+    const { error } = await supabase
+      .from('quiz_progress')
+      .upsert({ user_id: cleanId, payload, updated_at: payload.updatedAt });
+    if (error) {
+      console.warn('Cloud progress upsert note:', error.message);
+    }
+  } catch (err) {
+    console.warn('saveCloudProgress note:', err);
+  }
 }
 
 // -------------------------------------------------------------

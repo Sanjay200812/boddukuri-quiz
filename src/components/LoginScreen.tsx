@@ -169,6 +169,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         email: result.email,
         role: resolvedRole,
         fullName: result.fullName || (resolvedRole === 'admin' ? 'Sanju' : 'Mahi'),
+        userId: result.userId,
         loggedInAt: new Date().toISOString()
       });
       onLoginSuccess(result.email, resolvedRole);

@@ -310,10 +310,44 @@ begin
 end;
 $$;
 
--- 10. Security Grants for Client Access
+-- 10. Inbox Notifications Table with RLS
+create table if not exists public.inbox_notifications (
+  id text primary key,
+  target_role text not null check (target_role in ('admin', 'student')),
+  title text not null,
+  message text not null,
+  attempt_id text,
+  is_read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.inbox_notifications enable row level security;
+
+-- Admin can read all notifications
+create policy "notifications_admin_read"
+  on public.inbox_notifications for select
+  using (public.is_admin());
+
+-- Students can read student notifications
+create policy "notifications_student_read"
+  on public.inbox_notifications for select
+  using (target_role = 'student');
+
+-- Allow authenticated and anon to insert notifications (e.g. on quiz completion)
+create policy "notifications_insert_all"
+  on public.inbox_notifications for insert
+  with check (true);
+
+-- Admin can update/delete notifications
+create policy "notifications_admin_modify"
+  on public.inbox_notifications for all
+  using (public.is_admin());
+
+-- 11. Security Grants for Client Access
 grant execute on function public.verify_access_code(text, text) to anon, authenticated;
 grant execute on function public.is_admin() to authenticated, anon;
 grant select on public.profiles to authenticated;
 grant select on public.admin_schedule_config to anon, authenticated;
 grant select, insert, update on public.quiz_progress to authenticated;
+grant select, insert, update, delete on public.inbox_notifications to anon, authenticated;
 

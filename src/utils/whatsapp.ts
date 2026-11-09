@@ -56,10 +56,10 @@ export function formatWhatsAppMessage(attempt: QuizAttempt): string {
 /**
  * Generates the WhatsApp web/app URL with recipient number and encoded message text
  */
-export function getWhatsAppShareUrl(attempt: QuizAttempt, phoneNumber: string = DEFAULT_SANJU_WHATSAPP_NUMBER): string {
+export function getWhatsAppShareUrl(attemptOrMessage: QuizAttempt | string, phoneNumber: string = DEFAULT_SANJU_WHATSAPP_NUMBER): string {
   // Clean phone number: remove any non-digit characters (+, spaces, dashes)
   const cleanNumber = (phoneNumber || DEFAULT_SANJU_WHATSAPP_NUMBER).replace(/\D/g, '');
-  const message = formatWhatsAppMessage(attempt);
+  const message = typeof attemptOrMessage === 'string' ? attemptOrMessage : formatWhatsAppMessage(attemptOrMessage);
   const encodedMessage = encodeURIComponent(message);
   
   return `https://wa.me/${cleanNumber}?text=${encodedMessage}`;

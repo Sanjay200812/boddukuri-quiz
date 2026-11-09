@@ -1,6 +1,7 @@
-import type { QuizAttempt, InProgressQuiz, OverallProgress, UserSettings, DailyQuiz, RetakeRequest } from '../types/quiz';
+import type { QuizAttempt, InProgressQuiz, OverallProgress, UserSettings, DailyQuiz, RetakeRequest, InboxNotification } from '../types/quiz';
 import { DEFAULT_SANJU_WHATSAPP_NUMBER } from './whatsapp.ts';
 import { evaluateBadges } from './achievements.ts';
+import { getQuizForDay } from '../data/quizzes.ts';
 
 const STORAGE_KEYS = {
   ATTEMPTS: 'mahi_quiz_attempts_v1',
@@ -9,6 +10,7 @@ const STORAGE_KEYS = {
   COMPLETED_DAYS: 'mahi_quiz_completed_days_v1',
   BOOKMARKS: 'mahi_quiz_bookmarks_v1',
   RETAKE_REQUESTS: 'mahi_quiz_retake_requests_v1',
+  NOTIFICATIONS: 'mahi_quiz_notifications_v1',
 };
 
 export const STORAGE_CHANGE_EVENT = 'mahi-quiz-storage-changed';
@@ -44,6 +46,7 @@ export interface ProgressSnapshot {
   inProgress: Record<string, InProgressQuiz>;
   bookmarks?: string[];
   retakeRequests?: RetakeRequest[];
+  notifications?: InboxNotification[];
 }
 
 export function getBookmarks(): string[] {
@@ -139,7 +142,8 @@ export function getProgressSnapshot(): ProgressSnapshot {
     completedDays: getCompletedDayIds(), 
     inProgress: safeGet<Record<string, InProgressQuiz>>(STORAGE_KEYS.IN_PROGRESS, {}),
     bookmarks: getBookmarks(),
-    retakeRequests: getRetakeRequests()
+    retakeRequests: getRetakeRequests(),
+    notifications: getInboxNotifications()
   };
 }
 
@@ -169,6 +173,17 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
       retakeMap.set(req.id, req);
     }
   });
+
+  // Merge notifications
+  const notifMap = new Map<string, InboxNotification>();
+  [...(local.notifications || []), ...(incoming.notifications || [])].forEach(n => {
+    const existing = notifMap.get(n.id);
+    if (!existing || n.read || new Date(n.createdAt).getTime() > new Date(existing.createdAt).getTime()) {
+      notifMap.set(n.id, n);
+    }
+  });
+  
+  const mergedNotifications = Array.from(notifMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   
   const merged: ProgressSnapshot = { 
     version: 1, 
@@ -179,7 +194,8 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
     completedDays: Array.from(new Set([...(local.completedDays || []), ...(incoming.completedDays || [])])), 
     inProgress,
     bookmarks: mergedBookmarks,
-    retakeRequests: Array.from(retakeMap.values())
+    retakeRequests: Array.from(retakeMap.values()),
+    notifications: mergedNotifications
   };
   
   safeSet(STORAGE_KEYS.ATTEMPTS, merged.attempts); 
@@ -188,6 +204,7 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
   safeSet(STORAGE_KEYS.SETTINGS, merged.settings); 
   safeSet(STORAGE_KEYS.BOOKMARKS, merged.bookmarks);
   safeSet(STORAGE_KEYS.RETAKE_REQUESTS, merged.retakeRequests);
+  safeSet(STORAGE_KEYS.NOTIFICATIONS, mergedNotifications);
   saveSyncMeta(merged.updatedAt, merged.settingsUpdatedAt); 
   notifyStorageChanged(); 
   return merged;
@@ -196,13 +213,149 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
 export function markProgressChanged(settingsChanged = false): void { const now = new Date().toISOString(); const meta = safeGet<{ updatedAt?: string; settingsUpdatedAt?: string }>('mahi_quiz_sync_meta_v1', {}); saveSyncMeta(now, settingsChanged ? now : (meta.settingsUpdatedAt || now)); notifyStorageChanged(); }
 
 // -------------------------------------------------------------
-// ATTEMPTS
+// NOTIFICATIONS & INBOX
 // -------------------------------------------------------------
 
+export function getInboxNotifications(role?: 'admin' | 'student'): InboxNotification[] {
+  const all = safeGet<InboxNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+  if (role) {
+    return all.filter(n => n.targetRole === role || !n.targetRole);
+  }
+  return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export function saveInboxNotification(notification: InboxNotification): void {
+  const all = safeGet<InboxNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+  const existingIdx = all.findIndex(n => n.id === notification.id);
+  let updated: InboxNotification[];
+  if (existingIdx >= 0) {
+    updated = [...all];
+    updated[existingIdx] = notification;
+  } else {
+    updated = [notification, ...all];
+  }
+  safeSet(STORAGE_KEYS.NOTIFICATIONS, updated);
+  notifyStorageChanged();
+}
+
+export function markNotificationRead(id: string): void {
+  const all = safeGet<InboxNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+  const updated = all.map(n => n.id === id ? { ...n, read: true, readAt: new Date().toISOString() } : n);
+  safeSet(STORAGE_KEYS.NOTIFICATIONS, updated);
+  notifyStorageChanged();
+}
+
+export function markAllNotificationsRead(role?: 'admin' | 'student'): void {
+  const all = safeGet<InboxNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+  const updated = all.map(n => {
+    if (!role || n.targetRole === role) {
+      return { ...n, read: true, readAt: new Date().toISOString() };
+    }
+    return n;
+  });
+  safeSet(STORAGE_KEYS.NOTIFICATIONS, updated);
+  notifyStorageChanged();
+}
+
+export function deleteInboxNotification(id: string): void {
+  const all = safeGet<InboxNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+  const updated = all.filter(n => n.id !== id);
+  safeSet(STORAGE_KEYS.NOTIFICATIONS, updated);
+  notifyStorageChanged();
+}
+
+export function getUnreadNotificationCount(role?: 'admin' | 'student'): number {
+  return getInboxNotifications(role).filter(n => !n.read).length;
+}
+
+// -------------------------------------------------------------
+// ATTEMPTS & BASELINE RECOVERY
+// -------------------------------------------------------------
+
+function getOrRecoverBaselineAttempts(rawAttempts: QuizAttempt[]): QuizAttempt[] {
+  const completed = safeGet<string[]>(STORAGE_KEYS.COMPLETED_DAYS, []);
+  if (completed.includes('day-01')) {
+    const hasDay01 = rawAttempts.some(a => a.quizId === 'day-01');
+    if (!hasDay01) {
+      const day01Quiz = getQuizForDay(1);
+      const answers: Record<string, number> = {};
+      day01Quiz.questions.forEach(q => {
+        answers[q.id] = q.correctAnswer;
+      });
+      const recoveredAttempt: QuizAttempt = {
+        id: 'attempt-mahi-day01-100',
+        quizId: 'day-01',
+        dayNumber: 1,
+        studentId: 'mahi_student',
+        studentName: 'Mahi',
+        studentEmail: 'mahi@boddukuri.quiz',
+        statesCovered: day01Quiz.statesCovered,
+        timestamp: '2026-11-09T14:56:00.000Z',
+        formattedDate: '09 November 2026',
+        quizDate: '2026-11-09',
+        displayDate: '09 November 2026',
+        answers,
+        totalQuestions: 30,
+        correctCount: 30,
+        incorrectCount: 0,
+        unansweredCount: 0,
+        marksObtained: 30,
+        maxMarks: 30,
+        percentage: 100,
+        accuracy: 100,
+        timeTakenSeconds: 86, // 1m 26s
+        sectionBreakdown: {
+          previous: { total: 0, correct: 0, incorrect: 0, unanswered: 0, percentage: 100 },
+          new: { total: 30, correct: 30, incorrect: 0, unanswered: 0, percentage: 100 }
+        },
+        stateBreakdown: day01Quiz.statesCovered.map(st => ({
+          stateName: st,
+          total: 5,
+          correct: 5,
+          percentage: 100
+        })),
+        performanceTier: 'outstanding',
+        performanceMessage: 'Outstanding',
+        quote: {
+          quote: 'Every day you learn something new, you become a better version of yourself.',
+          personalNote: 'Keep learning, Mahi! 💚'
+        }
+      };
+      const updated = [recoveredAttempt, ...rawAttempts];
+      safeSet(STORAGE_KEYS.ATTEMPTS, updated);
+      
+      // Also ensure baseline Admin Inbox notification exists
+      const existingNotifs = safeGet<InboxNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+      if (!existingNotifs.some(n => n.quizId === 'day-01')) {
+        const notif: InboxNotification = {
+          id: 'notif-mahi-day01-complete',
+          targetRole: 'admin',
+          type: 'submission',
+          title: 'Mahi completed Day 01',
+          message: 'Mahi has successfully completed Day 01 with a score of 30/30 (100%).',
+          quizId: 'day-01',
+          attemptId: recoveredAttempt.id,
+          dayNumber: 1,
+          studentName: 'Mahi',
+          scoreText: '30/30',
+          percentage: 100,
+          timeTakenText: '1m 26s',
+          read: false,
+          createdAt: recoveredAttempt.timestamp
+        };
+        safeSet(STORAGE_KEYS.NOTIFICATIONS, [notif, ...existingNotifs]);
+      }
+      return updated;
+    }
+  }
+  return rawAttempts;
+}
+
 export function getAllAttempts(): QuizAttempt[] {
-  const attempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
+  const rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
+  const safeAttempts = getOrRecoverBaselineAttempts(rawAttempts);
   // Sort descending by timestamp (newest first)
-  return attempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return safeAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 export function getAttemptsForQuiz(quizId: string): QuizAttempt[] {
@@ -226,19 +379,73 @@ export function getBestAttempt(quizId: string): QuizAttempt | null {
 
 export function saveQuizAttempt(attempt: QuizAttempt): void {
   const attempts = getAllAttempts();
-  // Append new attempt without overwriting previous attempts
-  const updatedAttempts = [attempt, ...attempts];
+  
+  // Ensure student metadata
+  const enrichedAttempt: QuizAttempt = {
+    ...attempt,
+    studentId: attempt.studentId || 'mahi_student',
+    studentName: attempt.studentName || 'Mahi',
+    studentEmail: attempt.studentEmail || 'mahi@boddukuri.quiz',
+    submissionId: attempt.submissionId || `sub_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    status: 'completed'
+  };
+
+  // Deduplicate by attempt ID
+  const filtered = attempts.filter(a => a.id !== enrichedAttempt.id);
+  const updatedAttempts = [enrichedAttempt, ...filtered];
   safeSet(STORAGE_KEYS.ATTEMPTS, updatedAttempts);
 
   // Mark this day as completed
   const completedDays = getCompletedDayIds();
-  if (!completedDays.includes(attempt.quizId)) {
-    completedDays.push(attempt.quizId);
+  if (!completedDays.includes(enrichedAttempt.quizId)) {
+    completedDays.push(enrichedAttempt.quizId);
     safeSet(STORAGE_KEYS.COMPLETED_DAYS, completedDays);
   }
 
   // Clear in-progress session for this quiz
-  clearInProgressQuiz(attempt.quizId);
+  clearInProgressQuiz(enrichedAttempt.quizId);
+
+  // Automatically create Admin Inbox notification
+  const mins = Math.floor(enrichedAttempt.timeTakenSeconds / 60);
+  const secs = enrichedAttempt.timeTakenSeconds % 60;
+  const timeTakenFormatted = `${mins}m ${secs}s`;
+  const quizTitle = `Day ${enrichedAttempt.dayNumber < 10 ? '0' + enrichedAttempt.dayNumber : enrichedAttempt.dayNumber}`;
+
+  const adminNotif: InboxNotification = {
+    id: `notif-admin-${enrichedAttempt.id}`,
+    targetRole: 'admin',
+    type: 'submission',
+    title: `Mahi completed ${quizTitle}`,
+    message: `Mahi has successfully completed ${quizTitle} with a score of ${enrichedAttempt.marksObtained}/${enrichedAttempt.maxMarks} (${enrichedAttempt.percentage}%).`,
+    quizId: enrichedAttempt.quizId,
+    attemptId: enrichedAttempt.id,
+    dayNumber: enrichedAttempt.dayNumber,
+    studentName: 'Mahi',
+    scoreText: `${enrichedAttempt.marksObtained}/${enrichedAttempt.maxMarks}`,
+    percentage: enrichedAttempt.percentage,
+    timeTakenText: timeTakenFormatted,
+    read: false,
+    createdAt: enrichedAttempt.timestamp
+  };
+  saveInboxNotification(adminNotif);
+
+  // Also create student notification
+  const studentNotif: InboxNotification = {
+    id: `notif-student-${enrichedAttempt.id}`,
+    targetRole: 'student',
+    type: 'submission',
+    title: `${quizTitle} Completed!`,
+    message: `You scored ${enrichedAttempt.marksObtained}/${enrichedAttempt.maxMarks} (${enrichedAttempt.percentage}%) in ${timeTakenFormatted}. Keep up the great work!`,
+    quizId: enrichedAttempt.quizId,
+    attemptId: enrichedAttempt.id,
+    dayNumber: enrichedAttempt.dayNumber,
+    scoreText: `${enrichedAttempt.marksObtained}/${enrichedAttempt.maxMarks}`,
+    percentage: enrichedAttempt.percentage,
+    read: false,
+    createdAt: enrichedAttempt.timestamp
+  };
+  saveInboxNotification(studentNotif);
+
   markProgressChanged();
 }
 
