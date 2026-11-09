@@ -8,11 +8,12 @@ import {
   Award, 
   Flame, 
   TrendingUp, 
-  FileCheck,
-  ChevronRight,
-  BookOpen,
-  ArrowRight,
-  MapPin
+  FileCheck, 
+  ChevronRight, 
+  BookOpen, 
+  ArrowRight, 
+  MapPin,
+  Calendar
 } from 'lucide-react';
 import type { DailyQuiz, OverallProgress, QuizAttempt } from '../types/quiz';
 import { getQuizStatus, getBestAttempt, getLatestAttempt } from '../utils/storage';
@@ -81,8 +82,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {nextQuiz.dayNumber < 10 ? `0${nextQuiz.dayNumber}` : nextQuiz.dayNumber}
                 </div>
                 <div>
-                  <div className="text-xs uppercase tracking-wider text-emerald-300 font-bold">
-                    {nextQuizStatus === 'in-progress' ? 'Resume Current Session' : "Today's Target"}
+                  <div className="text-xs uppercase tracking-wider text-emerald-300 font-bold flex items-center gap-2">
+                    <span>{nextQuizStatus === 'in-progress' ? 'Resume Current Session' : "Today's Target — Day 01"}</span>
+                    <span className="text-emerald-200/90 font-medium">• {nextQuiz.displayDate || '09 November 2026'}</span>
                   </div>
                   <div className="text-base font-bold text-white">
                     {nextQuiz.title}: {nextQuiz.statesCovered.length} States Pool ({nextQuiz.totalQuestions} Questions)
@@ -203,44 +205,45 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-              Cumulative Daily Pathways
+              Daily Quiz
             </h2>
             <p className="text-xs sm:text-sm text-slate-500">
-              Every day includes revision of ALL previously studied states + the newly added state
+              Day 01 • 09 November 2026 — 6 States Covered (30 Questions)
             </p>
           </div>
 
-          {/* Filter Pills */}
-          <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              All Days ({quizzes.length})
-            </button>
-            <button
-              onClick={() => setFilter('pending')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filter === 'pending' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Pending
-            </button>
-            <button
-              onClick={() => setFilter('completed')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                filter === 'completed' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Completed ({overallProgress.totalCompletedDays})
-            </button>
-          </div>
+          {quizzes.length > 1 && (
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filter === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Days ({quizzes.length})
+              </button>
+              <button
+                onClick={() => setFilter('pending')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filter === 'pending' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Pending
+              </button>
+              <button
+                onClick={() => setFilter('completed')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filter === 'completed' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Completed ({overallProgress.totalCompletedDays})
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Quizzes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className={`grid grid-cols-1 ${quizzes.length > 1 ? 'md:grid-cols-2 lg:grid-cols-3' : 'max-w-3xl'} gap-5`}>
           {filteredQuizzes.map((quiz) => {
             const status = getQuizStatus(quiz.id);
             const bestAttempt = getBestAttempt(quiz.id);
@@ -264,42 +267,42 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 {/* Top Row: Day Badge & Status */}
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="px-2.5 py-1 rounded-lg text-xs font-black tracking-wide bg-slate-900 text-white">
                         {quiz.title}
                       </span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                        {quiz.displayDate} ({quiz.quizDate})
+                      </span>
                       <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
                         <HelpCircle className="w-3.5 h-3.5" />
-                        {quiz.totalQuestions} Questions
+                        {quiz.totalQuestions} Questions (~5 per state)
                       </span>
                     </div>
 
                     {/* Status Pill */}
                     {isCompleted ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                         Completed
                       </span>
                     ) : isInProgress ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
                         <Clock className="w-3.5 h-3.5 text-amber-600" />
                         In Progress
                       </span>
-                    ) : isUpcoming ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                        Upcoming Day
-                      </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Available Now
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        Quiz Status: Available
                       </span>
                     )}
                   </div>
 
                   {/* Day States Heading */}
                   <h3 className="text-lg font-extrabold text-slate-900 group-hover:text-emerald-800 transition-colors mb-2">
-                    {quiz.statesCovered.length} States Cumulative Pool
+                    {quiz.statesCovered.length} States Learning Pool
                   </h3>
 
                   {/* States List Chips */}

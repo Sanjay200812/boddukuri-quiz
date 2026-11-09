@@ -310,7 +310,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
               </h2>
             </div>
             <p className="text-xs text-slate-500">
-              {quiz.statesCovered.length} States Cumulative Pool ({quiz.totalQuestions} Questions)
+              {quiz.statesCovered.length} States Pool • {quiz.displayDate || '09 November 2026'} ({quiz.totalQuestions} Questions)
             </p>
           </div>
         </div>

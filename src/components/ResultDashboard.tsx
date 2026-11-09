@@ -8,6 +8,7 @@ import {
   getWhatsAppShareUrl, 
   shareResultNative, 
   copyToClipboard, 
+  formatWhatsAppMessage,
   DEFAULT_SANJU_WHATSAPP_NUMBER
 } from '../utils/whatsapp';
 import { getUserSettings } from '../utils/storage';
@@ -39,6 +40,7 @@ interface ResultDashboardProps {
 
 export const ResultDashboard: React.FC<ResultDashboardProps> = ({
   attempt,
+  quiz,
   onReviewAnswers,
   onReattempt,
   onGoHome,
@@ -63,9 +65,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
   }, []);
 
   const handleCopyResult = async () => {
-    const res = await copyToClipboard(
-      `🌿 BODDUKURI'S QUIZ\n\n🎉 #Mahi – Day ${attempt.dayNumber < 10 ? '0' + attempt.dayNumber : attempt.dayNumber} Completed!\n\n📚 States Covered:\n${attempt.statesCovered.join(', ')}.\n\n📊 Result:\nMarks: ${attempt.marksObtained}/${attempt.maxMarks}\nCorrect: ${attempt.correctCount}\nIncorrect: ${attempt.incorrectCount}\nPercentage: ${attempt.percentage}%\n\n🏆 Performance: ${attempt.performanceMessage}\n\n"Every day you learn something new, you become a better version of yourself."\n\nKeep learning, Mahi! 💚`
-    );
+    const res = await copyToClipboard(formatWhatsAppMessage(attempt));
     if (res.success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
@@ -108,6 +108,10 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
             🎉 #Mahi – Day {dayStr} Completed!
           </h1>
+
+          <div className="text-emerald-200/90 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2">
+            <span>📅 Quiz Date: {quiz?.displayDate || '09 November 2026'} ({quiz?.quizDate || '09-11-2026'})</span>
+          </div>
 
           <div className="text-emerald-200 text-xs sm:text-sm font-medium pt-1">
             <span className="text-emerald-300 font-bold block mb-1">📚 States Covered ({attempt.statesCovered.length}):</span>

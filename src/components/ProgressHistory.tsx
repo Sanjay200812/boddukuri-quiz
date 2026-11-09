@@ -134,9 +134,14 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="px-2 py-0.5 rounded text-xs font-black bg-slate-900 text-white">
-                    {quiz.title}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded text-xs font-black bg-slate-900 text-white">
+                      {quiz.title}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      {quiz.displayDate || '09 November 2026'}
+                    </span>
+                  </div>
                   {isCompleted ? (
                     <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Completed

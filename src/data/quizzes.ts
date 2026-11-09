@@ -13,14 +13,28 @@ import { STATE_REPOSITORIES } from './stateRepositories.ts';
 export interface DayConfig {
   dayNumber: number;
   title: string;
+  quizDate: string;
+  displayDate: string;
+  statusLabel?: string;
   newStates: string[];
   totalQuestions?: number; // default 30
 }
 
+/**
+ * DAILY_CONFIGS: The central configuration for daily quizzes.
+ * Configured: ONLY Day 01 (Fixed Date: 09 November 2026).
+ * Future expansion: The cumulative engine is fully built and ready.
+ * When a new state is added in the future, add Day 02 with the new state here;
+ * it will automatically retain all previous states (Madhya Pradesh, Andhra Pradesh,
+ * Telangana, Kerala, Assam, Karnataka) and generate a balanced cumulative quiz!
+ */
 export const DAILY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 1,
     title: 'Day 01',
+    quizDate: '09-11-2026',
+    displayDate: '09 November 2026',
+    statusLabel: 'Available',
     newStates: [
       'Madhya Pradesh',
       'Andhra Pradesh',
@@ -28,22 +42,6 @@ export const DAILY_CONFIGS: DayConfig[] = [
       'Kerala',
       'Assam',
       'Karnataka'
-    ],
-    totalQuestions: 30
-  },
-  {
-    dayNumber: 2,
-    title: 'Day 02',
-    newStates: [
-      'Tamil Nadu'
-    ],
-    totalQuestions: 30
-  },
-  {
-    dayNumber: 3,
-    title: 'Day 03',
-    newStates: [
-      'Rajasthan'
     ],
     totalQuestions: 30
   }
@@ -121,6 +119,9 @@ export function buildCumulativeQuizzes(): DailyQuiz[] {
       id: `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`,
       dayNumber,
       title: config.title,
+      quizDate: config.quizDate || '09-11-2026',
+      displayDate: config.displayDate || '09 November 2026',
+      statusLabel: config.statusLabel || 'Available',
       statesCovered: currentCumulativePool,
       newStatesIntroduced: newStates,
       previousStates: previousStates,

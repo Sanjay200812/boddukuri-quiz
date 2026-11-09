@@ -24,9 +24,20 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
   initialState,
   onStartQuiz,
 }) => {
-  const allStates = Object.keys(STATE_REPOSITORIES);
+  // Only expose the active states learned in current quizzes (the 6 states for Day 01)
+  const activeStatesList = Array.from(new Set(quizzes.flatMap(q => q.statesCovered)));
+  const allStates = activeStatesList.length > 0 ? activeStatesList : [
+    'Madhya Pradesh',
+    'Andhra Pradesh',
+    'Telangana',
+    'Kerala',
+    'Assam',
+    'Karnataka'
+  ];
   const [selectedState, setSelectedState] = useState<string>(
-    initialState && STATE_REPOSITORIES[initialState] ? initialState : allStates[0]
+    initialState && allStates.includes(initialState) && STATE_REPOSITORIES[initialState] 
+      ? initialState 
+      : allStates[0]
   );
   const [searchQuery, setSearchQuery] = useState<string>('');
 

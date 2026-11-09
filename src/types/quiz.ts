@@ -40,6 +40,9 @@ export interface DailyQuiz {
   id: string; // e.g. "day-01"
   dayNumber: number;
   title: string; // e.g. "Day 01"
+  quizDate: string; // "09-11-2026"
+  displayDate: string; // "09 November 2026"
+  statusLabel?: string; // "Available"
   statesCovered: string[]; // Cumulative pool of all states in this quiz
   newStatesIntroduced: string[]; // States newly added on this day
   previousStates: string[]; // States carried over from earlier days
