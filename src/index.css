@@ -32,3 +32,16 @@
 .transition-smooth {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  aside, header, nav, button, .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

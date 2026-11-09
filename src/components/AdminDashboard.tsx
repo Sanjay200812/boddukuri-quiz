@@ -29,9 +29,17 @@ import {
   TrendingUp,
   UserCheck,
   CheckCheck,
-  HelpCircle
+  HelpCircle,
+  Printer,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  FileCheck
 } from 'lucide-react';
 import { DEFAULT_SANJU_WHATSAPP_NUMBER, formatWhatsAppMessage, getWhatsAppShareUrl } from '../utils/whatsapp';
+import { generateAnswerSheetPDF } from '../utils/pdfGenerator';
 import type { QuizAttempt, RetakeRequest, UserProfile, InboxNotification } from '../types/quiz';
 import { 
   getAllAttempts, 
@@ -93,6 +101,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Inspector modal state
   const [inspectedAttempt, setInspectedAttempt] = useState<QuizAttempt | null>(null);
+
+  // Dedicated Complete Answer Sheet Review state
+  const [selectedAnswerSheetAttemptId, setSelectedAnswerSheetAttemptId] = useState<string | null>(null);
+  const [answerStatusFilter, setAnswerStatusFilter] = useState<'all' | 'correct' | 'incorrect' | 'unanswered'>('all');
+  const [answerStateFilter, setAnswerStateFilter] = useState<string>('all');
+  const [answerSearchQuery, setAnswerSearchQuery] = useState<string>('');
+  const [expandAllExplanations, setExpandAllExplanations] = useState<boolean>(true);
+  const [selectedQuestionNavNumber, setSelectedQuestionNavNumber] = useState<number | null>(null);
+
+  const handleOpenCompleteAnswerSheet = (attempt: QuizAttempt) => {
+    setSelectedAnswerSheetAttemptId(attempt.id);
+    setActiveTab('answer-sheets');
+    setInspectedAttempt(null);
+    setSelectedQuestionNavNumber(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
   
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -225,6 +249,95 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     };
   }, [attempts, retakeRequests]);
 
+  // Selected attempt for Answer Sheet Review
+  const currentReviewAttempt = useMemo(() => {
+    if (attempts.length === 0) return null;
+    if (selectedAnswerSheetAttemptId) {
+      const found = attempts.find(a => a.id === selectedAnswerSheetAttemptId);
+      if (found) return found;
+    }
+    return attempts[0];
+  }, [attempts, selectedAnswerSheetAttemptId]);
+
+  const currentReviewQuiz = useMemo(() => {
+    if (!currentReviewAttempt) return null;
+    return getQuizForDay(currentReviewAttempt.quizId);
+  }, [currentReviewAttempt]);
+
+  const availableStatesInReview = useMemo(() => {
+    if (!currentReviewQuiz) return [];
+    return Array.from(new Set(currentReviewQuiz.questions.map(q => q.state)));
+  }, [currentReviewQuiz]);
+
+  const reviewQuestionItems = useMemo(() => {
+    if (!currentReviewAttempt || !currentReviewQuiz) return [];
+    
+    return currentReviewQuiz.questions.map((q, idx) => {
+      const selectedOptionIndex = currentReviewAttempt.answers ? currentReviewAttempt.answers[q.id] : undefined;
+      const isUnanswered = selectedOptionIndex === undefined || selectedOptionIndex === -1;
+      const isCorrect = !isUnanswered && selectedOptionIndex === q.correctAnswer;
+      const status: 'correct' | 'incorrect' | 'unanswered' = isUnanswered 
+        ? 'unanswered' 
+        : isCorrect 
+        ? 'correct' 
+        : 'incorrect';
+      
+      const optionLetters = ['A', 'B', 'C', 'D'];
+      const selectedAnswerText = isUnanswered 
+        ? 'Not answered' 
+        : `${optionLetters[selectedOptionIndex]}. ${q.options[selectedOptionIndex] || ''}`;
+      const correctAnswerText = `${optionLetters[q.correctAnswer]}. ${q.options[q.correctAnswer] || ''}`;
+
+      return {
+        questionIndex: idx,
+        questionNumber: idx + 1,
+        question: q,
+        selectedOptionIndex,
+        selectedAnswerText,
+        correctAnswerText,
+        isCorrect,
+        isUnanswered,
+        status
+      };
+    });
+  }, [currentReviewAttempt, currentReviewQuiz]);
+
+  const questionStatusCounts = useMemo(() => {
+    let correct = 0;
+    let incorrect = 0;
+    let unanswered = 0;
+    reviewQuestionItems.forEach(item => {
+      if (item.status === 'correct') correct++;
+      else if (item.status === 'incorrect') incorrect++;
+      else unanswered++;
+    });
+    return {
+      all: reviewQuestionItems.length,
+      correct,
+      incorrect,
+      unanswered
+    };
+  }, [reviewQuestionItems]);
+
+  const filteredReviewQuestions = useMemo(() => {
+    return reviewQuestionItems.filter(item => {
+      if (selectedQuestionNavNumber !== null && item.questionNumber !== selectedQuestionNavNumber) {
+        return false;
+      }
+      if (answerStatusFilter !== 'all' && item.status !== answerStatusFilter) return false;
+      if (answerStateFilter !== 'all' && item.question.state !== answerStateFilter) return false;
+      if (answerSearchQuery.trim()) {
+        const query = answerSearchQuery.toLowerCase();
+        const matchesQ = item.question.question.toLowerCase().includes(query);
+        const matchesState = item.question.state.toLowerCase().includes(query);
+        const matchesOptions = item.question.options.some(opt => opt.toLowerCase().includes(query));
+        const matchesNum = `question ${item.questionNumber}`.includes(query) || `${item.questionNumber}` === query;
+        if (!matchesQ && !matchesState && !matchesOptions && !matchesNum) return false;
+      }
+      return true;
+    });
+  }, [reviewQuestionItems, selectedQuestionNavNumber, answerStatusFilter, answerStateFilter, answerSearchQuery]);
+
   // Handle Day lock toggle
   const handleToggleDayLock = async (quizId: string, currentUnlocked: boolean) => {
     const newUnlocked = !currentUnlocked;
@@ -322,7 +435,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!attemptId) return;
     const found = attempts.find(a => a.id === attemptId);
     if (found) {
-      setInspectedAttempt(found);
+      handleOpenCompleteAnswerSheet(found);
     } else {
       setStatusMessage('Attempt details not found in current record.');
       setTimeout(() => setStatusMessage(null), 3000);
@@ -330,8 +443,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
       
+      {/* Luxury Villa Background Layer (Admin Dashboard Exclusive) */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
+        style={{
+          backgroundImage: `url('/admin-luxury-villa.jpg')`,
+          filter: 'brightness(0.32) contrast(1.15) saturate(1.1)',
+        }}
+      />
+      
+      {/* Deep Obsidian Gradient Overlay for Text Readability & Contrast */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          background: 'radial-gradient(ellipse at 50% 0%, rgba(15, 23, 42, 0.75) 0%, rgba(2, 6, 23, 0.94) 75%, rgba(2, 6, 23, 0.98) 100%)',
+        }}
+      />
+
       {/* Responsive Sidebar for Admin */}
       <Sidebar
         role="admin"
@@ -350,10 +480,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       />
 
       {/* Main Content Area */}
-      <div className="lg:pl-72 flex-1 flex flex-col min-w-0">
+      <div className="lg:pl-72 flex-1 flex flex-col min-w-0 relative z-10">
         
         {/* Top Navbar */}
-        <header className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-6 py-3.5">
+        <header className="sticky top-0 z-30 bg-slate-900/85 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 py-3.5">
           <div className="flex items-center justify-between gap-3">
             
             <div className="flex items-center gap-3">
@@ -373,13 +503,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <div>
                   <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-white flex items-center gap-2">
-                    Boddukuri's Quiz
-                    <span className="hidden sm:inline-block text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                      Admin Portal
-                    </span>
+                    Boddukuri's Quiz | Admin Control Center
                   </h1>
-                  <p className="text-[11px] text-slate-400 hidden sm:block">
-                    Monitoring Mahi's 7-Day National Parks Learning Journey
+                  <p className="text-[11px] text-emerald-400 font-semibold hidden sm:block">
+                    Executive Control & Student Monitoring Portal
                   </p>
                 </div>
               </div>
@@ -470,12 +597,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </header>
 
         {/* Tab Navigation Pill Bar (Secondary quick access) */}
-        <div className="bg-slate-900/50 border-b border-slate-800/80 px-4 sm:px-6 py-2 overflow-x-auto scrollbar-none flex items-center gap-2">
+        <div className="bg-slate-900/70 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-2 overflow-x-auto scrollbar-none flex items-center gap-2">
           {[
             { id: 'overview', label: 'Overview', icon: ShieldCheck },
-            { id: 'students', label: 'Students (Mahi)', icon: Users },
-            { id: 'quiz-management', label: 'Quiz Schedule', icon: Calendar },
+            { id: 'students', label: 'Students', icon: Users },
+            { id: 'mahi-profile', label: "Mahi's Profile", icon: UserCheck },
             { id: 'attempts', label: `Attempts (${attempts.length})`, icon: FileText },
+            { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
+            { id: 'schedule', label: 'Quiz Schedule', icon: Calendar },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
             { id: 'inbox', label: `Inbox`, icon: InboxIcon, badge: unreadInboxCount },
             { id: 'notifications', label: 'WhatsApp', icon: MessageCircle },
@@ -653,11 +782,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         States Covered: <strong className="text-white">{attempts[0].statesCovered.join(', ')}</strong>
                       </span>
                       <button
-                        onClick={() => setInspectedAttempt(attempts[0])}
-                        className="text-emerald-400 hover:text-emerald-300 font-bold underline flex items-center gap-1 text-xs"
+                        onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all active:scale-95"
                       >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Inspect Full 30-Question Answer Sheet</span>
+                        <FileCheck className="w-4 h-4" />
+                        <span>VIEW COMPLETE ANSWER SHEET</span>
                       </button>
                     </div>
                   </div>
@@ -873,11 +1002,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <td className="py-3 px-3 text-right space-x-1.5">
                                 <button
                                   type="button"
-                                  onClick={() => setInspectedAttempt(att)}
-                                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-colors inline-flex items-center gap-1"
+                                  onClick={() => handleOpenCompleteAnswerSheet(att)}
+                                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm"
                                 >
-                                  <Eye className="w-3 h-3" />
-                                  <span>Inspect</span>
+                                  <FileCheck className="w-3.5 h-3.5" />
+                                  <span>View Complete Answer Sheet</span>
                                 </button>
                                 
                                 <a
@@ -908,6 +1037,718 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 )}
 
               </div>
+
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: MAHI'S PROFILE */}
+          {/* ========================================================================= */}
+          {activeTab === 'mahi-profile' && (
+            <div className="space-y-6 animate-fadeIn">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
+                <div>
+                  <h2 className="text-xl font-black text-white flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-emerald-400" />
+                    Mahi's Student Profile
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Dedicated learning record, syllabus progress, and complete attempt history
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {attempts.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                    >
+                      <FileCheck className="w-4 h-4" />
+                      <span>VIEW COMPLETE ANSWER SHEET</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Bio & Access Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-3 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shadow-emerald-950/40">
+                      M
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black text-white">Mahi</h3>
+                      <p className="text-xs text-emerald-400 font-semibold">Student Account</p>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-800 space-y-2 text-xs">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Access Code (PIN):</span>
+                      <strong className="font-mono text-emerald-300 text-sm">2002</strong>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Email Account:</span>
+                      <span className="font-mono text-slate-300">mahi@boddukuri.quiz</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Target Curriculum:</span>
+                      <span className="text-slate-200 font-semibold">106 National Parks (7 Days)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Card */}
+                <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-3 shadow-xl">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Curriculum Completion
+                  </h4>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-black text-white">{stats.completedCount}</span>
+                    <span className="text-sm font-semibold text-slate-400">of 7 Days Completed ({Math.round((stats.completedCount / 7) * 100)}%)</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
+                  </div>
+                  <div className="pt-1 text-[11px] text-slate-400 flex justify-between">
+                    <span>Distinct Quizzes: {stats.completedCount} / 7</span>
+                    <span className="text-emerald-400 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
+                  </div>
+                </div>
+
+                {/* Streaks & Badges Card */}
+                <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-3 shadow-xl">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                    Habit Streak & Badges
+                  </h4>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-950/60 border border-orange-800 text-orange-300 text-xs font-bold">
+                      <Flame className="w-4 h-4 text-orange-400" />
+                      <span>{stats.currentStreak}-Day Streak</span>
+                    </div>
+                    {stats.bestPercentage === 100 && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-800 text-amber-300 text-xs font-bold">
+                        <Award className="w-4 h-4 text-amber-400" />
+                        <span>100% Top Score</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="pt-1 text-[11px] text-slate-400">
+                    Earned Badges: <strong className="text-slate-200">
+                      {stats.unlockedBadges.length > 0 ? stats.unlockedBadges.map(b => b.title).join(', ') : '0 of 10 Badges'}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Latest Attempt Spotlight & Button */}
+              {attempts.length > 0 ? (
+                <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-emerald-500/40 shadow-2xl space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-amber-400" />
+                        <h3 className="text-base font-black text-white">
+                          Latest Submission: {getQuizForDay(attempts[0].quizId).title}
+                        </h3>
+                      </div>
+                      <p className="text-xs text-slate-400">
+                        Submitted: {attempts[0].formattedDate} • Duration: {Math.floor(attempts[0].timeTakenSeconds / 60)}m {attempts[0].timeTakenSeconds % 60}s
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
+                    >
+                      <FileCheck className="w-4 h-4" />
+                      <span>VIEW COMPLETE ANSWER SHEET</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Score</div>
+                      <div className="text-xl font-black text-emerald-400">{attempts[0].marksObtained} / {attempts[0].maxMarks}</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Percentage</div>
+                      <div className="text-xl font-black text-emerald-400">{attempts[0].percentage}%</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Correct / Wrong</div>
+                      <div className="text-sm font-bold text-slate-200 mt-1">{attempts[0].correctCount} / {attempts[0].incorrectCount}</div>
+                    </div>
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+                      <div className="text-[10px] uppercase font-bold text-slate-400">Performance</div>
+                      <div className="text-sm font-bold text-amber-400 mt-1">{attempts[0].performanceMessage || 'Completed'}</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-1">
+                    <Sparkles className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <h4 className="text-sm font-bold text-white">No Quiz Attempts Recorded Yet</h4>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                    Day 01 National Parks Quiz (6 States, 30 Questions) is published and ready for Mahi to begin. Results and answer sheets will update here in real time.
+                  </p>
+                </div>
+              )}
+
+              {/* All Previous Attempts Table */}
+              <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-emerald-400" />
+                    All Attempts History ({attempts.length})
+                  </h3>
+                  <span className="text-xs text-slate-400">
+                    Each attempt preserves full selected answers independently
+                  </span>
+                </div>
+
+                {attempts.length === 0 ? (
+                  <div className="p-6 text-center text-slate-500 text-xs">
+                    No attempts recorded yet.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
+                          <th className="py-2.5 px-3">Attempt</th>
+                          <th className="py-2.5 px-3">Quiz Day</th>
+                          <th className="py-2.5 px-3">Date</th>
+                          <th className="py-2.5 px-3">Marks</th>
+                          <th className="py-2.5 px-3">Percentage</th>
+                          <th className="py-2.5 px-3">Duration</th>
+                          <th className="py-2.5 px-3 text-right">Answer Inspection</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/60 font-medium">
+                        {attempts.map((att, attIdx) => {
+                          const quiz = getQuizForDay(att.quizId);
+                          return (
+                            <tr key={att.id} className="hover:bg-slate-800/40 transition-colors">
+                              <td className="py-3 px-3 font-mono text-emerald-400 font-bold">
+                                #{attempts.length - attIdx}
+                              </td>
+                              <td className="py-3 px-3">
+                                <span className="font-bold text-white">{quiz.title}</span>
+                                <span className="block text-[10px] text-slate-400">{att.quizId.toUpperCase()}</span>
+                              </td>
+                              <td className="py-3 px-3 text-slate-300">
+                                {att.formattedDate || quiz.displayDate}
+                              </td>
+                              <td className="py-3 px-3 font-bold text-emerald-400">
+                                {att.marksObtained} / {att.maxMarks}
+                              </td>
+                              <td className="py-3 px-3">
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                                  {att.percentage}%
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-slate-300 font-mono">
+                                {Math.floor(att.timeTakenSeconds / 60)}m {att.timeTakenSeconds % 60}s
+                              </td>
+                              <td className="py-3 px-3 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenCompleteAnswerSheet(att)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-colors shadow-sm"
+                                >
+                                  <FileCheck className="w-3.5 h-3.5" />
+                                  <span>View Answer Sheet</span>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: ANSWER SHEETS / COMPLETE STUDENT ANSWER INSPECTION */}
+          {/* ========================================================================= */}
+          {activeTab === 'answer-sheets' && (
+            <div className="space-y-6 animate-fadeIn">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
+                <div>
+                  <h2 className="text-xl font-black text-white flex items-center gap-2">
+                    <FileCheck className="w-5 h-5 text-emerald-400" />
+                    Student Answer Sheet Inspector
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Comprehensive question-by-question review of Mahi's submitted answers, correct keys, and explanations
+                  </p>
+                </div>
+
+                {currentReviewAttempt && currentReviewQuiz && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => generateAnswerSheetPDF(currentReviewAttempt, currentReviewQuiz)}
+                      className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Export PDF</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Print Sheet</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {!currentReviewAttempt || !currentReviewQuiz ? (
+                <div className="p-12 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 text-center space-y-3 shadow-2xl">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+                    <FileText className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <h3 className="text-base font-bold text-white">No Quiz Submissions Recorded Yet</h3>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto">
+                    Once Mahi completes Day 01 National Parks Quiz, her full question-by-question answer sheet will be available here for complete inspection.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Result Summary Card */}
+                  <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/50 shadow-2xl space-y-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-emerald-950/40">
+                          M
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-black text-white">Student: Mahi</h3>
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold">
+                              Access Code: 2002
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400">
+                            Quiz: <strong className="text-white">{currentReviewQuiz.title}</strong> • Date: <strong className="text-white">{currentReviewAttempt.formattedDate || currentReviewQuiz.displayDate}</strong>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Attempt Switcher Dropdown */}
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        {attempts.length > 1 && (
+                          <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                            <span className="text-xs text-slate-400 font-semibold">Select Attempt:</span>
+                            <select
+                              value={currentReviewAttempt.id}
+                              onChange={e => setSelectedAnswerSheetAttemptId(e.target.value)}
+                              className="bg-transparent text-xs font-bold text-emerald-400 outline-none cursor-pointer"
+                            >
+                              {attempts.map((att, attIdx) => (
+                                <option key={att.id} value={att.id} className="bg-slate-900 text-white">
+                                  Attempt #{attempts.length - attIdx}: {att.percentage}% ({att.marksObtained}/{att.maxMarks}) — {att.formattedDate}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Metrics Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 text-center">
+                      <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Questions</div>
+                        <div className="text-xl font-black text-white mt-1">{currentReviewAttempt.totalQuestions}</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-900/60">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Correct</div>
+                        <div className="text-xl font-black text-emerald-400 mt-1">{currentReviewAttempt.correctCount}</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-900/60">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-rose-400">Incorrect</div>
+                        <div className="text-xl font-black text-rose-400 mt-1">{currentReviewAttempt.incorrectCount}</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Unanswered</div>
+                        <div className="text-xl font-black text-slate-400 mt-1">{currentReviewAttempt.unansweredCount}</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Marks</div>
+                        <div className="text-xl font-black text-emerald-400 mt-1">{currentReviewAttempt.marksObtained} / {currentReviewAttempt.maxMarks}</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-900/60">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Percentage</div>
+                        <div className="text-xl font-black text-emerald-400 mt-1">{currentReviewAttempt.percentage}%</div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time Taken</div>
+                        <div className="text-xl font-black text-slate-200 mt-1">{Math.floor(currentReviewAttempt.timeTakenSeconds / 60)}m {currentReviewAttempt.timeTakenSeconds % 60}s</div>
+                      </div>
+                    </div>
+
+                    {/* Performance Summary Banner */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-slate-950 border border-emerald-500/30">
+                      <div className="flex items-center gap-2.5">
+                        <Award className="w-5 h-5 text-amber-400" />
+                        <div>
+                          <span className="text-xs font-bold text-slate-300">Performance Assessment: </span>
+                          <strong className="text-amber-300 font-black">{currentReviewAttempt.performanceMessage || 'Completed'}</strong>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={getWhatsAppShareUrl(formatWhatsAppMessage(currentReviewAttempt), DEFAULT_SANJU_WHATSAPP_NUMBER)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Share Result on WhatsApp (+91 70759 20852)</span>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Answer Review Controls Bar */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/50 shadow-xl space-y-4">
+                    
+                    {/* Status Filter Tabs */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {[
+                          { id: 'all', label: `All Questions (${questionStatusCounts.all})` },
+                          { id: 'correct', label: `Correct Answers (${questionStatusCounts.correct})` },
+                          { id: 'incorrect', label: `Incorrect Answers (${questionStatusCounts.incorrect})` },
+                          { id: 'unanswered', label: `Unanswered (${questionStatusCounts.unanswered})` }
+                        ].map(f => (
+                          <button
+                            key={f.id}
+                            type="button"
+                            onClick={() => {
+                              setAnswerStatusFilter(f.id as any);
+                              setSelectedQuestionNavNumber(null);
+                            }}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                              answerStatusFilter === f.id
+                                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950'
+                                : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
+                            }`}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Expand / Collapse Explanations Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => setExpandAllExplanations(prev => !prev)}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                      >
+                        {expandAllExplanations ? (
+                          <>
+                            <ChevronUp className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Collapse Explanations</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Expand Explanations</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Search & State Filter */}
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <div className="relative flex-1">
+                        <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={answerSearchQuery}
+                          onChange={e => {
+                            setAnswerSearchQuery(e.target.value);
+                            setSelectedQuestionNavNumber(null);
+                          }}
+                          placeholder="Search questions by text, park, state, or option..."
+                          className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
+                        <select
+                          value={answerStateFilter}
+                          onChange={e => {
+                            setAnswerStateFilter(e.target.value);
+                            setSelectedQuestionNavNumber(null);
+                          }}
+                          className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                        >
+                          <option value="all">All States ({availableStatesInReview.length})</option>
+                          {availableStatesInReview.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Question Number Navigation Jump Grid */}
+                    <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <span className="font-bold uppercase tracking-wider text-[10px]">
+                          Quick Question Navigation (Jump to Question):
+                        </span>
+                        {selectedQuestionNavNumber !== null && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedQuestionNavNumber(null)}
+                            className="text-emerald-400 hover:underline font-bold text-xs"
+                          >
+                            Show All Questions
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {reviewQuestionItems.map(item => {
+                          const isActiveNav = selectedQuestionNavNumber === item.questionNumber;
+                          const isCorrect = item.status === 'correct';
+                          const isUnanswered = item.status === 'unanswered';
+
+                          let badgeColor = 'bg-slate-800 text-slate-400 border-slate-700';
+                          if (isCorrect) {
+                            badgeColor = isActiveNav 
+                              ? 'bg-emerald-500 text-slate-950 border-emerald-300 ring-2 ring-emerald-400' 
+                              : 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80 hover:bg-emerald-900';
+                          } else if (isUnanswered) {
+                            badgeColor = isActiveNav 
+                              ? 'bg-slate-200 text-slate-950 border-white ring-2 ring-slate-400' 
+                              : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-700';
+                          } else {
+                            badgeColor = isActiveNav 
+                              ? 'bg-rose-500 text-white border-rose-300 ring-2 ring-rose-400' 
+                              : 'bg-rose-950/80 text-rose-300 border-rose-800/80 hover:bg-rose-900';
+                          }
+
+                          return (
+                            <button
+                              key={item.questionNumber}
+                              type="button"
+                              onClick={() => {
+                                setSelectedQuestionNavNumber(item.questionNumber);
+                                const el = document.getElementById(`question-card-${item.questionNumber}`);
+                                if (el) {
+                                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                              }}
+                              className={`w-8 h-8 rounded-lg text-xs font-mono font-bold border transition-all flex items-center justify-center ${badgeColor}`}
+                              title={`Question ${item.questionNumber}: ${item.status.toUpperCase()}`}
+                            >
+                              {item.questionNumber < 10 ? `0${item.questionNumber}` : item.questionNumber}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Question Cards List */}
+                  <div className="space-y-4">
+                    {filteredReviewQuestions.length === 0 ? (
+                      <div className="p-8 text-center text-slate-500 text-xs rounded-2xl bg-slate-900/80 border border-slate-800">
+                        No questions match the current filter or search criteria.
+                      </div>
+                    ) : (
+                      filteredReviewQuestions.map(item => {
+                        return (
+                          <div
+                            id={`question-card-${item.questionNumber}`}
+                            key={item.question.id}
+                            className={`p-5 rounded-2xl border transition-all text-sm space-y-3.5 backdrop-blur-xl shadow-xl ${
+                              item.status === 'correct'
+                                ? 'bg-slate-900/85 border-emerald-500/40 shadow-emerald-950/20'
+                                : item.status === 'incorrect'
+                                ? 'bg-slate-900/85 border-rose-500/50 shadow-rose-950/20'
+                                : 'bg-slate-900/85 border-slate-700/60'
+                            }`}
+                          >
+                            {/* Question Header: Number, State, Status Badge */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-slate-950 text-slate-200 border border-slate-800">
+                                  Question {item.questionNumber < 10 ? `0${item.questionNumber}` : item.questionNumber}
+                                </span>
+                                <span className="text-xs text-slate-400 font-semibold">
+                                  State: <strong className="text-emerald-300">{item.question.state}</strong>
+                                </span>
+                              </div>
+
+                              {/* Clear Status Indicator */}
+                              {item.status === 'correct' ? (
+                                <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-black text-xs flex items-center gap-1.5 shadow-sm">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                  Status: CORRECT
+                                </span>
+                              ) : item.status === 'incorrect' ? (
+                                <span className="px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/50 text-rose-300 font-black text-xs flex items-center gap-1.5 shadow-sm">
+                                  <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                                  Status: INCORRECT
+                                </span>
+                              ) : (
+                                <span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-black text-xs flex items-center gap-1.5">
+                                  <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
+                                  Status: UNANSWERED
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Complete Question Text */}
+                            <p className="text-base font-bold text-white leading-relaxed">
+                              {item.question.question}
+                            </p>
+
+                            {/* All Available Answer Options */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                              {item.question.options.map((opt, optIdx) => {
+                                const optionLetters = ['A', 'B', 'C', 'D'];
+                                const isCorrectOption = optIdx === item.question.correctAnswer;
+                                const isSelectedOption = optIdx === item.selectedOptionIndex;
+                                
+                                let optionStyle = 'bg-slate-950/70 border-slate-800 text-slate-300';
+                                if (isCorrectOption) {
+                                  optionStyle = 'bg-emerald-950/80 border-emerald-500/80 text-emerald-200 font-bold ring-1 ring-emerald-500/30';
+                                } else if (isSelectedOption && !isCorrectOption) {
+                                  optionStyle = 'bg-rose-950/80 border-rose-500/80 text-rose-200 font-bold ring-1 ring-rose-500/30';
+                                }
+
+                                return (
+                                  <div 
+                                    key={opt}
+                                    className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${optionStyle}`}
+                                  >
+                                    <div className="flex items-center gap-2.5">
+                                      <span className={`w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold text-[11px] ${
+                                        isCorrectOption 
+                                          ? 'bg-emerald-600 text-white' 
+                                          : isSelectedOption 
+                                          ? 'bg-rose-600 text-white' 
+                                          : 'bg-slate-800 text-slate-400'
+                                      }`}>
+                                        {optionLetters[optIdx]}
+                                      </span>
+                                      <span>{opt}</span>
+                                    </div>
+
+                                    {isCorrectOption && (
+                                      <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                                        Correct Answer
+                                      </span>
+                                    )}
+                                    {isSelectedOption && !isCorrectOption && (
+                                      <span className="text-[10px] uppercase font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30">
+                                        Mahi Selected
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+
+                            {/* Visual Answer Comparison Box */}
+                            <div className="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800/90 space-y-1.5 text-xs">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-slate-300">
+                                <div>
+                                  <span className="text-slate-400">Mahi selected: </span>
+                                  <strong className={item.isCorrect ? 'text-emerald-300 font-bold' : item.isUnanswered ? 'text-slate-400 font-bold' : 'text-rose-300 font-bold'}>
+                                    {item.selectedAnswerText}
+                                  </strong>
+                                </div>
+                                <div>
+                                  <span className="text-slate-400">Correct answer: </span>
+                                  <strong className="text-emerald-400 font-bold">{item.correctAnswerText}</strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Short Explanation Box */}
+                            {expandAllExplanations && item.question.explanation && (
+                              <div className="pt-1">
+                                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs text-slate-300 leading-relaxed flex items-start gap-2.5">
+                                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                                  <div>
+                                    <strong className="text-amber-300 block mb-0.5">National Park Fact & Memory Trick:</strong>
+                                    <span>{item.question.explanation}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Navigation footer for questions */}
+                  {filteredReviewQuestions.length > 0 && (
+                    <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = selectedQuestionNavNumber || 1;
+                          const prev = Math.max(1, current - 1);
+                          setSelectedQuestionNavNumber(prev);
+                          const el = document.getElementById(`question-card-${prev}`);
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span>Previous Question</span>
+                      </button>
+
+                      <span className="text-xs text-slate-400 font-mono">
+                        Viewing {filteredReviewQuestions.length} of {reviewQuestionItems.length} Questions
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = selectedQuestionNavNumber || 1;
+                          const next = Math.min(reviewQuestionItems.length, current + 1);
+                          setSelectedQuestionNavNumber(next);
+                          const el = document.getElementById(`question-card-${next}`);
+                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }}
+                        className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>Next Question</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
 
             </div>
           )}
@@ -1128,10 +1969,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </td>
                             <td className="py-3 px-3 text-right">
                               <button
-                                onClick={() => setInspectedAttempt(att)}
-                                className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-colors inline-flex items-center gap-1"
+                                onClick={() => handleOpenCompleteAnswerSheet(att)}
+                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm"
                               >
-                                <Eye className="w-3 h-3" />
+                                <FileCheck className="w-3.5 h-3.5" />
                                 <span>Inspect Answers</span>
                               </button>
                             </td>

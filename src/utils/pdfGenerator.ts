@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import type { DailyQuiz } from '../types/quiz';
+import type { DailyQuiz, QuizAttempt } from '../types/quiz';
 
 /**
  * Generates a clean, readable, mobile-friendly PDF containing:
@@ -235,6 +235,210 @@ export function generateDayNotesPDF(quiz: DailyQuiz): void {
 
   // Trigger download
   const safeFilename = `Boddukuris_Quiz_${quiz.title.replace(/\s+/g, '_')}_Notes.pdf`;
+  doc.save(safeFilename);
+}
+
+/**
+ * Generates an official Admin Answer Sheet Inspection PDF for a specific quiz attempt.
+ * Contains:
+ * - Student Name, Quiz Day, Date, Score, Percentage, Time Taken, Performance
+ * - Every Question with full options
+ * - Mahi's Selected Answer
+ * - Correct Answer
+ * - Status: CORRECT, INCORRECT, UNANSWERED
+ * - Explanation and State details
+ */
+export function generateAnswerSheetPDF(attempt: QuizAttempt, quiz: DailyQuiz): void {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  const contentWidth = pageWidth - margin * 2;
+  let y = margin;
+
+  const checkPageBreak = (neededHeight: number) => {
+    if (y + neededHeight > pageHeight - margin - 10) {
+      doc.addPage();
+      y = margin;
+      renderRunningHeader();
+    }
+  };
+
+  const renderRunningHeader = () => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(21, 128, 61); // Forest Green
+    doc.text("BODDUKURI'S QUIZ — ADMIN ANSWER SHEET INSPECTOR", margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text(`${quiz.title} • Student: ${attempt.studentName || 'Mahi'}`, pageWidth - margin, y, { align: 'right' });
+    y += 3;
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 6;
+  };
+
+  // COVER HEADER
+  doc.setFillColor(15, 23, 42); // Slate 900
+  doc.roundedRect(margin, y, contentWidth, 34, 3, 3, 'F');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text("BODDUKURI'S QUIZ — STUDENT ANSWER SHEET", margin + 6, y + 8);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(203, 213, 225); // Slate 300
+  doc.text(`Student: ${attempt.studentName || 'Mahi'}  |  Access Code: 2002  |  Quiz: ${quiz.title}`, margin + 6, y + 14);
+  doc.text(`Submission Date: ${attempt.formattedDate || quiz.displayDate}  |  Duration: ${Math.floor(attempt.timeTakenSeconds / 60)}m ${attempt.timeTakenSeconds % 60}s`, margin + 6, y + 19);
+
+  // Score Pills in Header
+  doc.setFillColor(21, 128, 61); // Green pill
+  doc.roundedRect(margin + 6, y + 23, 38, 7, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(255, 255, 255);
+  doc.text(`Score: ${attempt.marksObtained}/${attempt.maxMarks} (${attempt.percentage}%)`, margin + 8, y + 27.5);
+
+  doc.setFillColor(30, 41, 59); // Slate pill
+  doc.roundedRect(margin + 48, y + 23, 36, 7, 1.5, 1.5, 'F');
+  doc.setTextColor(148, 163, 184);
+  doc.text(`Correct: ${attempt.correctCount}  |  Wrong: ${attempt.incorrectCount}`, margin + 50, y + 27.5);
+
+  doc.setFillColor(30, 41, 59);
+  doc.roundedRect(margin + 88, y + 23, 48, 7, 1.5, 1.5, 'F');
+  doc.setTextColor(245, 158, 11);
+  doc.text(`Status: ${attempt.performanceMessage || 'Completed'}`, margin + 90, y + 27.5);
+
+  y += 40;
+
+  // Question-by-Question Section
+  const optionLabels = ['A', 'B', 'C', 'D'];
+
+  quiz.questions.forEach((q, idx) => {
+    checkPageBreak(38);
+
+    const qNumStr = idx < 9 ? `0${idx + 1}` : `${idx + 1}`;
+    const selectedIdx = attempt.answers ? attempt.answers[q.id] : undefined;
+    const isUnanswered = selectedIdx === undefined || selectedIdx === -1;
+    const isCorrect = !isUnanswered && selectedIdx === q.correctAnswer;
+
+    // Card background
+    if (isCorrect) {
+      doc.setFillColor(240, 253, 244); // Soft Green
+      doc.setDrawColor(187, 247, 208);
+    } else if (isUnanswered) {
+      doc.setFillColor(248, 250, 252); // Soft Slate
+      doc.setDrawColor(226, 232, 240);
+    } else {
+      doc.setFillColor(254, 242, 242); // Soft Rose
+      doc.setDrawColor(254, 202, 202);
+    }
+
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin, y, contentWidth, 34, 2, 2, 'FD');
+
+    // Question Number & Text
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Question ${qNumStr}: ${q.question}`, margin + 4, y + 6);
+
+    // State Tag
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`State: ${q.state}`, pageWidth - margin - 4, y + 6, { align: 'right' });
+
+    // Options layout (two columns)
+    doc.setFontSize(7.5);
+    q.options.forEach((opt, optIdx) => {
+      const col = optIdx % 2;
+      const row = Math.floor(optIdx / 2);
+      const optX = margin + 4 + col * (contentWidth / 2);
+      const optY = y + 11 + row * 4.5;
+
+      const isThisCorrect = optIdx === q.correctAnswer;
+      const isThisSelected = optIdx === selectedIdx;
+
+      if (isThisCorrect && isThisSelected) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(21, 128, 61);
+        doc.text(`${optionLabels[optIdx]}. ${opt}  [CORRECT & SELECTED]`, optX, optY);
+      } else if (isThisCorrect) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(21, 128, 61);
+        doc.text(`${optionLabels[optIdx]}. ${opt}  [CORRECT ANSWER]`, optX, optY);
+      } else if (isThisSelected) {
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(220, 38, 38);
+        doc.text(`${optionLabels[optIdx]}. ${opt}  [MAHI SELECTED - WRONG]`, optX, optY);
+      } else {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(71, 85, 105);
+        doc.text(`${optionLabels[optIdx]}. ${opt}`, optX, optY);
+      }
+    });
+
+    // Result summary bar inside card
+    const selText = isUnanswered 
+      ? 'Not answered' 
+      : `${optionLabels[selectedIdx]}. ${q.options[selectedIdx] || ''}`;
+    const corText = `${optionLabels[q.correctAnswer]}. ${q.options[q.correctAnswer] || ''}`;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(51, 65, 85);
+    doc.text(`Mahi selected: ${selText}   |   Correct answer: ${corText}`, margin + 4, y + 23);
+
+    // Status Badge
+    doc.setFont('helvetica', 'bold');
+    if (isCorrect) {
+      doc.setTextColor(21, 128, 61);
+      doc.text(`Status: CORRECT`, pageWidth - margin - 4, y + 23, { align: 'right' });
+    } else if (isUnanswered) {
+      doc.setTextColor(100, 116, 139);
+      doc.text(`Status: UNANSWERED`, pageWidth - margin - 4, y + 23, { align: 'right' });
+    } else {
+      doc.setTextColor(220, 38, 38);
+      doc.text(`Status: INCORRECT`, pageWidth - margin - 4, y + 23, { align: 'right' });
+    }
+
+    // Explanation
+    if (q.explanation) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(7);
+      doc.setTextColor(100, 116, 139);
+      const explLines = doc.splitTextToSize(`Explanation: ${q.explanation}`, contentWidth - 8);
+      doc.text(explLines, margin + 4, y + 28);
+    }
+
+    y += 38;
+  });
+
+  // Footer on all pages
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(140, 140, 140);
+    doc.text(
+      `Boddukuri's Quiz #Mahi — Official Student Answer Sheet Inspection | Page ${i} of ${totalPages}`,
+      pageWidth / 2,
+      pageHeight - 6,
+      { align: 'center' }
+    );
+  }
+
+  const safeFilename = `Boddukuris_Quiz_AnswerSheet_${quiz.id}_Mahi.pdf`;
   doc.save(safeFilename);
 }
 

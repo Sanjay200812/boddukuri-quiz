@@ -14,11 +14,12 @@ import {
   Calendar, 
   FileCheck, 
   TrendingUp, 
-  BookOpen, 
   ShieldCheck, 
   Sparkles, 
   X,
-  RotateCcw
+  RotateCcw,
+  UserCheck,
+  FileText
 } from 'lucide-react';
 
 export type StudentNavView = 
@@ -36,12 +37,14 @@ export type StudentNavView =
 export type AdminNavTab = 
   | 'overview'
   | 'students'
-  | 'quiz-management'
+  | 'mahi-profile'
   | 'attempts'
+  | 'answer-sheets'
+  | 'quiz-management'
+  | 'schedule'
   | 'analytics'
   | 'inbox'
   | 'notifications'
-  | 'schedule'
   | 'settings'
   | 'help'
   | 'logs';
@@ -116,11 +119,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     badge?: string | number;
     badgeColor?: string;
   }> = [
-    { id: 'overview', label: 'Admin Dashboard', icon: Home },
+    { id: 'overview', label: 'Overview', icon: Home },
     { id: 'students', label: 'Students', icon: Users },
-    { id: 'quiz-management', label: 'Quiz Management', icon: BookOpen },
-    { id: 'attempts', label: 'Quiz Attempts', icon: FileCheck },
-    { id: 'analytics', label: 'Results & Analytics', icon: TrendingUp },
+    { id: 'mahi-profile', label: "Mahi's Profile", icon: UserCheck },
+    { id: 'attempts', label: 'Quiz Attempts', icon: FileText },
+    { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
+    { id: 'schedule', label: 'Quiz Schedule', icon: Calendar },
     { 
       id: 'inbox', 
       label: 'Inbox', 
@@ -128,14 +132,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: unreadInboxCount > 0 ? unreadInboxCount : undefined,
       badgeColor: 'bg-emerald-500 text-white' 
     },
-    { 
-      id: 'notifications', 
-      label: 'Notifications & WA', 
-      icon: Bell 
-    },
-    { id: 'schedule', label: 'Seven-Day Schedule', icon: Calendar },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'help', label: 'Help / About', icon: HelpCircle },
   ];
 
   const handleItemClick = (id: string) => {
