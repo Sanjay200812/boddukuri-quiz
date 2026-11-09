@@ -397,7 +397,8 @@ export function getOrRecoverBaselineAttempts(autoInject = false): QuizAttempt[] 
  */
 export function ensureMahiBaselineAttempt(): QuizAttempt {
   const attempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
-  let day01 = attempts.find(a => a.quizId === 'day-01');
+  const baselineId = 'attempt-mahi-day01-100';
+  const existingBaseline = attempts.find(a => a.id === baselineId);
   const day01Quiz = getQuizForDay('day-01');
 
   const answers: Record<string, number> = {};
@@ -407,11 +408,11 @@ export function ensureMahiBaselineAttempt(): QuizAttempt {
     });
   }
 
-  if (day01) {
-    // If existing day01 attempt has empty answers or needs recovery, enrich it
-    if (!day01.answers || Object.keys(day01.answers).length === 0 || day01.marksObtained !== 30) {
-      day01 = {
-        ...day01,
+  if (existingBaseline) {
+    // Keep the admin-authorized historical record exact and deterministic.
+    if (existingBaseline.timeTakenSeconds !== 86 || existingBaseline.marksObtained !== 30 || Object.keys(existingBaseline.answers || {}).length !== 30) {
+      const baseline: QuizAttempt = {
+        ...existingBaseline,
         marksObtained: 30,
         maxMarks: 30,
         percentage: 100,
@@ -422,11 +423,12 @@ export function ensureMahiBaselineAttempt(): QuizAttempt {
         performanceTier: 'outstanding',
         performanceMessage: 'Outstanding',
         status: 'completed',
-        answers: Object.keys(day01.answers || {}).length > 0 ? (day01.answers as Record<string, number>) : answers
+        answers
       };
-      saveQuizAttempt(day01);
+      saveQuizAttempt(baseline);
+      return baseline;
     }
-    return day01;
+    return existingBaseline;
   }
 
   const baseline = getOrRecoverBaselineAttempts(false)[0]!;
