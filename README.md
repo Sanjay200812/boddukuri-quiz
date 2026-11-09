@@ -80,6 +80,38 @@ The system will automatically:
 
 ---
 
+## 🏆 Special Gamification & Review Features
+
+### 1. 🔥 Daily Learning Streaks & Weekly Tracker
+- Visual 7-day calendar strip (Monday through Sunday) tracking every day Mahi practices.
+- Displays both **Current Streak** and all-time **Best Streak** record.
+- Daily status reminders: *"Protected! You've practiced today"* or *"Practice today to maintain your streak!"*.
+
+### 2. 🎖️ Achievement Badges (Trophy Cabinet)
+- **First Quiz (🎯)**: Complete your very first quiz attempt.
+- **Perfect Score (💯)**: Score 100% (30/30) on a daily quiz.
+- **7-Day Streak (🔥)**: Maintain an unbroken 7-day learning streak.
+- **3-Day Streak (⚡)**: Maintain an unbroken 3-day learning streak.
+- **High Achiever (🏆)**: Score 90%+ on a 30-question quiz.
+- **Master of Revision (🔁)**: Reattempt any quiz to improve recall.
+- **Tiger State Master (🐅)**: 100% score on Madhya Pradesh questions.
+- **Rhino Guardian (🦏)**: 100% score on Assam questions.
+- **Speed Scholar (⏱️)**: Finish quiz in ≤5 minutes with 80%+ accuracy.
+- **Century Club (🌟)**: Accumulate 100+ cumulative marks.
+- Unlocked badges celebrate with confetti and appear in the Trophy Cabinet with category filtering.
+
+### 3. 🎯 Review Mistakes Section
+- Directly featured on the Result Dashboard after every quiz session.
+- Pinpoints every question missed or skipped.
+- Side-by-side comparison:
+  - ❌ **Your Answer**: Highlighted in red/rose.
+  - ✅ **Correct Answer**: Highlighted in emerald green.
+  - 💡 **Explanation & Fact Sheet**: Verified establishment year, district, and biological significance.
+  - 👁️ **Self-Test Mode**: One-click toggle to hide answers and re-test recall on the spot!
+- If Mahi scores 100% (zero mistakes), a celebratory "Flawless Score" gold banner is revealed.
+
+---
+
 ## 📊 Dashboard Metrics
 
 The home dashboard displays:

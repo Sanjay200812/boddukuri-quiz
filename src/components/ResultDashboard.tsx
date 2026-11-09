@@ -11,8 +11,10 @@ import {
   formatWhatsAppMessage,
   DEFAULT_SANJU_WHATSAPP_NUMBER
 } from '../utils/whatsapp';
-import { getUserSettings } from '../utils/storage';
+import { getUserSettings, getAllAttempts, calculateCurrentStreak } from '../utils/storage';
+import { getFreshlyUnlockedBadges } from '../utils/achievements';
 import { playCompletionChime } from '../utils/sound';
+import { ReviewMistakesSection } from './ReviewMistakesSection';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -48,6 +50,10 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
   const [copied, setCopied] = useState<boolean>(false);
   const settings = getUserSettings();
   const whatsappNumber = settings.sanjuWhatsAppNumber || DEFAULT_SANJU_WHATSAPP_NUMBER;
+
+  const allAttempts = React.useMemo(() => getAllAttempts(), []);
+  const streak = React.useMemo(() => calculateCurrentStreak(allAttempts), [allAttempts]);
+  const freshBadges = React.useMemo(() => getFreshlyUnlockedBadges(attempt, allAttempts, streak), [attempt, allAttempts, streak]);
 
   // Trigger celebration confetti & audio chime on mount
   useEffect(() => {
@@ -126,6 +132,34 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Freshly Unlocked Badges Celebration */}
+      {freshBadges.length > 0 && (
+        <div className="rounded-3xl bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-400 p-1 shadow-lg animate-scaleUp">
+          <div className="bg-white rounded-[22px] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="w-14 h-14 rounded-2xl bg-amber-100 border border-amber-300 text-3xl flex items-center justify-center shrink-0 shadow-sm animate-bounce">
+                {freshBadges[0].icon}
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1 text-[11px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-100/80 px-2.5 py-0.5 rounded-full mb-1">
+                  <Sparkles className="w-3 h-3 text-amber-600" />
+                  <span>New Achievement Unlocked!</span>
+                </div>
+                <h4 className="text-lg sm:text-xl font-black text-slate-900">
+                  {freshBadges.map(b => b.title).join(' & ')}
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
+                  {freshBadges.map(b => b.description).join(' • ')}
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-amber-900 bg-amber-50 px-3.5 py-2 rounded-xl border border-amber-200">
+              🏆 Added to Trophy Cabinet
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Score Visualization & Key Metrics */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card">
@@ -294,6 +328,13 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* REVIEW MISTAKES SECTION */}
+      <ReviewMistakesSection
+        attempt={attempt}
+        quiz={quiz}
+        onOpenFullAnswerSheet={onReviewAnswers}
+      />
 
       {/* Motivational Quote & Personal Message for Mahi */}
       <div className="rounded-3xl bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-6 sm:p-8 shadow-elevated space-y-4">

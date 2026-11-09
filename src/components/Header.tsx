@@ -6,14 +6,17 @@ import {
   BarChart3, 
   Settings as SettingsIcon,
   Home,
-  CheckCircle2
+  CheckCircle2,
+  Award
 } from 'lucide-react';
 
 interface HeaderProps {
   currentView: 'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review';
   onNavigate: (view: 'dashboard' | 'progress' | 'study') => void;
   onOpenSettings: () => void;
+  onOpenBadges?: () => void;
   streakDays: number;
+  unlockedBadgesCount?: number;
   completedQuizzesCount: number;
   totalQuizzesCount: number;
 }
@@ -22,7 +25,9 @@ export const Header: React.FC<HeaderProps> = ({
   currentView,
   onNavigate,
   onOpenSettings,
+  onOpenBadges,
   streakDays,
+  unlockedBadgesCount = 0,
   completedQuizzesCount,
   totalQuizzesCount,
 }) => {
@@ -105,6 +110,19 @@ export const Header: React.FC<HeaderProps> = ({
               <Flame className={`w-4 h-4 ${streakDays > 0 ? 'text-amber-500 fill-amber-500 animate-pulse' : 'text-slate-400'}`} />
               <span>{streakDays} {streakDays === 1 ? 'Day' : 'Days'}</span>
             </div>
+
+            {/* Badges Trophy Trigger */}
+            {onOpenBadges && (
+              <button
+                onClick={onOpenBadges}
+                title={`${unlockedBadgesCount} Badges Unlocked! Click to open Trophy Cabinet`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs sm:text-sm font-bold shadow-xs transition-colors"
+              >
+                <Award className="w-4 h-4 text-amber-600" />
+                <span className="hidden sm:inline">{unlockedBadgesCount} Badges</span>
+                <span className="sm:hidden">{unlockedBadgesCount}</span>
+              </button>
+            )}
 
             {/* Quizzes Completed Counter */}
             <div 

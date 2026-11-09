@@ -115,8 +115,23 @@ export interface OverallProgress {
   overallMaxMarks: number;
   overallAccuracy: number;
   currentStreak: number;
+  bestStreak: number;
+  unlockedBadgesCount: number;
   totalDaysAvailable: number;
   nextLearningDayNumber: number;
+}
+
+export interface AchievementBadge {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: 'streak' | 'score' | 'mastery' | 'milestone';
+  unlocked: boolean;
+  unlockedAt?: string;
+  currentProgress?: number;
+  targetProgress?: number;
+  rewardHint?: string;
 }
 
 export interface UserSettings {

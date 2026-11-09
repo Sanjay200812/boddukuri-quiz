@@ -1,5 +1,6 @@
 import type { QuizAttempt, InProgressQuiz, OverallProgress, UserSettings, DailyQuiz } from '../types/quiz';
-import { DEFAULT_SANJU_WHATSAPP_NUMBER } from './whatsapp';
+import { DEFAULT_SANJU_WHATSAPP_NUMBER } from './whatsapp.ts';
+import { evaluateBadges } from './achievements.ts';
 
 const STORAGE_KEYS = {
   ATTEMPTS: 'mahi_quiz_attempts_v1',
@@ -122,20 +123,41 @@ export function getQuizStatus(quizId: string): 'not-started' | 'in-progress' | '
 /**
  * Calculates continuous daily streak based on unique UTC/local days with at least 1 attempt
  */
+function getLocalDateString(dateInput: Date | string): string {
+  const d = new Date(dateInput);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export interface DayStreakItem {
+  dateStr: string;
+  dayShort: string;
+  dayName: string;
+  dayNumber: number;
+  completed: boolean;
+  isToday: boolean;
+}
+
+/**
+ * Calculates continuous daily streak based on unique local calendar days
+ */
 export function calculateCurrentStreak(attempts: QuizAttempt[]): number {
   if (!attempts || attempts.length === 0) return 0;
 
-  // Get sorted unique dates (YYYY-MM-DD)
+  // Get sorted unique dates (YYYY-MM-DD in local time)
   const uniqueDates = Array.from(
-    new Set(attempts.map(a => new Date(a.timestamp).toISOString().split('T')[0]))
+    new Set(attempts.map(a => getLocalDateString(a.timestamp)))
   ).sort().reverse();
 
   if (uniqueDates.length === 0) return 0;
 
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const now = new Date();
+  const today = getLocalDateString(now);
+  const yesterday = getLocalDateString(new Date(now.getTime() - 86400000));
 
-  // If latest attempt is neither today nor yesterday, streak is broken
+  // If latest attempt is neither today nor yesterday, streak is 0
   const mostRecentDate = uniqueDates[0];
   if (mostRecentDate !== today && mostRecentDate !== yesterday) {
     return 0;
@@ -158,6 +180,73 @@ export function calculateCurrentStreak(attempts: QuizAttempt[]): number {
   }
 
   return streak;
+}
+
+/**
+ * Calculates highest all-time streak achieved
+ */
+export function calculateBestStreak(attempts: QuizAttempt[]): number {
+  if (!attempts || attempts.length === 0) return 0;
+
+  const uniqueDates = Array.from(
+    new Set(attempts.map(a => getLocalDateString(a.timestamp)))
+  ).sort();
+
+  if (uniqueDates.length === 0) return 0;
+
+  let maxStreak = 1;
+  let currentRun = 1;
+
+  for (let i = 1; i < uniqueDates.length; i++) {
+    const prev = new Date(uniqueDates[i - 1]);
+    const curr = new Date(uniqueDates[i]);
+    const diffDays = Math.round((curr.getTime() - prev.getTime()) / 86400000);
+
+    if (diffDays === 1) {
+      currentRun += 1;
+      if (currentRun > maxStreak) {
+        maxStreak = currentRun;
+      }
+    } else if (diffDays > 1) {
+      currentRun = 1;
+    }
+  }
+
+  return maxStreak;
+}
+
+/**
+ * Returns streak breakdown for the current week (Monday to Sunday)
+ */
+export function getWeeklyStreakDays(attempts: QuizAttempt[]): DayStreakItem[] {
+  const attemptDates = new Set(attempts.map(a => getLocalDateString(a.timestamp)));
+  const today = new Date();
+  const todayStr = getLocalDateString(today);
+
+  // Get current week Monday
+  const dayOfWeek = today.getDay(); // 0 is Sun, 1 is Mon...
+  const distanceToMonday = (dayOfWeek + 6) % 7;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - distanceToMonday);
+
+  const days: DayStreakItem[] = [];
+  const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dStr = getLocalDateString(d);
+    days.push({
+      dateStr: dStr,
+      dayShort: dayLabels[i][0],
+      dayName: dayLabels[i],
+      dayNumber: d.getDate(),
+      completed: attemptDates.has(dStr),
+      isToday: dStr === todayStr
+    });
+  }
+
+  return days;
 }
 
 export function getOverallProgress(availableQuizzes: DailyQuiz[]): OverallProgress {
@@ -185,6 +274,11 @@ export function getOverallProgress(availableQuizzes: DailyQuiz[]): OverallProgre
     : 0;
 
   const currentStreak = calculateCurrentStreak(attempts);
+  const bestStreak = Math.max(currentStreak, calculateBestStreak(attempts));
+
+  // Evaluate badges
+  const badges = evaluateBadges(attempts, currentStreak);
+  const unlockedBadgesCount = badges.filter(b => b.unlocked).length;
 
   // Calculate unique states learned from completed days
   const learnedStatesSet = new Set<string>();
@@ -213,6 +307,8 @@ export function getOverallProgress(availableQuizzes: DailyQuiz[]): OverallProgre
     overallMaxMarks,
     overallAccuracy,
     currentStreak,
+    bestStreak,
+    unlockedBadgesCount,
     totalDaysAvailable,
     nextLearningDayNumber
   };

@@ -7,8 +7,10 @@ import type {
 } from './types/quiz';
 import { 
   getOverallProgress, 
-  clearInProgressQuiz 
+  clearInProgressQuiz,
+  getAllAttempts
 } from './utils/storage';
+import { evaluateBadges } from './utils/achievements';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
 import { QuizRunner } from './components/QuizRunner';
@@ -17,6 +19,7 @@ import { AnswerSheet } from './components/AnswerSheet';
 import { ProgressHistory } from './components/ProgressHistory';
 import { StudyGuide } from './components/StudyGuide';
 import { SettingsModal } from './components/SettingsModal';
+import { BadgesModal } from './components/BadgesModal';
 
 export const App: React.FC = () => {
   // Views: 'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review'
@@ -25,6 +28,7 @@ export const App: React.FC = () => {
   const [activeAttempt, setActiveAttempt] = useState<QuizAttempt | null>(null);
   const [studyGuideInitialState, setStudyGuideInitialState] = useState<string | undefined>(undefined);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isBadgesModalOpen, setIsBadgesModalOpen] = useState<boolean>(false);
   const [overallProgress, setOverallProgress] = useState<OverallProgress>(() => getOverallProgress(DAILY_QUIZZES));
 
   // Refresh progress state whenever returning to dashboard or after actions
@@ -108,7 +112,9 @@ export const App: React.FC = () => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenBadges={() => setIsBadgesModalOpen(true)}
         streakDays={overallProgress.currentStreak}
+        unlockedBadgesCount={overallProgress.unlockedBadgesCount}
         completedQuizzesCount={overallProgress.totalCompletedDays}
         totalQuizzesCount={DAILY_QUIZZES.length}
       />
@@ -124,6 +130,7 @@ export const App: React.FC = () => {
             onStartQuiz={handleStartQuiz}
             onViewResult={handleViewResult}
             onOpenStudyGuide={handleOpenStudyGuide}
+            onOpenBadges={() => setIsBadgesModalOpen(true)}
           />
         )}
 
@@ -202,6 +209,13 @@ export const App: React.FC = () => {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onDataChanged={refreshProgress}
+      />
+
+      {/* Badges & Achievements Modal */}
+      <BadgesModal
+        isOpen={isBadgesModalOpen}
+        onClose={() => setIsBadgesModalOpen(false)}
+        badges={evaluateBadges(getAllAttempts(), overallProgress.currentStreak)}
       />
 
     </div>
