@@ -181,7 +181,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#F2F7F4] via-[#EEF5F0] to-[#E5EFE8] px-4 py-8 sm:py-12 text-slate-800">
+    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#08080a] via-[#120b0e] to-[#240d14] px-4 py-8 sm:py-12 text-stone-100">
 
       {/* Top Brand Banner */}
       <div className="max-w-md w-full mx-auto text-center space-y-3 pt-4">
@@ -190,13 +190,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
 
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black text-stone-100 tracking-tight">
             Boddukuri's Quiz
           </h1>
           <div className="inline-block px-3 py-0.5 rounded-full text-xs font-black bg-red-100 text-red-900 border border-red-300 mt-1">
             #Mahi
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
+          <p className="text-xs sm:text-sm text-stone-400 font-semibold mt-1">
             Learn. Revise. Remember. Achieve.
           </p>
         </div>
@@ -204,19 +204,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       {/* Main Login Card */}
       <div className="max-w-md w-full mx-auto my-auto">
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-red-100 shadow-xl shadow-slate-200/50 space-y-5">
+        <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-red-900/70 shadow-xl shadow-black/50 space-y-5">
 
           <div className="space-y-1">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+            <h2 className="text-lg sm:text-xl font-bold text-stone-100">
               Sign in to Your Learning Portal
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-stone-400">
               Access daily quizzes, national parks study guide, and learning streaks.
             </p>
           </div>
 
           {/* Auth Method Tabs */}
-          <div className="grid grid-cols-2 gap-1 p-1 bg-slate-100/90 rounded-2xl border border-slate-200/80">
+          <div className="grid grid-cols-2 gap-1 p-1 bg-[#241014] rounded-2xl border border-red-900/70">
             <button
               type="button"
               onClick={() => {
@@ -225,8 +225,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               }}
               className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
                 authMethod === 'password'
-                  ? 'bg-white text-red-950 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-red-900 text-white shadow-sm'
+                  : 'text-stone-400 hover:text-white'
               }`}
             >
               <Mail className="w-3.5 h-3.5" />
@@ -240,8 +240,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               }}
               className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
                 authMethod === 'code'
-                  ? 'bg-white text-red-950 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-red-900 text-white shadow-sm'
+                  : 'text-stone-400 hover:text-white'
               }`}
             >
               <KeyRound className="w-3.5 h-3.5" />
