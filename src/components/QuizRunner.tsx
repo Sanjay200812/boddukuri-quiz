@@ -1,28 +1,28 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import type { 
-  DailyQuiz, 
-  QuizAttempt, 
-  QuizQuestion, 
-  SectionScore 
+import type {
+  DailyQuiz,
+  QuizAttempt,
+  QuizQuestion,
+  SectionScore
 } from '../types/quiz';
-import { 
-  getInProgressQuiz, 
-  saveInProgressQuiz, 
+import {
+  getInProgressQuiz,
+  saveInProgressQuiz,
   saveQuizAttempt,
   isBookmarked,
-  toggleBookmark 
+  toggleBookmark
 } from '../utils/storage';
 import { getPerformanceTier } from '../data/quotes';
 import { playOptionClickSound } from '../utils/sound';
-import { 
-  ArrowLeft, 
-  ArrowRight, 
-  Clock, 
-  Flag, 
-  CheckCircle2, 
-  AlertCircle, 
-  Grid, 
-  LogOut, 
+import {
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  Flag,
+  CheckCircle2,
+  AlertCircle,
+  Grid,
+  LogOut,
   Send,
   Bookmark,
   Hourglass
@@ -59,8 +59,8 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
         return remaining;
       }
     }
-    return savedState?.questionSecondsLeft && savedState.questionSecondsLeft > 0 
-      ? savedState.questionSecondsLeft 
+    return savedState?.questionSecondsLeft && savedState.questionSecondsLeft > 0
+      ? savedState.questionSecondsLeft
       : QUESTION_LIMIT_SECONDS;
   });
 
@@ -136,7 +136,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
   // Toggle flag for review
   const handleToggleFlag = () => {
-    setFlaggedIds(prev => 
+    setFlaggedIds(prev =>
       prev.includes(currentQuestion.id)
         ? prev.filter(id => id !== currentQuestion.id)
         : [...prev, currentQuestion.id]
@@ -350,10 +350,10 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
-      
+
       {/* Top Bar: Navigation, Day info, Live Timer, Palette & Quit */}
       <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-soft flex flex-wrap items-center justify-between gap-4">
-        
+
         {/* Left: Day & State */}
         <div className="flex items-center gap-3">
           <button
@@ -386,18 +386,18 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
           {/* Timer */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 text-xs sm:text-sm font-mono font-bold">
-            <Clock className="w-4 h-4 text-emerald-600" />
+            <Clock className="w-4 h-4 text-red-800" />
             <span>{formatTime(secondsElapsed)}</span>
           </div>
 
           {/* Palette button */}
           <button
             onClick={() => setShowPaletteModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs sm:text-sm font-semibold hover:bg-emerald-100 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-900 border border-red-300 text-xs sm:text-sm font-semibold hover:bg-red-100 transition-colors"
           >
             <Grid className="w-4 h-4" />
             <span className="hidden sm:inline">Palette</span>
-            <span className="font-bold text-emerald-700">({answeredCount}/{questions.length})</span>
+            <span className="font-bold text-red-900">({answeredCount}/{questions.length})</span>
           </button>
         </div>
 
@@ -407,13 +407,13 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-semibold text-slate-600 px-1">
           <span>Question {currentIndex + 1} of {questions.length}</span>
-          <span className="text-emerald-700 font-bold">
+          <span className="text-red-900 font-bold">
             {Math.round(((currentIndex + 1) / questions.length) * 100)}% Through
           </span>
         </div>
         <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-          <div 
-            className="bg-gradient-to-r from-emerald-600 to-teal-500 h-full rounded-full transition-all duration-300 ease-out"
+          <div
+            className="bg-gradient-to-r from-red-800 to-red-600 h-full rounded-full transition-all duration-300 ease-out"
             style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
           />
         </div>
@@ -427,7 +427,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
               Revision State: {currentQuestion.state}
             </span>
           ) : (
-            <span className="bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded-lg">
+            <span className="bg-red-100 text-red-950 border border-red-400 px-2 py-0.5 rounded-lg">
               {quiz.dayNumber === 1 ? `State: ${currentQuestion.state}` : `New State: ${currentQuestion.state}`}
             </span>
           )}
@@ -436,8 +436,8 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
         <div className="flex items-center gap-2">
           {/* Difficulty pill */}
           <span className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-            currentQuestion.difficulty === 'easy' 
-              ? 'bg-green-100 text-green-800' 
+            currentQuestion.difficulty === 'easy'
+              ? 'bg-green-100 text-green-800'
               : currentQuestion.difficulty === 'medium'
               ? 'bg-blue-100 text-blue-800'
               : 'bg-purple-100 text-purple-800'
@@ -454,16 +454,16 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
       {/* Question Card */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-6 relative overflow-hidden">
-        
+
         {/* 60-Second Mini Progress Bar */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-slate-100">
-          <div 
+          <div
             className={`h-full transition-all duration-1000 ${
-              questionSecondsLeft <= 10 
-                ? 'bg-rose-500 animate-pulse' 
-                : questionSecondsLeft <= 20 
-                ? 'bg-amber-400' 
-                : 'bg-emerald-500'
+              questionSecondsLeft <= 10
+                ? 'bg-rose-500 animate-pulse'
+                : questionSecondsLeft <= 20
+                ? 'bg-amber-400'
+                : 'bg-red-700'
             }`}
             style={{ width: `${(questionSecondsLeft / QUESTION_LIMIT_SECONDS) * 100}%` }}
           />
@@ -471,22 +471,22 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
         {/* Question Header & 60-Second Timer Badge */}
         <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+          <div className="text-xs font-bold uppercase tracking-wider text-red-900">
             Question #{currentIndex + 1}
           </div>
 
           {/* 60s Countdown Timer Badge */}
-          <div 
+          <div
             title="60 seconds limit per question. Advances automatically at 0s."
             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border transition-all ${
               questionSecondsLeft <= 10
                 ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
                 : questionSecondsLeft <= 20
                 ? 'bg-amber-50 text-amber-900 border-amber-300'
-                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                : 'bg-red-50 text-red-900 border-red-300'
             }`}
           >
-            <Hourglass className={`w-3.5 h-3.5 ${questionSecondsLeft <= 10 ? 'text-rose-600 animate-spin' : 'text-emerald-700'}`} />
+            <Hourglass className={`w-3.5 h-3.5 ${questionSecondsLeft <= 10 ? 'text-rose-600 animate-spin' : 'text-red-900'}`} />
             <span>{questionSecondsLeft}s Left</span>
           </div>
         </div>
@@ -509,29 +509,29 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                 onClick={() => handleSelectOption(idx)}
                 className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-start sm:items-center gap-3.5 group cursor-pointer ${
                   isSelected
-                    ? 'border-emerald-600 bg-emerald-50/80 shadow-md ring-2 ring-emerald-200 text-slate-900'
-                    : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-slate-50/70 text-slate-800'
+                    ? 'border-red-800 bg-red-50/80 shadow-md ring-2 ring-red-300 text-slate-900'
+                    : 'border-slate-200 bg-white hover:border-red-400 hover:bg-slate-50/70 text-slate-800'
                 }`}
               >
                 {/* Option Letter Circle */}
                 <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-100 text-slate-600 group-hover:bg-emerald-100 group-hover:text-emerald-800'
+                    ? 'bg-red-800 text-white'
+                    : 'bg-slate-100 text-slate-600 group-hover:bg-red-100 group-hover:text-red-900'
                 }`}>
                   {letters[idx]}
                 </span>
 
                 {/* Option Text */}
                 <span className={`text-sm sm:text-base font-semibold leading-relaxed flex-1 ${
-                  isSelected ? 'text-emerald-950 font-bold' : 'text-slate-800'
+                  isSelected ? 'text-red-950 font-bold' : 'text-slate-800'
                 }`}>
                   {option}
                 </span>
 
                 {/* Checkmark indicator */}
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-red-800 shrink-0 ml-auto" />
                 )}
               </button>
             );
@@ -605,7 +605,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
           {currentIndex < questions.length - 1 ? (
             <button
               onClick={handleNext}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-emerald-700 text-white hover:bg-emerald-800 active:scale-95 transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-3 rounded-2xl font-bold text-sm bg-red-900 text-white hover:bg-red-900 active:scale-95 transition-all shadow-md flex items-center gap-2"
             >
               Next
               <ArrowRight className="w-4 h-4" />
@@ -613,7 +613,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
           ) : (
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-emerald-700 text-white hover:bg-emerald-800 active:scale-95 transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-3 rounded-2xl font-bold text-sm bg-red-900 text-white hover:bg-red-900 active:scale-95 transition-all shadow-md flex items-center gap-2"
             >
               Finish & Review
               <ArrowRight className="w-4 h-4" />
@@ -626,7 +626,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       {showPaletteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
-            
+
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Question Palette</h3>
@@ -643,7 +643,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
             {/* Legend */}
             <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-2xl">
               <div className="flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded-md bg-emerald-600" />
+                <span className="w-4 h-4 rounded-md bg-red-800" />
                 <span>Answered ({answeredCount})</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -669,13 +669,13 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                     onClick={() => handleJumpToQuestion(idx)}
                     className={`relative h-12 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${
                       isCurrent
-                        ? 'ring-4 ring-emerald-400/50 scale-105 z-10'
+                        ? 'ring-4 ring-red-600/50 scale-105 z-10'
                         : ''
                     } ${
                       isFlagged
                         ? 'bg-amber-100 text-amber-900 border-2 border-amber-400'
                         : isAnswered
-                        ? 'bg-emerald-600 text-white shadow-xs'
+                        ? 'bg-red-800 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
                     }`}
                   >
@@ -700,7 +700,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                   setShowPaletteModal(false);
                   setShowSubmitModal(true);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 shadow-sm"
+                className="px-5 py-2.5 rounded-xl bg-red-900 text-white text-xs font-bold hover:bg-red-900 shadow-sm"
               >
                 Proceed to Submit
               </button>
@@ -714,9 +714,9 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       {showSubmitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5">
-            
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
-              <Send className="w-6 h-6 text-emerald-700" />
+
+            <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-900 flex items-center justify-center mx-auto">
+              <Send className="w-6 h-6 text-red-900" />
             </div>
 
             <div className="text-center space-y-1">
@@ -732,7 +732,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
             <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-100 text-center text-xs">
               <div>
                 <div className="text-slate-400 font-medium">Answered</div>
-                <div className="text-lg font-black text-emerald-700">{answeredCount}</div>
+                <div className="text-lg font-black text-red-900">{answeredCount}</div>
               </div>
               <div>
                 <div className="text-slate-400 font-medium">Unanswered</div>
@@ -767,7 +767,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                   setShowSubmitModal(false);
                   handleSubmitQuiz();
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-red-900 hover:bg-red-900 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
               >
                 Confirm & Submit
               </button>

@@ -21,9 +21,9 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
   const hasPracticedToday = todayItem?.completed ?? false;
 
   return (
-    <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-card hover:border-emerald-200 transition-all">
+    <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/90 shadow-card hover:border-red-300 transition-all">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
-        
+
         {/* Left: Streak Counter */}
         <div className="flex items-center gap-3.5">
           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md ${
@@ -45,10 +45,10 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
                 </span>
               )}
             </div>
-            
+
             <p className="text-xs text-slate-500 mt-0.5">
               {hasPracticedToday ? (
-                <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                <span className="text-red-900 font-semibold flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5" /> Awesome! You've protected your learning streak today!
                 </span>
               ) : (
@@ -63,9 +63,9 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
         {/* Right: Badges CTA */}
         <button
           onClick={onOpenBadges}
-          className="self-stretch sm:self-auto px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+          className="self-stretch sm:self-auto px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-950 border border-red-300 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
         >
-          <Zap className="w-4 h-4 text-emerald-600" />
+          <Zap className="w-4 h-4 text-red-800" />
           <span>View Badges & Streaks</span>
         </button>
 
@@ -80,10 +80,10 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
               className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all ${
                 day.isToday
                   ? day.completed
-                    ? 'bg-emerald-500 text-white border-emerald-600 shadow-md ring-2 ring-emerald-300'
+                    ? 'bg-red-700 text-white border-red-800 shadow-md ring-2 ring-red-400'
                     : 'bg-amber-50 text-amber-950 border-amber-300 ring-2 ring-amber-200 animate-pulse'
                   : day.completed
-                  ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                  ? 'bg-red-50 text-red-950 border-red-300'
                   : 'bg-slate-50 text-slate-400 border-slate-100'
               }`}
             >
@@ -93,7 +93,7 @@ export const StreakTracker: React.FC<StreakTrackerProps> = ({
 
               <div className="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs">
                 {day.completed ? (
-                  <CheckCircle2 className={`w-5 h-5 ${day.isToday ? 'text-white' : 'text-emerald-600'}`} />
+                  <CheckCircle2 className={`w-5 h-5 ${day.isToday ? 'text-white' : 'text-red-800'}`} />
                 ) : (
                   <span>{day.dayNumber}</span>
                 )}

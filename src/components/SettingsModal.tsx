@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { 
-  X, 
-  User, 
-  CheckCircle2, 
+import {
+  X,
+  User,
+  CheckCircle2,
   Save,
   Cloud,
   LogOut,
   ShieldCheck,
   RefreshCw
 } from 'lucide-react';
-import { 
-  getUserSettings, 
+import {
+  getUserSettings,
   saveUserSettings
 } from '../utils/storage';
 import type { UserRole } from '../types/quiz';
@@ -60,12 +60,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-emerald-50 text-emerald-800">
-              <User className="w-5 h-5 text-emerald-700" />
+            <span className="p-2 rounded-xl bg-red-50 text-red-900">
+              <User className="w-5 h-5 text-red-900" />
             </span>
             <div>
               <h2 className="text-xl font-bold text-slate-900">
@@ -86,16 +86,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* 1. Account & Supabase Cloud Sync Section */}
-        <div className="space-y-3 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
+        <div className="space-y-3 bg-red-50/50 p-4 rounded-2xl border border-red-100">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
-              <Cloud className="w-3.5 h-3.5 text-emerald-700" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-red-950 flex items-center gap-1.5">
+              <Cloud className="w-3.5 h-3.5 text-red-900" />
               <span>Learning Session</span>
             </h3>
 
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white border border-emerald-200">
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white border border-red-300">
               <span className={`w-2 h-2 rounded-full ${
-                syncStatus === 'synced' ? 'bg-emerald-500' : syncStatus === 'offline' ? 'bg-slate-400' : 'bg-amber-500 animate-pulse'
+                syncStatus === 'synced' ? 'bg-red-700' : syncStatus === 'offline' ? 'bg-slate-400' : 'bg-amber-500 animate-pulse'
               }`} />
               <span className="capitalize text-slate-700">{syncStatus}</span>
             </div>
@@ -103,20 +103,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <div className="text-xs text-slate-600 flex flex-col gap-1">
             <div className="flex items-center gap-1 font-semibold text-slate-700">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <ShieldCheck className="w-3.5 h-3.5 text-red-800" />
               <span>Signed in as: <strong>{userEmail || 'Mahi'}</strong></span>
             </div>
             <p className="text-[11px] text-slate-500">
-              Role: <span className="capitalize font-semibold text-emerald-800">{userRole}</span> • Progress synced securely with Supabase.
+              Role: <span className="capitalize font-semibold text-red-900">{userRole}</span> • Progress synced securely with Supabase.
             </p>
           </div>
 
           {onSyncNow && (
-            <div className="pt-2 flex justify-end border-t border-emerald-100/70">
+            <div className="pt-2 flex justify-end border-t border-red-100/70">
               <button
                 type="button"
                 onClick={onSyncNow}
-                className="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-white border border-red-300 text-red-900 hover:bg-red-50 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Sync Cloud Now</span>
@@ -136,7 +136,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={studentNameInput}
               onChange={(e) => setStudentNameInput(e.target.value)}
               placeholder="Mahi"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-800"
             />
             <p className="text-[11px] text-slate-400 mt-1">
               Displayed on your dashboard and achievement reports.
@@ -145,14 +145,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <div className="flex items-center justify-between pt-1">
             {saveSuccess ? (
-              <span className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+              <span className="text-xs font-bold text-red-900 flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" /> Name updated!
               </span>
             ) : <div />}
 
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 rounded-xl bg-red-900 hover:bg-red-900 text-white font-bold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-colors"
             >
               <Save className="w-4 h-4" />
               <span>Save Name</span>

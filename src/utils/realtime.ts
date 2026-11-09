@@ -3,7 +3,7 @@ import { supabase } from './supabase.ts';
 import type { QuizAttempt, InboxNotification } from '../types/quiz';
 import type { ProgressSnapshot } from './storage.ts';
 
-export type RealtimeQuizEvent = 
+export type RealtimeQuizEvent =
   | 'quiz_submitted'
   | 'schedule_updated'
   | 'progress_reset'
@@ -57,7 +57,7 @@ function getOrCreateBroadcastChannel() {
  * Broadcasts an application event to all connected clients (Admin & Student)
  */
 export async function broadcastQuizEvent(
-  event: RealtimeQuizEvent, 
+  event: RealtimeQuizEvent,
   payload: unknown
 ): Promise<boolean> {
   // 1. Dispatch custom DOM event for intra-window / multi-tab support

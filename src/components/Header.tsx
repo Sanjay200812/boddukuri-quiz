@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  Sparkles, 
-  Flame, 
-  BookOpen, 
-  BarChart3, 
+import {
+  Sparkles,
+  Flame,
+  BookOpen,
+  BarChart3,
   Settings as SettingsIcon,
   Home,
   Award,
@@ -46,16 +46,16 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-emerald-100 shadow-sm transition-all">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-red-100 shadow-sm transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
-          
+
           {/* Left: Sidebar Toggle & Brand */}
           <div className="flex items-center gap-3">
             {onToggleSidebar && (
               <button
                 onClick={onToggleSidebar}
-                className="p-2 rounded-xl text-slate-700 hover:text-emerald-800 hover:bg-emerald-50 transition-colors"
+                className="p-2 rounded-xl text-slate-700 hover:text-red-900 hover:bg-red-50 transition-colors"
                 aria-label="Toggle navigation menu"
                 title="Open menu"
               >
@@ -63,19 +63,19 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             )}
 
-            <div 
+            <div
               onClick={() => onNavigate('dashboard')}
               className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group"
             >
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-emerald-800 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform">
-                <Sparkles className="w-5 h-5 text-emerald-200" />
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-red-900 to-red-800 flex items-center justify-center text-white shadow-md shadow-red-900/20 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-5 h-5 text-red-300" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 group-hover:text-red-900 transition-colors">
                     Boddukuri's Quiz
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 tracking-wide border border-emerald-200/60">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-red-100 text-red-900 tracking-wide border border-red-300/60">
                     #Mahi
                   </span>
                 </div>
@@ -92,7 +92,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('dashboard')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                 currentView === 'dashboard'
-                  ? 'bg-white text-emerald-800 shadow-sm'
+                  ? 'bg-white text-red-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
               }`}
             >
@@ -103,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('progress')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                 currentView === 'progress'
-                  ? 'bg-white text-emerald-800 shadow-sm'
+                  ? 'bg-white text-red-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
               }`}
             >
@@ -114,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('study')}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all ${
                 currentView === 'study'
-                  ? 'bg-white text-emerald-800 shadow-sm'
+                  ? 'bg-white text-red-900 shadow-sm'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
               }`}
             >
@@ -126,11 +126,11 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right: Badges, Notifications & Settings */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
             {/* Streak Counter */}
-            <div 
+            <div
               title={`${streakDays} days consecutive learning streak!`}
               className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-bold shadow-sm transition-all ${
-                streakDays > 0 
-                  ? 'bg-amber-50 text-amber-900 border-amber-200 shadow-amber-500/5' 
+                streakDays > 0
+                  ? 'bg-amber-50 text-amber-900 border-amber-200 shadow-amber-500/5'
                   : 'bg-slate-50 text-slate-500 border-slate-200'
               }`}
             >
@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onOpenNotifications}
                 title="Notifications"
-                className="relative p-2 rounded-xl text-slate-600 hover:text-emerald-800 hover:bg-emerald-50 border border-slate-200 transition-colors"
+                className="relative p-2 rounded-xl text-slate-600 hover:text-red-900 hover:bg-red-50 border border-slate-200 transition-colors"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -168,15 +168,15 @@ export const Header: React.FC<HeaderProps> = ({
             )}
 
             {/* Cloud Sync Status Indicator */}
-            <div 
+            <div
               title={`Cloud sync: ${syncStatus}${userEmail ? ` (${userEmail})` : ''}`}
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
             >
               <span className={`w-2 h-2 rounded-full ${
-                syncStatus === 'synced' 
-                  ? 'bg-emerald-500' 
-                  : syncStatus === 'offline' 
-                  ? 'bg-slate-400' 
+                syncStatus === 'synced'
+                  ? 'bg-red-700'
+                  : syncStatus === 'offline'
+                  ? 'bg-slate-400'
                   : 'bg-amber-500 animate-pulse'
               }`} />
               <span className="hidden lg:inline capitalize">{syncStatus}</span>
@@ -186,10 +186,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenSettings}
               title="Settings & Preferences"
-              className="p-2 sm:p-2.5 rounded-xl text-slate-700 hover:text-emerald-900 hover:bg-emerald-50 border border-slate-200/90 shadow-2xs transition-all active:scale-95"
+              className="p-2 sm:p-2.5 rounded-xl text-slate-700 hover:text-red-950 hover:bg-red-50 border border-slate-200/90 shadow-2xs transition-all active:scale-95"
               aria-label="Settings"
             >
-              <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 hover:text-emerald-800" />
+              <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700 hover:text-red-900" />
             </button>
 
             {/* Sign Out Button */}
@@ -215,7 +215,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => onNavigate('dashboard')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors ${
-              currentView === 'dashboard' ? 'text-emerald-700 font-bold bg-emerald-50' : 'text-slate-600'
+              currentView === 'dashboard' ? 'text-red-900 font-bold bg-red-50' : 'text-slate-600'
             }`}
           >
             <Home className="w-4 h-4" />
@@ -224,7 +224,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => onNavigate('progress')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors ${
-              currentView === 'progress' ? 'text-emerald-700 font-bold bg-emerald-50' : 'text-slate-600'
+              currentView === 'progress' ? 'text-red-900 font-bold bg-red-50' : 'text-slate-600'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
@@ -233,7 +233,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => onNavigate('study')}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition-colors ${
-              currentView === 'study' ? 'text-emerald-700 font-bold bg-emerald-50' : 'text-slate-600'
+              currentView === 'study' ? 'text-red-900 font-bold bg-red-50' : 'text-slate-600'
             }`}
           >
             <BookOpen className="w-4 h-4" />

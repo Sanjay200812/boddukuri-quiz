@@ -388,8 +388,8 @@ export function generateAnswerSheetPDF(attempt: QuizAttempt, quiz: DailyQuiz): v
     });
 
     // Result summary bar inside card
-    const selText = isUnanswered 
-      ? 'Not answered' 
+    const selText = isUnanswered
+      ? 'Not answered'
       : `${optionLabels[selectedIdx]}. ${q.options[selectedIdx] || ''}`;
     const corText = `${optionLabels[q.correctAnswer]}. ${q.options[q.correctAnswer] || ''}`;
 

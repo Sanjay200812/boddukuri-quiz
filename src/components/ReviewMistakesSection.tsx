@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import type { QuizAttempt, DailyQuiz, QuizQuestion } from '../types/quiz';
-import { 
-  AlertCircle, 
-  CheckCircle2, 
-  XCircle, 
-  HelpCircle, 
-  Sparkles, 
-  Eye, 
-  EyeOff, 
-  MapPin, 
-  Calendar, 
+import {
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+  Sparkles,
+  Eye,
+  EyeOff,
+  MapPin,
+  Calendar,
   ArrowRight,
   BookOpen
 } from 'lucide-react';
@@ -63,20 +63,20 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
   // If 0 mistakes: Perfect Score Celebration!
   if (allMistakes.length === 0) {
     return (
-      <div className="rounded-3xl bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-100/60 border-2 border-emerald-400 p-6 sm:p-8 shadow-card text-center space-y-3">
-        <div className="w-16 h-16 mx-auto rounded-3xl bg-emerald-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/30 animate-bounce">
+      <div className="rounded-3xl bg-gradient-to-br from-red-50 via-red-50 to-red-100/60 border-2 border-red-600 p-6 sm:p-8 shadow-card text-center space-y-3">
+        <div className="w-16 h-16 mx-auto rounded-3xl bg-red-700 text-white flex items-center justify-center text-3xl shadow-lg shadow-red-700/30 animate-bounce">
           💯
         </div>
-        <h3 className="text-2xl sm:text-3xl font-black text-emerald-950">
+        <h3 className="text-2xl sm:text-3xl font-black text-red-950">
           Zero Mistakes! Flawless Score!
         </h3>
-        <p className="text-sm sm:text-base text-emerald-800 max-w-xl mx-auto font-medium">
+        <p className="text-sm sm:text-base text-red-900 max-w-xl mx-auto font-medium">
           Mahi, you answered every single question correctly today across all 6 states! You've unlocked the <strong>Perfect Score</strong> achievement badge! 🏆
         </p>
         <div className="pt-2">
           <button
             onClick={onOpenFullAnswerSheet}
-            className="px-5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs sm:text-sm transition-colors shadow-sm inline-flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-red-900 hover:bg-red-950 text-white font-bold text-xs sm:text-sm transition-colors shadow-sm inline-flex items-center gap-1.5"
           >
             <span>Review Full Answer Sheet</span>
             <ArrowRight className="w-4 h-4" />
@@ -88,7 +88,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
 
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-rose-200 shadow-card space-y-6">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
@@ -171,8 +171,8 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
 
                 <div className="flex items-center gap-2">
                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                    isUnanswered 
-                      ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                    isUnanswered
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
                       : 'bg-rose-50 text-rose-800 border-rose-200'
                   }`}>
                     {isUnanswered ? 'Skipped' : 'Incorrect'}
@@ -185,7 +185,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
                   >
                     {isTestingHidden ? (
                       <>
-                        <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                        <Eye className="w-3.5 h-3.5 text-red-800" />
                         <span>Reveal Answer</span>
                       </>
                     ) : (
@@ -206,11 +206,11 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
               {/* Answers Comparison Box */}
               {!isTestingHidden ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                  
+
                   {/* Your Answer */}
                   <div className={`p-3.5 rounded-xl border flex items-start gap-2.5 ${
-                    isUnanswered 
-                      ? 'bg-amber-50/70 border-amber-200 text-amber-900' 
+                    isUnanswered
+                      ? 'bg-amber-50/70 border-amber-200 text-amber-900'
                       : 'bg-rose-50 border-rose-200 text-rose-950'
                   }`}>
                     <div className="mt-0.5">
@@ -231,15 +231,15 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
                   </div>
 
                   {/* Correct Answer */}
-                  <div className="p-3.5 rounded-xl border bg-emerald-50 border-emerald-300 text-emerald-950 flex items-start gap-2.5">
+                  <div className="p-3.5 rounded-xl border bg-red-50 border-red-400 text-red-950 flex items-start gap-2.5">
                     <div className="mt-0.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <CheckCircle2 className="w-4 h-4 text-red-800" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider block text-emerald-800">
+                      <span className="text-[10px] font-black uppercase tracking-wider block text-red-900">
                         Correct Answer
                       </span>
-                      <span className="text-xs sm:text-sm font-black text-emerald-900">
+                      <span className="text-xs sm:text-sm font-black text-red-950">
                         {correctText}
                       </span>
                     </div>
@@ -255,11 +255,11 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
               {/* Explanation & Key Fact Box */}
               {!isTestingHidden && (
                 <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-red-900">
+                    <Sparkles className="w-4 h-4 text-red-800" />
                     <span>Why this is correct & Fact Sheet:</span>
                   </div>
-                  
+
                   <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
                     {question.explanation}
                   </p>

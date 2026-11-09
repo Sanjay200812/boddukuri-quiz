@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Play, 
-  RotateCcw, 
-  CheckCircle2, 
-  Clock, 
-  Award, 
-  Flame, 
-  TrendingUp, 
-  FileCheck, 
-  ChevronRight, 
-  BookOpen, 
-  ArrowRight, 
+import {
+  Play,
+  RotateCcw,
+  CheckCircle2,
+  Clock,
+  Award,
+  Flame,
+  TrendingUp,
+  FileCheck,
+  ChevronRight,
+  BookOpen,
+  ArrowRight,
   Calendar,
   Lock,
   Zap,
@@ -18,11 +18,11 @@ import {
   Hourglass
 } from 'lucide-react';
 import type { DailyQuiz, OverallProgress, QuizAttempt, RetakeRequest } from '../types/quiz';
-import { 
-  getQuizStatus, 
-  getBestAttempt, 
-  getLatestAttempt, 
-  getAllAttempts, 
+import {
+  getQuizStatus,
+  getBestAttempt,
+  getLatestAttempt,
+  getAllAttempts,
   getCompletedDayIds,
   getRetakeStatusForQuiz,
   saveRetakeRequest,
@@ -133,28 +133,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="space-y-8 pb-16 animate-fadeIn">
-      
+
       {/* Hero Welcome Banner */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-forest-950 text-white p-6 sm:p-10 shadow-elevated">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-10 shadow-elevated">
         {/* Decorative background botanicals / shapes */}
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-700/20 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 -mb-20 w-64 h-64 rounded-full bg-teal-500/10 blur-2xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-red-900/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-20 w-64 h-64 rounded-full bg-red-600/10 blur-2xl pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-700/60 border border-emerald-500/30 text-emerald-200 text-xs sm:text-sm font-semibold mb-4 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-900/60 border border-red-700/30 text-red-300 text-xs sm:text-sm font-semibold mb-4 backdrop-blur-sm">
             <span>🌿</span>
             <span>Welcome back, Mahi!</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-2 leading-tight">
-            Boddukuri's Quiz <span className="text-emerald-300 font-black">#Mahi</span>
+            Boddukuri's Quiz <span className="text-red-400 font-black">#Mahi</span>
           </h1>
 
-          <p className="text-base sm:text-xl text-emerald-100 font-bold tracking-wide mb-4">
+          <p className="text-base sm:text-xl text-red-100 font-bold tracking-wide mb-4">
             Learn. Revise. Remember. Achieve.
           </p>
 
-          <p className="text-sm sm:text-base text-emerald-200/90 mb-8 max-w-2xl leading-relaxed">
+          <p className="text-sm sm:text-base text-red-300/90 mb-8 max-w-2xl leading-relaxed">
             Your daily cumulative learning platform for India's National Parks (09 Nov – 15 Nov 2026). Every daily quiz retains all previously learned states while introducing newly studied states to build permanent recall!
           </p>
 
@@ -163,14 +163,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="inline-flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner w-full max-w-2xl">
               <div className="flex items-center gap-3">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base shadow-md ${
-                  isTargetUnlocked ? 'bg-emerald-500 text-white' : 'bg-amber-500/90 text-white'
+                  isTargetUnlocked ? 'bg-red-700 text-white' : 'bg-amber-500/90 text-white'
                 }`}>
                   {targetQuiz.dayNumber < 10 ? `0${targetQuiz.dayNumber}` : targetQuiz.dayNumber}
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-wider font-extrabold flex items-center gap-2">
                     {isTargetUnlocked ? (
-                      <span className="text-emerald-300">
+                      <span className="text-red-400">
                         {targetStatus === 'in-progress' ? 'Resume Current Session' : targetStatus === 'completed' ? "Day Completed" : "Today's Target — Available Now"}
                       </span>
                     ) : (
@@ -178,7 +178,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <Lock className="w-3 h-3" /> Unlocks at 8:29 PM IST ({targetCountdown.formattedCountdown})
                       </span>
                     )}
-                    <span className="text-emerald-200/80 font-medium">• {targetQuiz.displayDate}</span>
+                    <span className="text-red-300/80 font-medium">• {targetQuiz.displayDate}</span>
                   </div>
                   <div className="text-base font-bold text-white">
                     {targetQuiz.title}: {targetQuiz.statesCovered.length} States Pool ({targetQuiz.totalQuestions} Questions)
@@ -190,9 +190,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {isTargetUnlocked ? (
                   <button
                     onClick={() => onStartQuiz(targetQuiz.id)}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-sm hover:bg-emerald-50 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white text-red-950 font-bold text-sm hover:bg-red-50 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2"
                   >
-                    <Play className="w-4 h-4 fill-emerald-900" />
+                    <Play className="w-4 h-4 fill-red-950" />
                     {targetStatus === 'in-progress' ? 'Resume Quiz' : targetStatus === 'completed' ? 'View Target Day' : 'Start Today\'s Quiz'}
                   </button>
                 ) : (
@@ -210,17 +210,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Overview Statistics Cards */}
       <section className="space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-emerald-700" />
+          <TrendingUp className="w-5 h-5 text-red-900" />
           <span>Learning Analytics</span>
         </h2>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          
+
           {/* Card 1: Completed Quizzes */}
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-card hover:shadow-elevated transition-shadow">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Completed Days</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <CheckCircle2 className="w-4 h-4 text-red-800" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900">
               {overallProgress.totalCompletedDays} / {DAILY_SCHEDULE.length}
@@ -234,7 +234,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-card hover:shadow-elevated transition-shadow">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">States Mastered</span>
-              <BookOpen className="w-4 h-4 text-teal-600" />
+              <BookOpen className="w-4 h-4 text-red-700" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900">
               {overallProgress.totalStatesLearned} / 28
@@ -246,7 +246,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-card hover:shadow-elevated transition-shadow">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Overall Accuracy</span>
-              <Award className="w-4 h-4 text-emerald-600" />
+              <Award className="w-4 h-4 text-red-800" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-slate-900">
               {overallProgress.overallAccuracy}%
@@ -319,7 +319,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="flex items-start justify-between mb-2">
                 <span className="text-2xl">{badge.icon}</span>
                 {badge.unlocked ? (
-                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-red-900 bg-red-100 px-2 py-0.5 rounded-full border border-red-300">
                     Unlocked
                   </span>
                 ) : (
@@ -341,7 +341,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {!badge.unlocked && badge.targetProgress && (
                 <div className="mt-2.5 pt-2 border-t border-slate-100">
                   <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="bg-amber-400 h-full rounded-full"
                       style={{ width: `${Math.min(100, Math.round(((badge.currentProgress || 0) / badge.targetProgress) * 100))}%` }}
                     />
@@ -407,11 +407,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             const retakeStatus = getRetakeStatusForQuiz(dayQuiz.id);
 
             return (
-              <div 
+              <div
                 key={scheduleItem.dayNumber}
                 className={`relative flex flex-col justify-between rounded-2xl bg-white border p-5 sm:p-6 transition-all duration-200 hover:shadow-elevated group ${
-                  isCompleted 
-                    ? 'border-emerald-200/90 bg-gradient-to-b from-white to-emerald-50/20' 
+                  isCompleted
+                    ? 'border-red-300/90 bg-gradient-to-b from-white to-red-50/20'
                     : isInProgress
                     ? 'border-amber-300 ring-2 ring-amber-100'
                     : isUnlocked
@@ -426,20 +426,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span className={`px-2.5 py-1 rounded-lg text-xs font-black tracking-wide ${
                         isUnlocked ? 'bg-slate-900 text-white' : 'bg-slate-400 text-white'
                       }`}>
-                        {scheduleItem.isSpecialTest 
-                          ? scheduleItem.title 
+                        {scheduleItem.isSpecialTest
+                          ? scheduleItem.title
                           : `Day ${scheduleItem.dayNumber < 10 ? '0' + scheduleItem.dayNumber : scheduleItem.dayNumber}`}
                       </span>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-900 border border-red-300">
+                        <Calendar className="w-3.5 h-3.5 text-red-800" />
                         {scheduleItem.displayDate}
                       </span>
                     </div>
 
                     {/* Status Pill */}
                     {isCompleted ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-900 border border-red-300">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-red-800" />
                         Completed
                       </span>
                     ) : !isUnlocked ? (
@@ -453,7 +453,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         In Progress
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-900 border border-red-300">
                         Available Now
                       </span>
                     )}
@@ -483,8 +483,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             <span
                               key={sIdx}
                               className={`px-2 py-0.5 rounded-md font-semibold text-[11px] ${
-                                isNew 
-                                  ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold' 
+                                isNew
+                                  ? 'bg-red-100 text-red-950 border border-red-400 font-bold'
                                   : 'bg-slate-100 text-slate-700 border border-slate-200'
                               }`}
                             >
@@ -505,11 +505,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                   {/* Study Notes Shortcut */}
                   <div className="bg-slate-50/80 rounded-xl p-2.5 border border-slate-100 mb-4 text-xs flex items-center justify-between">
-                    <button 
+                    <button
                       onClick={() => onOpenStudyGuide(scheduleItem.states[0])}
-                      className="text-emerald-800 hover:text-emerald-900 font-bold hover:underline inline-flex items-center gap-1 text-xs"
+                      className="text-red-900 hover:text-red-950 font-bold hover:underline inline-flex items-center gap-1 text-xs"
                     >
-                      <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+                      <BookOpen className="w-3.5 h-3.5 text-red-800" />
                       <span>Review State Study Guide</span>
                       <ChevronRight className="w-3 h-3" />
                     </button>
@@ -517,13 +517,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                   {/* Scores (if completed) */}
                   {isCompleted && bestAttempt && (
-                    <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 mb-4 text-xs">
-                      <div className="flex items-center justify-between font-semibold text-emerald-950 mb-1">
-                        <span className="flex items-center gap-1 text-emerald-800">
-                          <Award className="w-3.5 h-3.5 text-emerald-600" />
+                    <div className="p-3 rounded-xl bg-red-50/70 border border-red-300 mb-4 text-xs">
+                      <div className="flex items-center justify-between font-semibold text-red-950 mb-1">
+                        <span className="flex items-center gap-1 text-red-900">
+                          <Award className="w-3.5 h-3.5 text-red-800" />
                           Best Score:
                         </span>
-                        <span className="font-black text-emerald-800">
+                        <span className="font-black text-red-900">
                           {bestAttempt.marksObtained}/{bestAttempt.maxMarks} ({bestAttempt.percentage}%)
                         </span>
                       </div>
@@ -546,7 +546,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           onClick={() => onViewResult(latestAttempt || bestAttempt!)}
                           className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5"
                         >
-                          <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+                          <FileCheck className="w-3.5 h-3.5 text-red-800" />
                           <span>View Result</span>
                         </button>
 
@@ -554,7 +554,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {retakeStatus?.status === 'approved' ? (
                           <button
                             onClick={() => handleStartApprovedRetake(dayQuiz.id)}
-                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all shadow-md flex items-center justify-center gap-1.5 animate-pulse"
+                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-extrabold text-white bg-red-800 hover:bg-red-900 active:scale-95 transition-all shadow-md flex items-center justify-center gap-1.5 animate-pulse"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                             <span>Retake Approved!</span>
@@ -579,7 +579,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         ) : (
                           <button
                             onClick={() => handleRequestRetake(scheduleItem, dayQuiz.id)}
-                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1.5"
+                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-red-900 bg-red-50 border border-red-300 hover:bg-red-100 transition-colors flex items-center justify-center gap-1.5"
                             title="Ask Sanju to approve another quiz attempt"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
@@ -606,7 +606,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     ) : (
                       <button
                         onClick={() => onStartQuiz(dayQuiz.id)}
-                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 group-hover:bg-emerald-800"
+                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-red-900 hover:bg-red-900 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 group-hover:bg-red-900"
                       >
                         <Play className="w-4 h-4 fill-white" />
                         Start Day Quiz ({scheduleItem.totalQuestions} Qs)
@@ -620,7 +620,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     className="w-full py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
                     title="Download complete notes and questions PDF for this day"
                   >
-                    <Download className="w-3.5 h-3.5 text-emerald-600" />
+                    <Download className="w-3.5 h-3.5 text-red-800" />
                     <span>Download Notes PDF</span>
                   </button>
                 </div>
@@ -632,9 +632,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </section>
 
       {/* Motivational Bottom Banner */}
-      <section className="rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sage-50 border border-emerald-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <section className="rounded-2xl bg-gradient-to-r from-red-50 via-red-50 to-sage-50 border border-red-100 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-white border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-sm shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-white border border-red-300 flex items-center justify-center text-red-900 shadow-sm shrink-0">
             <Award className="w-6 h-6" />
           </div>
           <div>
@@ -649,7 +649,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <button
           onClick={() => onOpenStudyGuide()}
-          className="whitespace-nowrap px-4 py-2.5 rounded-xl bg-white border border-emerald-200 text-emerald-900 font-bold text-xs sm:text-sm hover:bg-emerald-50 transition-colors shadow-sm flex items-center gap-1.5"
+          className="whitespace-nowrap px-4 py-2.5 rounded-xl bg-white border border-red-300 text-red-950 font-bold text-xs sm:text-sm hover:bg-red-50 transition-colors shadow-sm flex items-center gap-1.5"
         >
           Explore Study Guide
           <ArrowRight className="w-4 h-4" />

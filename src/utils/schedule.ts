@@ -1,7 +1,7 @@
 /**
  * Schedule & Time Management for Boddukuri's Quiz #Mahi
  * Approved 7-Day National Parks Study Plan (09 Nov – 15 Nov 2026)
- * 
+ *
  * Rules:
  * 1. Day 01 is today's quiz and retains the six already-covered states:
  *    Madhya Pradesh, Andhra Pradesh, Telangana, Kerala, Assam, Karnataka.
@@ -283,7 +283,7 @@ export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: s
   }
 
   // Day 01 unlocks at sharp 8:29 PM IST (14:59:00Z UTC)
-  const unlockTime = override?.customUnlockIsoUTC 
+  const unlockTime = override?.customUnlockIsoUTC
     ? new Date(override.customUnlockIsoUTC).getTime()
     : new Date(schedule.unlockIsoUTC).getTime();
 

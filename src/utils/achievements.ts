@@ -16,15 +16,15 @@ export function evaluateBadges(attempts: QuizAttempt[], streak: number = 0): Ach
   const hasReattempted = Object.values(quizCounts).some(count => count >= 2);
 
   // Check state-specific 100% accuracy
-  const hasPerfectMP = attempts.some(a => 
+  const hasPerfectMP = attempts.some(a =>
     a.stateBreakdown?.some(s => s.stateName === 'Madhya Pradesh' && s.percentage === 100)
   );
 
-  const hasPerfectAssam = attempts.some(a => 
+  const hasPerfectAssam = attempts.some(a =>
     a.stateBreakdown?.some(s => s.stateName === 'Assam' && s.percentage === 100)
   );
 
-  const hasSpeedScholar = attempts.some(a => 
+  const hasSpeedScholar = attempts.some(a =>
     a.timeTakenSeconds > 0 && a.timeTakenSeconds <= 300 && a.percentage >= 80
   );
 

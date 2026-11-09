@@ -1,25 +1,25 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  ShieldCheck, 
-  Lock, 
-  Unlock, 
-  RefreshCw, 
-  Download, 
-  FileText, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  Trash2, 
-  Eye, 
-  Calendar, 
-  Sparkles, 
-  AlertTriangle, 
-  Award, 
-  Flame, 
-  Search, 
-  LogOut, 
-  Check, 
-  RotateCcw, 
+import {
+  ShieldCheck,
+  Lock,
+  Unlock,
+  RefreshCw,
+  Download,
+  FileText,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  Trash2,
+  Eye,
+  Calendar,
+  Sparkles,
+  AlertTriangle,
+  Award,
+  Flame,
+  Search,
+  LogOut,
+  Check,
+  RotateCcw,
   MessageCircle,
   ExternalLink,
   Menu,
@@ -42,13 +42,13 @@ import {
 import { DEFAULT_SANJU_WHATSAPP_NUMBER, formatWhatsAppMessage, getWhatsAppShareUrl } from '../utils/whatsapp';
 import { generateAnswerSheetPDF } from '../utils/pdfGenerator';
 import type { QuizAttempt, RetakeRequest, UserProfile, InboxNotification } from '../types/quiz';
-import { 
-  getAllAttempts, 
-  getCompletedDayIds, 
-  getRetakeRequests, 
-  updateRetakeRequestStatus, 
-  deleteAttemptById, 
-  resetDayProgress, 
+import {
+  getAllAttempts,
+  getCompletedDayIds,
+  getRetakeRequests,
+  updateRetakeRequestStatus,
+  deleteAttemptById,
+  resetDayProgress,
   markDayCompleted,
   resetAllMahiProgress,
   exportBackupData,
@@ -60,18 +60,18 @@ import {
 } from '../utils/storage';
 import { evaluateBadges } from '../utils/achievements';
 import { subscribeToQuizRealtime } from '../utils/realtime';
-import { 
-  DAILY_SCHEDULE, 
-  setDayAdminOverride, 
-  isDayUnlocked 
+import {
+  DAILY_SCHEDULE,
+  setDayAdminOverride,
+  isDayUnlocked
 } from '../utils/schedule';
-import { 
-  getQuizForDay 
+import {
+  getQuizForDay
 } from '../data/quizzes';
-import { 
-  loadAllStudentsProgressCloud, 
-  reviewRetakeRequestCloud, 
-  saveAdminScheduleOverrideCloud, 
+import {
+  loadAllStudentsProgressCloud,
+  reviewRetakeRequestCloud,
+  saveAdminScheduleOverrideCloud,
   logAdminActionCloud,
   loadAdminAuditLogsCloud,
   type AdminAuditLogEntry
@@ -119,7 +119,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setSelectedQuestionNavNumber(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
+
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDayFilter, setSelectedDayFilter] = useState<string>('all');
@@ -133,7 +133,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [manualDurationSecs, setManualDurationSecs] = useState<number>(86);
   const [manualDateStr, setManualDateStr] = useState<string>('09 November 2026');
   const [manualNotes, setManualNotes] = useState<string>('Verified and audited by Sanju');
-  
+
   // Confirmation dialogs
   const [resetConfirmQuizId, setResetConfirmQuizId] = useState<string | null>(null);
   const [showFullResetModal, setShowFullResetModal] = useState<boolean>(false);
@@ -147,12 +147,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const localCompleted = getCompletedDayIds();
       const localRetakes = getRetakeRequests();
       const localNotifs = getInboxNotifications('admin');
-      
+
       setAttempts(localAttempts);
       setCompletedDays(localCompleted);
       setRetakeRequests(localRetakes);
       setNotifications(localNotifs);
-      
+
       const logs = await loadAdminAuditLogsCloud();
       setAuditLogs(logs);
 
@@ -249,14 +249,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const currentStreak = calculateCurrentStreak(attempts);
     const badges = evaluateBadges(attempts, currentStreak);
     const unlockedBadges = badges.filter(b => b.unlocked);
-    return { 
-      totalAttempts, 
-      completedCount, 
-      bestPercentage, 
-      avgPercentage, 
+    return {
+      totalAttempts,
+      completedCount,
+      bestPercentage,
+      avgPercentage,
       pendingRetakes,
       currentStreak,
-      unlockedBadges 
+      unlockedBadges
     };
   }, [attempts, retakeRequests]);
 
@@ -282,20 +282,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const reviewQuestionItems = useMemo(() => {
     if (!currentReviewAttempt || !currentReviewQuiz) return [];
-    
+
     return currentReviewQuiz.questions.map((q, idx) => {
       const selectedOptionIndex = currentReviewAttempt.answers ? currentReviewAttempt.answers[q.id] : undefined;
       const isUnanswered = selectedOptionIndex === undefined || selectedOptionIndex === -1;
       const isCorrect = !isUnanswered && selectedOptionIndex === q.correctAnswer;
-      const status: 'correct' | 'incorrect' | 'unanswered' = isUnanswered 
-        ? 'unanswered' 
-        : isCorrect 
-        ? 'correct' 
+      const status: 'correct' | 'incorrect' | 'unanswered' = isUnanswered
+        ? 'unanswered'
+        : isCorrect
+        ? 'correct'
         : 'incorrect';
-      
+
       const optionLetters = ['A', 'B', 'C', 'D'];
-      const selectedAnswerText = isUnanswered 
-        ? 'Not answered' 
+      const selectedAnswerText = isUnanswered
+        ? 'Not answered'
         : `${optionLetters[selectedOptionIndex]}. ${q.options[selectedOptionIndex] || ''}`;
       const correctAnswerText = `${optionLetters[q.correctAnswer]}. ${q.options[q.correctAnswer] || ''}`;
 
@@ -356,7 +356,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       forceUnlocked: newUnlocked,
       forceLocked: !newUnlocked
     });
-    
+
     // Cloud sync override
     await saveAdminScheduleOverrideCloud(quizId, { isUnlockedOverride: newUnlocked });
     await logAdminActionCloud('TOGGLE_DAY_LOCK', quizId, { unlocked: newUnlocked });
@@ -371,7 +371,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     updateRetakeRequestStatus(requestId, status, 'Sanju (Admin)');
     await reviewRetakeRequestCloud(requestId, status, 'Sanju (Admin)');
     await logAdminActionCloud('REVIEW_RETAKE', requestId, { status });
-    
+
     setStatusMessage(`Retake request ${status.toUpperCase()} successfully.`);
     setTimeout(() => setStatusMessage(null), 3000);
     void refreshAllData();
@@ -391,8 +391,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       notes: manualNotes,
       recordedBy: adminProfile.displayName || adminProfile.fullName || 'Sanju (Admin)'
     });
-    await logAdminActionCloud('MANUAL_MARK_COMPLETED', quizId, { 
-      marks: manualScore, 
+    await logAdminActionCloud('MANUAL_MARK_COMPLETED', quizId, {
+      marks: manualScore,
       maxMarks: manualMaxMarks,
       recordedBy: adminProfile.displayName || adminProfile.fullName
     });
@@ -479,18 +479,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
-      
+
       {/* Luxury Villa Background Layer (Admin Dashboard Exclusive) */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
         style={{
           backgroundImage: `url('/admin-luxury-villa.jpg')`,
           filter: 'brightness(0.32) contrast(1.15) saturate(1.1)',
         }}
       />
-      
+
       {/* Deep Obsidian Gradient Overlay for Text Readability & Contrast */}
-      <div 
+      <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
           background: 'radial-gradient(ellipse at 50% 0%, rgba(15, 23, 42, 0.75) 0%, rgba(2, 6, 23, 0.94) 75%, rgba(2, 6, 23, 0.98) 100%)',
@@ -517,11 +517,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* Main Content Area */}
       <div className="lg:pl-72 flex-1 flex flex-col min-w-0 relative z-10">
-        
+
         {/* Top Navbar */}
         <header className="sticky top-0 z-30 bg-slate-900/85 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 py-3.5">
           <div className="flex items-center justify-between gap-3">
-            
+
             <div className="flex items-center gap-3">
               {/* Mobile menu toggle */}
               <button
@@ -534,14 +534,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
 
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-slate-950 font-black shadow-md shadow-emerald-950/40">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-red-800 to-red-500 flex items-center justify-center text-slate-950 font-black shadow-md shadow-red-950/40">
                   <ShieldCheck className="w-5 h-5 text-slate-950" />
                 </div>
                 <div>
                   <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-white flex items-center gap-2">
                     Boddukuri's Quiz | Admin Control Center
                   </h1>
-                  <p className="text-[11px] text-emerald-400 font-semibold hidden sm:block">
+                  <p className="text-[11px] text-red-600 font-semibold hidden sm:block">
                     Executive Control & Student Monitoring Portal
                   </p>
                 </div>
@@ -550,14 +550,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             {/* Quick Actions in Navbar */}
             <div className="flex items-center gap-2">
-              
+
               {/* Inbox Shortcut Button */}
               <button
                 type="button"
                 onClick={() => setActiveTab('inbox')}
                 className={`relative p-2 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 ${
-                  activeTab === 'inbox' 
-                    ? 'bg-emerald-600 text-white' 
+                  activeTab === 'inbox'
+                    ? 'bg-red-800 text-white'
                     : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
                 }`}
                 title="Admin Inbox"
@@ -579,7 +579,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
                 title="Refresh All Records"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-emerald-400' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-red-600' : ''}`} />
               </button>
 
               {/* Settings Icon */}
@@ -587,8 +587,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 type="button"
                 onClick={() => setActiveTab('settings')}
                 className={`p-2 rounded-xl transition-colors ${
-                  activeTab === 'settings' 
-                    ? 'bg-emerald-600 text-white' 
+                  activeTab === 'settings'
+                    ? 'bg-red-800 text-white'
                     : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
                 }`}
                 title="System Settings"
@@ -601,7 +601,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <button
                   type="button"
                   onClick={onPreviewStudentView}
-                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/70 text-emerald-300 border border-emerald-800 text-xs font-semibold hover:bg-emerald-900 transition-colors"
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-950/70 text-red-400 border border-red-900 text-xs font-semibold hover:bg-red-950 transition-colors"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>Student View</span>
@@ -625,9 +625,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {/* Toast / Status banner */}
           {statusMessage && (
-            <div className="mt-2 py-1.5 px-3 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center justify-between animate-fadeIn">
+            <div className="mt-2 py-1.5 px-3 rounded-lg bg-red-700/20 border border-red-700/40 text-red-400 text-xs font-semibold flex items-center justify-between animate-fadeIn">
               <span>{statusMessage}</span>
-              <button onClick={() => setStatusMessage(null)} className="text-emerald-400 hover:text-white">✕</button>
+              <button onClick={() => setStatusMessage(null)} className="text-red-600 hover:text-white">✕</button>
             </div>
           )}
         </header>
@@ -654,8 +654,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 key={t.id}
                 onClick={() => setActiveTab(t.id as AdminNavTab)}
                 className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  isActive 
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950' 
+                  isActive
+                    ? 'bg-red-800 text-white shadow-md shadow-red-950'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                 }`}
               >
@@ -673,25 +673,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* Content Body */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
-          
+
           {/* ========================================================================= */}
           {/* TAB: OVERVIEW */}
           {/* ========================================================================= */}
           {activeTab === 'overview' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               {/* Metric Cards Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                
+
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="flex items-center justify-between text-slate-400 mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Completed Days</span>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <CheckCircle2 className="w-4 h-4 text-red-600" />
                   </div>
                   <div className="text-2xl sm:text-3xl font-black text-white">
                     {stats.completedCount} <span className="text-sm font-semibold text-slate-500">/ 7</span>
                   </div>
-                  <p className="text-[11px] text-emerald-400 font-semibold mt-1">
+                  <p className="text-[11px] text-red-600 font-semibold mt-1">
                     {stats.completedCount > 0 ? `${stats.completedCount} of 7 Days Complete` : '0 Days Completed'}
                   </p>
                 </div>
@@ -738,23 +738,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               {/* Mahi Student Spotlight Card */}
-              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-800/40 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
-                
+              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-red-950/40 via-slate-900 to-slate-900 border border-red-900/40 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-red-700/5 rounded-full blur-3xl pointer-events-none" />
+
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                   <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-black text-lg">
+                    <div className="w-12 h-12 rounded-2xl bg-red-700/20 border border-red-700/40 flex items-center justify-center text-red-600 font-black text-lg">
                       M
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <h2 className="text-lg font-black text-white">Mahi</h2>
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider">
+                        <span className="px-2 py-0.5 rounded-full bg-red-700/10 text-red-600 border border-red-700/30 text-[10px] font-black uppercase tracking-wider">
                           Active Student
                         </span>
                       </div>
                       <p className="text-xs text-slate-400">
-                        Access Code: <code className="font-mono text-emerald-300">2002</code> • Role: <span className="font-semibold text-slate-300">Student</span>
+                        Access Code: <code className="font-mono text-red-400">2002</code> • Role: <span className="font-semibold text-slate-300">Student</span>
                       </p>
                     </div>
                   </div>
@@ -762,7 +762,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setActiveTab('students')}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
                     >
                       <UserCheck className="w-4 h-4" />
                       <span>View Student Profile & Result</span>
@@ -774,7 +774,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {attempts.length === 0 ? (
                   <div className="p-6 rounded-2xl bg-slate-950/70 border border-slate-800 text-center space-y-2">
                     <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-1">
-                      <Sparkles className="w-5 h-5 text-emerald-400" />
+                      <Sparkles className="w-5 h-5 text-red-600" />
                     </div>
                     <h4 className="text-sm font-bold text-white">No Quiz Attempts Recorded Yet</h4>
                     <p className="text-xs text-slate-400 max-w-md mx-auto">
@@ -782,7 +782,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </p>
                   </div>
                 ) : (
-                  <div className="p-4 rounded-2xl bg-slate-950/70 border border-emerald-500/30 space-y-3">
+                  <div className="p-4 rounded-2xl bg-slate-950/70 border border-red-700/30 space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-amber-400" />
@@ -798,15 +798,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                       <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
                         <div className="text-[10px] uppercase font-bold text-slate-400">Score</div>
-                        <div className="text-lg font-black text-emerald-400">{attempts[0].marksObtained} / {attempts[0].maxMarks}</div>
+                        <div className="text-lg font-black text-red-600">{attempts[0].marksObtained} / {attempts[0].maxMarks}</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
                         <div className="text-[10px] uppercase font-bold text-slate-400">Percentage</div>
-                        <div className="text-lg font-black text-emerald-400">{attempts[0].percentage}%</div>
+                        <div className="text-lg font-black text-red-600">{attempts[0].percentage}%</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
                         <div className="text-[10px] uppercase font-bold text-slate-400">Mistakes</div>
-                        <div className="text-lg font-black text-emerald-400">{attempts[0].incorrectCount}</div>
+                        <div className="text-lg font-black text-red-600">{attempts[0].incorrectCount}</div>
                       </div>
                       <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800">
                         <div className="text-[10px] uppercase font-bold text-slate-400">Performance</div>
@@ -820,7 +820,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </span>
                       <button
                         onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-950/40 transition-all active:scale-95"
+                        className="px-4 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-red-950/40 transition-all active:scale-95"
                       >
                         <FileCheck className="w-4 h-4" />
                         <span>VIEW COMPLETE ANSWER SHEET</span>
@@ -869,11 +869,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'students' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <Users className="w-5 h-5 text-emerald-400" />
+                    <Users className="w-5 h-5 text-red-600" />
                     Student Monitoring: Mahi
                   </h2>
                   <p className="text-xs text-slate-400">
@@ -894,27 +894,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               {/* Student Bio & Status */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                
+
                 {/* Profile Card */}
                 <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-black text-xl">
+                    <div className="w-12 h-12 rounded-2xl bg-red-800/30 text-red-600 border border-red-700/30 flex items-center justify-center font-black text-xl">
                       M
                     </div>
                     <div>
                       <h3 className="text-base font-black text-white">Mahi</h3>
-                      <p className="text-xs text-emerald-400 font-semibold">Role: Student</p>
+                      <p className="text-xs text-red-600 font-semibold">Role: Student</p>
                     </div>
                   </div>
 
                   <div className="pt-2 border-t border-slate-800 space-y-1.5 text-xs">
                     <div className="flex justify-between text-slate-400">
                       <span>Access Code:</span>
-                      <strong className="font-mono text-emerald-300">2002</strong>
+                      <strong className="font-mono text-red-400">2002</strong>
                     </div>
                     <div className="flex justify-between text-slate-400">
                       <span>Account Status:</span>
-                      <span className="text-emerald-400 font-bold">● Active & Verified</span>
+                      <span className="text-red-600 font-bold">● Active & Verified</span>
                     </div>
                     <div className="flex justify-between text-slate-400">
                       <span>Sync Engine:</span>
@@ -934,11 +934,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                   {/* Progress Bar */}
                   <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
+                    <div className="h-full bg-gradient-to-r from-red-700 to-red-500 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
                   </div>
                   <div className="pt-1 text-[11px] text-slate-400 flex justify-between">
                     <span>{stats.completedCount > 0 ? `Completed Days: ${stats.completedCount}` : 'No days completed yet'}</span>
-                    <span className="text-emerald-400 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
+                    <span className="text-red-600 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
                   </div>
                 </div>
 
@@ -973,7 +973,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-emerald-400" />
+                      <Calendar className="w-4 h-4 text-red-600" />
                       Learning Progress & Day Management
                     </h3>
                     <p className="text-xs text-slate-400">
@@ -1002,7 +1002,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         key={item.quizId}
                         className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 transition-all ${
                           isDayDone
-                            ? 'bg-emerald-950/20 border-emerald-500/40'
+                            ? 'bg-red-950/20 border-red-700/40'
                             : isUnlocked
                             ? 'bg-slate-950/60 border-slate-800'
                             : 'bg-slate-950/30 border-slate-900 opacity-80'
@@ -1024,7 +1024,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
 
                           {isDayDone ? (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded-full bg-red-700/20 text-red-400 text-[10px] font-black uppercase flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" /> Done
                             </span>
                           ) : (
@@ -1035,9 +1035,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
 
                         {isDayDone && bestAtt && (
-                          <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-900/60 text-[11px] flex justify-between items-center">
+                          <div className="p-2 rounded-lg bg-red-950/40 border border-red-950/60 text-[11px] flex justify-between items-center">
                             <span className="text-slate-300">Best Score:</span>
-                            <span className="font-bold text-emerald-300">
+                            <span className="font-bold text-red-400">
                               {bestAtt.marksObtained}/{bestAtt.maxMarks} ({bestAtt.percentage}%) • {bestAtt.timeTakenSeconds}s
                             </span>
                           </div>
@@ -1077,7 +1077,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-emerald-400" />
+                    <FileText className="w-4 h-4 text-red-600" />
                     Quiz Attempt History & Answer Sheets
                   </h3>
                   <span className="text-xs text-slate-400">
@@ -1117,14 +1117,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 {att.formattedDate || quiz.displayDate}
                               </td>
                               <td className="py-3 px-3">
-                                <span className="font-bold text-emerald-400 text-sm">
+                                <span className="font-bold text-red-600 text-sm">
                                   {att.marksObtained} / {att.maxMarks}
                                 </span>
                               </td>
                               <td className="py-3 px-3">
                                 <span className={`inline-block px-2 py-0.5 rounded-full font-black text-[11px] ${
-                                  isPerfect 
-                                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                                  isPerfect
+                                    ? 'bg-red-700/20 text-red-400 border border-red-700/40'
                                     : 'bg-slate-800 text-slate-200'
                                 }`}>
                                   {att.percentage}%
@@ -1134,7 +1134,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 {`${Math.floor(att.timeTakenSeconds / 60)}m ${att.timeTakenSeconds % 60}s`}
                               </td>
                               <td className="py-3 px-3">
-                                <span className="text-emerald-400 font-semibold">{att.correctCount} correct</span>
+                                <span className="text-red-600 font-semibold">{att.correctCount} correct</span>
                                 {att.incorrectCount > 0 ? (
                                   <span className="text-rose-400 ml-1">({att.incorrectCount} wrong)</span>
                                 ) : (
@@ -1145,17 +1145,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleOpenCompleteAnswerSheet(att)}
-                                  className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm"
+                                  className="px-3 py-1.5 rounded-lg bg-red-800 hover:bg-red-700 text-white font-bold text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm"
                                 >
                                   <FileCheck className="w-3.5 h-3.5" />
                                   <span>View Complete Answer Sheet</span>
                                 </button>
-                                
+
                                 <a
                                   href={getWhatsAppShareUrl(formatWhatsAppMessage(att), DEFAULT_SANJU_WHATSAPP_NUMBER)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="px-2 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
+                                  className="px-2 py-1.5 rounded-lg bg-red-950 text-red-400 border border-red-900 hover:bg-red-950 text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
                                   title="Share to WhatsApp (+91 70759 20852)"
                                 >
                                   <MessageCircle className="w-3 h-3" />
@@ -1188,11 +1188,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'mahi-profile' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <UserCheck className="w-5 h-5 text-emerald-400" />
+                    <UserCheck className="w-5 h-5 text-red-600" />
                     Mahi's Student Profile
                   </h2>
                   <p className="text-xs text-slate-400">
@@ -1205,7 +1205,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
                     >
                       <FileCheck className="w-4 h-4" />
                       <span>VIEW COMPLETE ANSWER SHEET</span>
@@ -1218,19 +1218,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-3 shadow-xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shadow-emerald-950/40">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-red-800 to-red-500 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shadow-red-950/40">
                       M
                     </div>
                     <div>
                       <h3 className="text-lg font-black text-white">Mahi</h3>
-                      <p className="text-xs text-emerald-400 font-semibold">Student Account</p>
+                      <p className="text-xs text-red-600 font-semibold">Student Account</p>
                     </div>
                   </div>
 
                   <div className="pt-2 border-t border-slate-800 space-y-2 text-xs">
                     <div className="flex justify-between text-slate-400">
                       <span>Access Code (PIN):</span>
-                      <strong className="font-mono text-emerald-300 text-sm">2002</strong>
+                      <strong className="font-mono text-red-400 text-sm">2002</strong>
                     </div>
                     <div className="flex justify-between text-slate-400">
                       <span>Email Account:</span>
@@ -1253,11 +1253,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span className="text-sm font-semibold text-slate-400">of 7 Days Completed ({Math.round((stats.completedCount / 7) * 100)}%)</span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
+                    <div className="h-full bg-gradient-to-r from-red-700 to-red-500 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
                   </div>
                   <div className="pt-1 text-[11px] text-slate-400 flex justify-between">
                     <span>Distinct Quizzes: {stats.completedCount} / 7</span>
-                    <span className="text-emerald-400 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
+                    <span className="text-red-600 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
                   </div>
                 </div>
 
@@ -1288,7 +1288,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               {/* Latest Attempt Spotlight & Button */}
               {attempts.length > 0 ? (
-                <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-emerald-500/40 shadow-2xl space-y-4">
+                <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-red-700/40 shadow-2xl space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                     <div>
                       <div className="flex items-center gap-2">
@@ -1305,7 +1305,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
-                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all active:scale-95"
+                      className="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-950/40 transition-all active:scale-95"
                     >
                       <FileCheck className="w-4 h-4" />
                       <span>VIEW COMPLETE ANSWER SHEET</span>
@@ -1315,11 +1315,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                     <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
                       <div className="text-[10px] uppercase font-bold text-slate-400">Score</div>
-                      <div className="text-xl font-black text-emerald-400">{attempts[0].marksObtained} / {attempts[0].maxMarks}</div>
+                      <div className="text-xl font-black text-red-600">{attempts[0].marksObtained} / {attempts[0].maxMarks}</div>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
                       <div className="text-[10px] uppercase font-bold text-slate-400">Percentage</div>
-                      <div className="text-xl font-black text-emerald-400">{attempts[0].percentage}%</div>
+                      <div className="text-xl font-black text-red-600">{attempts[0].percentage}%</div>
                     </div>
                     <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
                       <div className="text-[10px] uppercase font-bold text-slate-400">Correct / Wrong</div>
@@ -1334,7 +1334,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               ) : (
                 <div className="p-8 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 text-center space-y-2">
                   <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-1">
-                    <Sparkles className="w-5 h-5 text-emerald-400" />
+                    <Sparkles className="w-5 h-5 text-red-600" />
                   </div>
                   <h4 className="text-sm font-bold text-white">No Quiz Attempts Recorded Yet</h4>
                   <p className="text-xs text-slate-400 max-w-md mx-auto">
@@ -1347,7 +1347,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-4 shadow-xl">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-emerald-400" />
+                    <Clock className="w-4 h-4 text-red-600" />
                     All Attempts History ({attempts.length})
                   </h3>
                   <span className="text-xs text-slate-400">
@@ -1378,7 +1378,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           const quiz = getQuizForDay(att.quizId);
                           return (
                             <tr key={att.id} className="hover:bg-slate-800/40 transition-colors">
-                              <td className="py-3 px-3 font-mono text-emerald-400 font-bold">
+                              <td className="py-3 px-3 font-mono text-red-600 font-bold">
                                 #{attempts.length - attIdx}
                               </td>
                               <td className="py-3 px-3">
@@ -1388,11 +1388,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <td className="py-3 px-3 text-slate-300">
                                 {att.formattedDate || quiz.displayDate}
                               </td>
-                              <td className="py-3 px-3 font-bold text-emerald-400">
+                              <td className="py-3 px-3 font-bold text-red-600">
                                 {att.marksObtained} / {att.maxMarks}
                               </td>
                               <td className="py-3 px-3">
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                                <span className="px-2 py-0.5 rounded-full bg-red-700/20 text-red-400 border border-red-700/30 text-[10px] font-bold">
                                   {att.percentage}%
                                 </span>
                               </td>
@@ -1403,7 +1403,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => handleOpenCompleteAnswerSheet(att)}
-                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-colors shadow-sm"
+                                  className="px-3 py-1.5 rounded-xl bg-red-800 hover:bg-red-700 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-colors shadow-sm"
                                 >
                                   <FileCheck className="w-3.5 h-3.5" />
                                   <span>View Answer Sheet</span>
@@ -1426,11 +1426,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'answer-sheets' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <FileCheck className="w-5 h-5 text-emerald-400" />
+                    <FileCheck className="w-5 h-5 text-red-600" />
                     Student Answer Sheet Inspector
                   </h2>
                   <p className="text-xs text-slate-400">
@@ -1443,7 +1443,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => generateAnswerSheetPDF(currentReviewAttempt, currentReviewQuiz)}
-                      className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95"
+                      className="px-3.5 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Export PDF</span>
@@ -1464,7 +1464,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {!currentReviewAttempt || !currentReviewQuiz ? (
                 <div className="p-12 rounded-3xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 text-center space-y-3 shadow-2xl">
                   <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
-                    <FileText className="w-6 h-6 text-emerald-400" />
+                    <FileText className="w-6 h-6 text-red-600" />
                   </div>
                   <h3 className="text-base font-bold text-white">No Quiz Submissions Recorded Yet</h3>
                   <p className="text-xs text-slate-400 max-w-md mx-auto">
@@ -1477,13 +1477,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/50 shadow-2xl space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-emerald-950/40">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-800 to-red-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-red-950/40">
                           M
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="text-lg font-black text-white">Student: Mahi</h3>
-                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold">
+                            <span className="px-2.5 py-0.5 rounded-full bg-red-700/20 text-red-400 border border-red-700/40 text-[10px] font-bold">
                               Access Code: 2002
                             </span>
                           </div>
@@ -1501,7 +1501,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <select
                               value={currentReviewAttempt.id}
                               onChange={e => setSelectedAnswerSheetAttemptId(e.target.value)}
-                              className="bg-transparent text-xs font-bold text-emerald-400 outline-none cursor-pointer"
+                              className="bg-transparent text-xs font-bold text-red-600 outline-none cursor-pointer"
                             >
                               {attempts.map((att, attIdx) => (
                                 <option key={att.id} value={att.id} className="bg-slate-900 text-white">
@@ -1520,9 +1520,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Questions</div>
                         <div className="text-xl font-black text-white mt-1">{currentReviewAttempt.totalQuestions}</div>
                       </div>
-                      <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-900/60">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Correct</div>
-                        <div className="text-xl font-black text-emerald-400 mt-1">{currentReviewAttempt.correctCount}</div>
+                      <div className="p-3 rounded-xl bg-red-950/40 border border-red-950/60">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-red-600">Correct</div>
+                        <div className="text-xl font-black text-red-600 mt-1">{currentReviewAttempt.correctCount}</div>
                       </div>
                       <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-900/60">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-rose-400">Incorrect</div>
@@ -1534,11 +1534,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
                       <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Marks</div>
-                        <div className="text-xl font-black text-emerald-400 mt-1">{currentReviewAttempt.marksObtained} / {currentReviewAttempt.maxMarks}</div>
+                        <div className="text-xl font-black text-red-600 mt-1">{currentReviewAttempt.marksObtained} / {currentReviewAttempt.maxMarks}</div>
                       </div>
-                      <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-900/60">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Percentage</div>
-                        <div className="text-xl font-black text-emerald-400 mt-1">{currentReviewAttempt.percentage}%</div>
+                      <div className="p-3 rounded-xl bg-red-950/40 border border-red-950/60">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-red-600">Percentage</div>
+                        <div className="text-xl font-black text-red-600 mt-1">{currentReviewAttempt.percentage}%</div>
                       </div>
                       <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Time Taken</div>
@@ -1547,7 +1547,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
 
                     {/* Performance Summary Banner */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-slate-950 border border-emerald-500/30">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-gradient-to-r from-red-950/60 to-slate-950 border border-red-700/30">
                       <div className="flex items-center gap-2.5">
                         <Award className="w-5 h-5 text-amber-400" />
                         <div>
@@ -1561,7 +1561,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           href={getWhatsAppShareUrl(formatWhatsAppMessage(currentReviewAttempt), DEFAULT_SANJU_WHATSAPP_NUMBER)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+                          className="text-xs font-bold text-red-600 hover:text-red-400 flex items-center gap-1"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
                           <span>Share Result on WhatsApp (+91 70759 20852)</span>
@@ -1572,7 +1572,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   {/* Answer Review Controls Bar */}
                   <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/85 backdrop-blur-xl border border-slate-700/50 shadow-xl space-y-4">
-                    
+
                     {/* Status Filter Tabs */}
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
                       <div className="flex flex-wrap items-center gap-2">
@@ -1591,7 +1591,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             }}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                               answerStatusFilter === f.id
-                                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950'
+                                ? 'bg-red-800 text-white shadow-md shadow-red-950'
                                 : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
                             }`}
                           >
@@ -1608,12 +1608,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       >
                         {expandAllExplanations ? (
                           <>
-                            <ChevronUp className="w-3.5 h-3.5 text-emerald-400" />
+                            <ChevronUp className="w-3.5 h-3.5 text-red-600" />
                             <span>Collapse Explanations</span>
                           </>
                         ) : (
                           <>
-                            <ChevronDown className="w-3.5 h-3.5 text-emerald-400" />
+                            <ChevronDown className="w-3.5 h-3.5 text-red-600" />
                             <span>Expand Explanations</span>
                           </>
                         )}
@@ -1632,7 +1632,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             setSelectedQuestionNavNumber(null);
                           }}
                           placeholder="Search questions by text, park, state, or option..."
-                          className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                          className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-700"
                         />
                       </div>
 
@@ -1644,7 +1644,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             setAnswerStateFilter(e.target.value);
                             setSelectedQuestionNavNumber(null);
                           }}
-                          className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-700 text-xs text-white focus:outline-none focus:border-emerald-500"
+                          className="px-3 py-2 rounded-xl bg-slate-950/80 border border-slate-700 text-xs text-white focus:outline-none focus:border-red-700"
                         >
                           <option value="all">All States ({availableStatesInReview.length})</option>
                           {availableStatesInReview.map(s => (
@@ -1664,7 +1664,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <button
                             type="button"
                             onClick={() => setSelectedQuestionNavNumber(null)}
-                            className="text-emerald-400 hover:underline font-bold text-xs"
+                            className="text-red-600 hover:underline font-bold text-xs"
                           >
                             Show All Questions
                           </button>
@@ -1679,16 +1679,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                           let badgeColor = 'bg-slate-800 text-slate-400 border-slate-700';
                           if (isCorrect) {
-                            badgeColor = isActiveNav 
-                              ? 'bg-emerald-500 text-slate-950 border-emerald-300 ring-2 ring-emerald-400' 
-                              : 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80 hover:bg-emerald-900';
+                            badgeColor = isActiveNav
+                              ? 'bg-red-700 text-slate-950 border-red-400 ring-2 ring-red-600'
+                              : 'bg-red-950/80 text-red-400 border-red-900/80 hover:bg-red-950';
                           } else if (isUnanswered) {
-                            badgeColor = isActiveNav 
-                              ? 'bg-slate-200 text-slate-950 border-white ring-2 ring-slate-400' 
+                            badgeColor = isActiveNav
+                              ? 'bg-slate-200 text-slate-950 border-white ring-2 ring-slate-400'
                               : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-700';
                           } else {
-                            badgeColor = isActiveNav 
-                              ? 'bg-rose-500 text-white border-rose-300 ring-2 ring-rose-400' 
+                            badgeColor = isActiveNav
+                              ? 'bg-rose-500 text-white border-rose-300 ring-2 ring-rose-400'
                               : 'bg-rose-950/80 text-rose-300 border-rose-800/80 hover:bg-rose-900';
                           }
 
@@ -1729,7 +1729,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             key={item.question.id}
                             className={`p-5 rounded-2xl border transition-all text-sm space-y-3.5 backdrop-blur-xl shadow-xl ${
                               item.status === 'correct'
-                                ? 'bg-slate-900/85 border-emerald-500/40 shadow-emerald-950/20'
+                                ? 'bg-slate-900/85 border-red-700/40 shadow-red-950/20'
                                 : item.status === 'incorrect'
                                 ? 'bg-slate-900/85 border-rose-500/50 shadow-rose-950/20'
                                 : 'bg-slate-900/85 border-slate-700/60'
@@ -1742,14 +1742,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   Question {item.questionNumber < 10 ? `0${item.questionNumber}` : item.questionNumber}
                                 </span>
                                 <span className="text-xs text-slate-400 font-semibold">
-                                  State: <strong className="text-emerald-300">{item.question.state}</strong>
+                                  State: <strong className="text-red-400">{item.question.state}</strong>
                                 </span>
                               </div>
 
                               {/* Clear Status Indicator */}
                               {item.status === 'correct' ? (
-                                <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 font-black text-xs flex items-center gap-1.5 shadow-sm">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                <span className="px-3 py-1 rounded-full bg-red-700/20 border border-red-700/50 text-red-400 font-black text-xs flex items-center gap-1.5 shadow-sm">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-red-600" />
                                   Status: CORRECT
                                 </span>
                               ) : item.status === 'incorrect' ? (
@@ -1776,25 +1776,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 const optionLetters = ['A', 'B', 'C', 'D'];
                                 const isCorrectOption = optIdx === item.question.correctAnswer;
                                 const isSelectedOption = optIdx === item.selectedOptionIndex;
-                                
+
                                 let optionStyle = 'bg-slate-950/70 border-slate-800 text-slate-300';
                                 if (isCorrectOption) {
-                                  optionStyle = 'bg-emerald-950/80 border-emerald-500/80 text-emerald-200 font-bold ring-1 ring-emerald-500/30';
+                                  optionStyle = 'bg-red-950/80 border-red-700/80 text-red-300 font-bold ring-1 ring-red-700/30';
                                 } else if (isSelectedOption && !isCorrectOption) {
                                   optionStyle = 'bg-rose-950/80 border-rose-500/80 text-rose-200 font-bold ring-1 ring-rose-500/30';
                                 }
 
                                 return (
-                                  <div 
+                                  <div
                                     key={opt}
                                     className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${optionStyle}`}
                                   >
                                     <div className="flex items-center gap-2.5">
                                       <span className={`w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold text-[11px] ${
-                                        isCorrectOption 
-                                          ? 'bg-emerald-600 text-white' 
-                                          : isSelectedOption 
-                                          ? 'bg-rose-600 text-white' 
+                                        isCorrectOption
+                                          ? 'bg-red-800 text-white'
+                                          : isSelectedOption
+                                          ? 'bg-rose-600 text-white'
                                           : 'bg-slate-800 text-slate-400'
                                       }`}>
                                         {optionLetters[optIdx]}
@@ -1803,7 +1803,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     </div>
 
                                     {isCorrectOption && (
-                                      <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                                      <span className="text-[10px] uppercase font-bold text-red-600 bg-red-700/10 px-2 py-0.5 rounded border border-red-700/30">
                                         Correct Answer
                                       </span>
                                     )}
@@ -1822,13 +1822,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-slate-300">
                                 <div>
                                   <span className="text-slate-400">Mahi selected: </span>
-                                  <strong className={item.isCorrect ? 'text-emerald-300 font-bold' : item.isUnanswered ? 'text-slate-400 font-bold' : 'text-rose-300 font-bold'}>
+                                  <strong className={item.isCorrect ? 'text-red-400 font-bold' : item.isUnanswered ? 'text-slate-400 font-bold' : 'text-rose-300 font-bold'}>
                                     {item.selectedAnswerText}
                                   </strong>
                                 </div>
                                 <div>
                                   <span className="text-slate-400">Correct answer: </span>
-                                  <strong className="text-emerald-400 font-bold">{item.correctAnswerText}</strong>
+                                  <strong className="text-red-600 font-bold">{item.correctAnswerText}</strong>
                                 </div>
                               </div>
                             </div>
@@ -1900,11 +1900,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {(activeTab === 'quiz-management' || activeTab === 'schedule') && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-emerald-400" />
+                    <Calendar className="w-5 h-5 text-red-600" />
                     Seven-Day Syllabus & Release Schedule
                   </h2>
                   <p className="text-xs text-slate-400">
@@ -1921,13 +1921,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   const unlocked = isDayUnlocked(dayItem.quizId);
 
                   return (
-                    <div 
+                    <div
                       key={dayItem.quizId}
                       className={`p-5 rounded-2xl border transition-all ${
-                        isCompleted 
-                          ? 'bg-slate-900/90 border-emerald-500/40 shadow-lg shadow-emerald-950/20' 
-                          : unlocked 
-                          ? 'bg-slate-900/80 border-slate-700' 
+                        isCompleted
+                          ? 'bg-slate-900/90 border-red-700/40 shadow-lg shadow-red-950/20'
+                          : unlocked
+                          ? 'bg-slate-900/80 border-slate-700'
                           : 'bg-slate-950 border-slate-800/80 opacity-90'
                       }`}
                     >
@@ -1947,11 +1947,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         {/* Status Badge */}
                         <div>
                           {isCompleted ? (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase flex items-center gap-1">
+                            <span className="px-2.5 py-1 rounded-full bg-red-700/10 text-red-600 border border-red-700/30 text-[10px] font-black uppercase flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" /> Completed
                             </span>
                           ) : unlocked ? (
-                            <span className="px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[10px] font-black uppercase flex items-center gap-1">
+                            <span className="px-2.5 py-1 rounded-full bg-red-600/10 text-red-500 border border-red-600/30 text-[10px] font-black uppercase flex items-center gap-1">
                               <Unlock className="w-3 h-3" /> Unlocked
                             </span>
                           ) : (
@@ -1969,7 +1969,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
                         <div className="flex flex-wrap gap-1.5">
                           {dayItem.states.map(st => (
-                            <span 
+                            <span
                               key={st}
                               className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-semibold border border-slate-700/60"
                             >
@@ -1979,7 +1979,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
                         <div className="text-[11px] text-slate-400 pt-1 flex justify-between">
                           <span>Question Pool: <strong className="text-white">{quiz.questions.length} Questions</strong></span>
-                          <span>Coverage: <strong className="text-emerald-400">{dayItem.totalQuestions} Questions</strong></span>
+                          <span>Coverage: <strong className="text-red-600">{dayItem.totalQuestions} Questions</strong></span>
                         </div>
                       </div>
 
@@ -2004,7 +2004,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               setManualScore(dayItem.totalQuestions);
                               setManualMaxMarks(dayItem.totalQuestions);
                             }}
-                            className="px-2.5 py-1.5 rounded-xl bg-teal-950/80 text-teal-300 border border-teal-800 hover:bg-teal-900 text-xs font-bold transition-all flex items-center gap-1"
+                            className="px-2.5 py-1.5 rounded-xl bg-red-950/80 text-red-400 border border-red-900 hover:bg-red-950 text-xs font-bold transition-all flex items-center gap-1"
                             title="Manually record this day as completed for Mahi"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" />
@@ -2029,9 +2029,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             type="button"
                             onClick={() => handleToggleDayLock(dayItem.quizId, unlocked)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                              unlocked 
-                                ? 'bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900' 
-                                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+                              unlocked
+                                ? 'bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900'
+                                : 'bg-red-800 hover:bg-red-700 text-white shadow-sm'
                             }`}
                           >
                             {unlocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -2053,11 +2053,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'attempts' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-emerald-400" />
+                    <FileText className="w-5 h-5 text-red-600" />
                     Quiz Attempts Log ({attempts.length})
                   </h2>
                   <p className="text-xs text-slate-400">
@@ -2075,14 +2075,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Search by day, date, score..."
-                    className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-700"
                   />
                 </div>
 
                 <select
                   value={selectedDayFilter}
                   onChange={e => setSelectedDayFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-red-700"
                 >
                   <option value="all">All Days</option>
                   {DAILY_SCHEDULE.map(d => (
@@ -2126,11 +2126,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <td className="py-3 px-3 text-slate-300">
                               {att.formattedDate || quiz.displayDate}
                             </td>
-                            <td className="py-3 px-3 font-bold text-emerald-400">
+                            <td className="py-3 px-3 font-bold text-red-600">
                               {att.marksObtained} / {att.maxMarks}
                             </td>
                             <td className="py-3 px-3">
-                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                              <span className="px-2 py-0.5 rounded-full bg-red-700/20 text-red-400 border border-red-700/30 text-[10px] font-bold">
                                 {att.percentage}%
                               </span>
                             </td>
@@ -2140,7 +2140,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <td className="py-3 px-3 text-right">
                               <button
                                 onClick={() => handleOpenCompleteAnswerSheet(att)}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm"
+                                className="px-3 py-1.5 rounded-lg bg-red-800 hover:bg-red-700 text-white font-bold text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm"
                               >
                                 <FileCheck className="w-3.5 h-3.5" />
                                 <span>Inspect Answers</span>
@@ -2162,7 +2162,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'retake-requests' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
@@ -2182,8 +2182,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         type="button"
                         onClick={() => setRetakeFilter(f)}
                         className={`px-3 py-1.5 rounded-lg capitalize transition-all ${
-                          retakeFilter === f 
-                            ? 'bg-slate-800 text-white font-bold shadow-sm' 
+                          retakeFilter === f
+                            ? 'bg-slate-800 text-white font-bold shadow-sm'
                             : 'text-slate-400 hover:text-slate-200'
                         }`}
                       >
@@ -2232,7 +2232,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   <Clock className="w-3 h-3" /> Pending Review
                                 </span>
                               ) : isApproved ? (
-                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                <span className="px-2.5 py-0.5 rounded-full bg-red-700/20 text-red-400 border border-red-700/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
                                   <CheckCircle2 className="w-3 h-3" /> Approved
                                 </span>
                               ) : (
@@ -2265,8 +2265,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               disabled={isApproved}
                               className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm ${
                                 isApproved
-                                  ? 'bg-emerald-950 text-emerald-500 border border-emerald-800/40 opacity-70 cursor-not-allowed'
-                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950 active:scale-95'
+                                  ? 'bg-red-950 text-red-700 border border-red-900/40 opacity-70 cursor-not-allowed'
+                                  : 'bg-red-800 hover:bg-red-700 text-white shadow-red-950 active:scale-95'
                               }`}
                             >
                               <CheckCircle2 className="w-4 h-4" />
@@ -2301,10 +2301,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'analytics' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="pb-2 border-b border-slate-800">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  <TrendingUp className="w-5 h-5 text-red-600" />
                   Learning Analytics & State Performance
                 </h2>
                 <p className="text-xs text-slate-400">
@@ -2317,7 +2317,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Completed Quizzes</div>
                   <div className="text-2xl sm:text-3xl font-black text-white">{stats.completedCount}</div>
-                  <p className="text-[11px] text-emerald-400 font-semibold mt-1">Distinct days cleared</p>
+                  <p className="text-[11px] text-red-600 font-semibold mt-1">Distinct days cleared</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Total Submissions</div>
@@ -2327,7 +2327,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Average Score</div>
                   <div className="text-2xl sm:text-3xl font-black text-white">{stats.avgPercentage}%</div>
-                  <p className="text-[11px] text-teal-400 font-semibold mt-1">{attempts.length > 0 ? 'Mean accuracy' : '0% (No attempts)'}</p>
+                  <p className="text-[11px] text-red-500 font-semibold mt-1">{attempts.length > 0 ? 'Mean accuracy' : '0% (No attempts)'}</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Highest Score</div>
@@ -2373,10 +2373,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <div key={state} className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
                               <div className="flex justify-between items-center text-xs">
                                 <span className="font-bold text-white">{state}</span>
-                                <span className="font-mono text-emerald-400 font-bold">{s.correct} / {s.total} ({pct}%)</span>
+                                <span className="font-mono text-red-600 font-bold">{s.correct} / {s.total} ({pct}%)</span>
                               </div>
                               <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }} />
+                                <div className="h-full bg-red-700 rounded-full" style={{ width: `${pct}%` }} />
                               </div>
                             </div>
                           );
@@ -2392,14 +2392,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div className="text-2xl font-black text-white">
                         {(attempts[0].timeTakenSeconds / Math.max(1, attempts[0].totalQuestions)).toFixed(2)} <span className="text-sm font-semibold text-slate-400">seconds / question</span>
                       </div>
-                      <p className="text-xs text-emerald-400">
+                      <p className="text-xs text-red-600">
                         Completed {attempts[0].totalQuestions} questions in {Math.floor(attempts[0].timeTakenSeconds / 60)}m {attempts[0].timeTakenSeconds % 60}s.
                       </p>
                     </div>
 
                     <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Accuracy Rate</h4>
-                      <div className="text-2xl font-black text-emerald-400">
+                      <div className="text-2xl font-black text-red-600">
                         {attempts[0].percentage}% <span className="text-sm font-semibold text-slate-400">accuracy</span>
                       </div>
                       <p className="text-xs text-slate-300">
@@ -2418,11 +2418,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'inbox' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <InboxIcon className="w-5 h-5 text-emerald-400" />
+                    <InboxIcon className="w-5 h-5 text-red-600" />
                     Admin Submission Inbox
                   </h2>
                   <p className="text-xs text-slate-400">
@@ -2437,7 +2437,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     disabled={unreadInboxCount === 0}
                     className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1.5 disabled:opacity-40"
                   >
-                    <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <CheckCheck className="w-3.5 h-3.5 text-red-600" />
                     <span>Mark All Read</span>
                   </button>
                 </div>
@@ -2455,7 +2455,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     onClick={() => setInboxFilter(f.id as any)}
                     className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
                       inboxFilter === f.id
-                        ? 'bg-emerald-600 text-white'
+                        ? 'bg-red-800 text-white'
                         : 'text-slate-400 hover:text-white hover:bg-slate-800'
                     }`}
                   >
@@ -2479,14 +2479,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                           !isItemUnread
                             ? 'bg-slate-900/60 border-slate-800/80 text-slate-300'
-                            : 'bg-slate-900 border-emerald-500/40 text-white shadow-md shadow-emerald-950/20'
+                            : 'bg-slate-900 border-red-700/40 text-white shadow-md shadow-red-950/20'
                         }`}
                       >
                         <div className="flex items-start gap-3">
                           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                            !isItemUnread 
-                              ? 'bg-slate-800 text-slate-400' 
-                              : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            !isItemUnread
+                              ? 'bg-slate-800 text-slate-400'
+                              : 'bg-red-700/20 text-red-600 border border-red-700/30'
                           }`}>
                             <Sparkles className="w-4 h-4" />
                           </div>
@@ -2496,7 +2496,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 {notif.title}
                               </h4>
                               {isItemUnread && (
-                                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                                <span className="w-2 h-2 rounded-full bg-red-600" />
                               )}
                             </div>
                             <p className="text-xs text-slate-400">
@@ -2514,7 +2514,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <button
                               type="button"
                               onClick={() => handleOpenAttemptFromNotif(notif.attemptId)}
-                              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 transition-colors"
+                              className="px-3 py-1.5 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-bold flex items-center gap-1 transition-colors"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               <span>Inspect Result</span>
@@ -2555,14 +2555,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {activeTab === 'notifications' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="pb-2 border-b border-slate-800">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5 text-emerald-400" />
+                  <MessageCircle className="w-5 h-5 text-red-600" />
                   WhatsApp Notifications & Result Dispatch
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Target Number: <strong className="text-emerald-300">+91 70759 20852</strong> (Sanju Admin)
+                  Target Number: <strong className="text-red-400">+91 70759 20852</strong> (Sanju Admin)
                 </p>
               </div>
 
@@ -2577,7 +2577,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="text-[11px] font-mono text-slate-400 uppercase">Live Template Preview:</div>
-                  <pre className="text-xs font-mono text-emerald-300 whitespace-pre-wrap leading-relaxed">
+                  <pre className="text-xs font-mono text-red-400 whitespace-pre-wrap leading-relaxed">
 {attempts.length > 0 ? formatWhatsAppMessage(attempts[0]) : `🌿 BODDUKURI'S QUIZ — RESULT NOTIFICATION
 Student: Mahi
 Quiz: Day 01
@@ -2596,7 +2596,7 @@ Performance: Outstanding`}
                       href={getWhatsAppShareUrl(formatWhatsAppMessage(attempts[0]), DEFAULT_SANJU_WHATSAPP_NUMBER)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
                     >
                       <MessageCircle className="w-4 h-4" />
                       <span>Send WhatsApp Notification to +91 70759 20852</span>
@@ -2643,10 +2643,10 @@ Performance: Outstanding`}
           {/* ========================================================================= */}
           {activeTab === 'settings' && (
             <div className="space-y-6 animate-fadeIn">
-              
+
               <div className="pb-2 border-b border-slate-800">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <SettingsIcon className="w-5 h-5 text-emerald-400" />
+                  <SettingsIcon className="w-5 h-5 text-red-600" />
                   Admin Controls & System Settings
                 </h2>
                 <p className="text-xs text-slate-400">
@@ -2709,7 +2709,7 @@ Performance: Outstanding`}
                   }}
                   className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors inline-flex items-center gap-1.5"
                 >
-                  <Download className="w-4 h-4 text-emerald-400" />
+                  <Download className="w-4 h-4 text-red-600" />
                   <span>Download Complete Backup JSON</span>
                 </button>
               </div>
@@ -2724,7 +2724,7 @@ Performance: Outstanding`}
             <div className="space-y-6 animate-fadeIn">
               <div className="pb-2 border-b border-slate-800">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-emerald-400" />
+                  <HelpCircle className="w-5 h-5 text-red-600" />
                   Boddukuri's Quiz System Architecture & Guide
                 </h2>
                 <p className="text-xs text-slate-400">
@@ -2735,8 +2735,8 @@ Performance: Outstanding`}
               <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 text-xs text-slate-300 leading-relaxed">
                 <h3 className="text-sm font-bold text-white">Access Credentials:</h3>
                 <ul className="list-disc list-inside space-y-1 text-slate-400">
-                  <li><strong className="text-white">Mahi (Student):</strong> Access Code <code className="font-mono text-emerald-300">2002</code> • Role: student</li>
-                  <li><strong className="text-white">Sanju (Admin):</strong> Access Code <code className="font-mono text-emerald-300">2718</code> • Role: admin</li>
+                  <li><strong className="text-white">Mahi (Student):</strong> Access Code <code className="font-mono text-red-400">2002</code> • Role: student</li>
+                  <li><strong className="text-white">Sanju (Admin):</strong> Access Code <code className="font-mono text-red-400">2718</code> • Role: admin</li>
                 </ul>
 
                 <h3 className="text-sm font-bold text-white pt-3">National Parks 7-Day Plan:</h3>
@@ -2755,8 +2755,8 @@ Performance: Outstanding`}
       {/* ========================================================================= */}
       {inspectedAttempt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div className="bg-slate-900 w-full max-w-3xl max-h-[90vh] rounded-3xl p-5 sm:p-6 border border-emerald-500/40 shadow-2xl flex flex-col space-y-4">
-            
+          <div className="bg-slate-900 w-full max-w-3xl max-h-[90vh] rounded-3xl p-5 sm:p-6 border border-red-700/40 shadow-2xl flex flex-col space-y-4">
+
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-800 pb-3">
               <div>
@@ -2764,7 +2764,7 @@ Performance: Outstanding`}
                   <h3 className="text-base sm:text-lg font-black text-white">
                     Answer Sheet Inspector — {inspectedAttempt.quizId.toUpperCase()}
                   </h3>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-red-700/20 text-red-400 border border-red-700/40 text-[10px] font-bold">
                     {inspectedAttempt.percentage}% Score
                   </span>
                 </div>
@@ -2789,13 +2789,13 @@ Performance: Outstanding`}
                 return quiz.questions.map((q, idx) => {
                   const selectedIdx = inspectedAttempt.answers[q.id];
                   const isCorrect = selectedIdx === q.correctAnswer;
-                  
+
                   return (
-                    <div 
+                    <div
                       key={q.id}
                       className={`p-3.5 rounded-xl border text-xs space-y-2 ${
-                        isCorrect 
-                          ? 'bg-slate-950/60 border-emerald-900/60' 
+                        isCorrect
+                          ? 'bg-slate-950/60 border-red-950/60'
                           : 'bg-rose-950/20 border-rose-900/60'
                       }`}
                     >
@@ -2804,7 +2804,7 @@ Performance: Outstanding`}
                           {idx + 1}. {q.question}
                         </span>
                         {isCorrect ? (
-                          <span className="text-emerald-400 font-bold shrink-0 flex items-center gap-1 text-[11px]">
+                          <span className="text-red-600 font-bold shrink-0 flex items-center gap-1 text-[11px]">
                             <CheckCircle2 className="w-3.5 h-3.5" /> Correct
                           </span>
                         ) : (
@@ -2820,18 +2820,18 @@ Performance: Outstanding`}
                           const isSelected = selectedIdx === optIdx;
                           const isTarget = optIdx === q.correctAnswer;
                           return (
-                            <div 
+                            <div
                               key={opt}
                               className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-medium flex items-center justify-between ${
-                                isTarget 
-                                  ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300' 
-                                  : isSelected 
-                                  ? 'bg-rose-950/80 border-rose-500/60 text-rose-300' 
+                                isTarget
+                                  ? 'bg-red-950/80 border-red-700/60 text-red-400'
+                                  : isSelected
+                                  ? 'bg-rose-950/80 border-rose-500/60 text-rose-300'
                                   : 'bg-slate-900/50 border-slate-800 text-slate-400'
                               }`}
                             >
                               <span>{opt}</span>
-                              {isTarget && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                              {isTarget && <Check className="w-3.5 h-3.5 text-red-600" />}
                             </div>
                           );
                         })}
@@ -2965,9 +2965,9 @@ Performance: Outstanding`}
       {/* ========================================================================= */}
       {markCompletedModalDay !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div className="bg-slate-900 w-full max-w-lg rounded-3xl p-6 border border-emerald-500/50 shadow-2xl space-y-4">
+          <div className="bg-slate-900 w-full max-w-lg rounded-3xl p-6 border border-red-700/50 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <div className="flex items-center gap-2.5 text-emerald-400">
+              <div className="flex items-center gap-2.5 text-red-600">
                 <CheckCircle2 className="w-6 h-6 shrink-0" />
                 <h3 className="text-base font-black text-white">
                   Mark Day 0{markCompletedModalDay} as Completed
@@ -3053,7 +3053,7 @@ Performance: Outstanding`}
               <button
                 type="button"
                 onClick={handleExecuteMarkCompleted}
-                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-950 transition-all flex items-center gap-1.5"
+                className="px-5 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-black shadow-md shadow-red-950 transition-all flex items-center gap-1.5"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>Confirm & Mark Completed</span>

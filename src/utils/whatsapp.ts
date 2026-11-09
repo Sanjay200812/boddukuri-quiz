@@ -61,7 +61,7 @@ export function getWhatsAppShareUrl(attemptOrMessage: QuizAttempt | string, phon
   const cleanNumber = (phoneNumber || DEFAULT_SANJU_WHATSAPP_NUMBER).replace(/\D/g, '');
   const message = typeof attemptOrMessage === 'string' ? attemptOrMessage : formatWhatsAppMessage(attemptOrMessage);
   const encodedMessage = encodeURIComponent(message);
-  
+
   return `https://wa.me/${cleanNumber}?text=${encodedMessage}`;
 }
 

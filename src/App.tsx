@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DAILY_QUIZZES, getQuizForDay } from './data/quizzes';
-import type { 
-  QuizAttempt, 
-  DailyQuiz, 
+import type {
+  QuizAttempt,
+  DailyQuiz,
   OverallProgress,
   UserProfile,
   UserRole
 } from './types/quiz';
-import { 
-  getOverallProgress, 
-  clearInProgressQuiz, 
-  getAllAttempts, 
+import {
+  getOverallProgress,
+  clearInProgressQuiz,
+  getAllAttempts,
   getCompletedDayIds,
-  getProgressSnapshot, 
-  mergeProgressSnapshot, 
-  STORAGE_CHANGE_EVENT 
+  getProgressSnapshot,
+  mergeProgressSnapshot,
+  STORAGE_CHANGE_EVENT
 } from './utils/storage';
 import { isDayUnlocked } from './utils/schedule';
 import { evaluateBadges } from './utils/achievements';
@@ -53,7 +53,7 @@ export const App: React.FC = () => {
   const [isAdminPreviewingStudent, setIsAdminPreviewingStudent] = useState<boolean>(false);
   const [isStudentSidebarOpen, setIsStudentSidebarOpen] = useState<boolean>(false);
 
-  const [syncStatus, setSyncStatus] = useState<'synced' | 'offline' | 'pending'>(() => 
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'offline' | 'pending'>(() =>
     typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'synced'
   );
 
@@ -383,11 +383,11 @@ export const App: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#072415] text-white">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-emerald-700/60 border border-emerald-500/40 shadow-xl shadow-emerald-900/50 animate-bounce">
-            <Sparkles className="w-8 h-8 text-emerald-200" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-red-900/60 border border-red-700/40 shadow-xl shadow-red-950/50 animate-bounce">
+            <Sparkles className="w-8 h-8 text-red-300" />
           </div>
           <h2 className="text-xl font-bold tracking-tight">Boddukuri's Quiz #Mahi</h2>
-          <p className="text-xs text-emerald-200/70">Connecting to learning portal…</p>
+          <p className="text-xs text-red-300/70">Connecting to learning portal…</p>
         </div>
       </div>
     );
@@ -449,8 +449,8 @@ export const App: React.FC = () => {
   // STUDENT LEARNING PORTAL (OR ADMIN PREVIEWING STUDENT VIEW)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7FAF7] text-slate-800 font-sans">
-      
+    <div className="min-h-screen flex flex-col bg-[#0b0b0d] text-stone-100 font-sans">
+
       {/* Responsive Sidebar for Student */}
       <Sidebar
         role="student"
@@ -484,12 +484,12 @@ export const App: React.FC = () => {
         {userRole === 'admin' && isAdminPreviewingStudent && (
           <div className="bg-slate-950 text-amber-300 px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-slate-800 sticky top-0 z-50">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <ShieldCheck className="w-4 h-4 text-red-600" />
               <span>Sanju Admin: Previewing Student Interface</span>
             </div>
             <button
               onClick={() => setIsAdminPreviewingStudent(false)}
-              className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-colors flex items-center gap-1"
+              className="px-3 py-1 rounded-lg bg-red-800 hover:bg-red-700 text-white text-xs font-black transition-colors flex items-center gap-1"
             >
               <ArrowLeft className="w-3 h-3" />
               <span>Return to Admin Dashboard</span>
@@ -525,7 +525,7 @@ export const App: React.FC = () => {
 
         {/* Main Body Content View */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          
+
           {/* VIEW 1: DASHBOARD */}
           {currentView === 'dashboard' && (
             <Dashboard
@@ -614,11 +614,11 @@ export const App: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-slate-200/80 bg-white py-6 text-center text-xs text-slate-500">
+        <footer className="border-t border-slate-200/80 bg-[#111114] py-6 text-center text-xs text-stone-400">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
             <div className="flex items-center gap-1.5 font-semibold text-slate-700">
               <span>🌿 Boddukuri's Quiz</span>
-              <span className="text-emerald-700 font-extrabold">#Mahi</span>
+              <span className="text-red-900 font-extrabold">#Mahi</span>
               <span>• Learn. Revise. Remember. Achieve.</span>
             </div>
             <div className="text-slate-400">

@@ -67,7 +67,7 @@ export function getPerformanceTier(percentage: number): {
     return {
       tier: 'outstanding',
       title: 'Outstanding!',
-      badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      badgeColor: 'bg-red-100 text-red-900 border-red-400',
       subtext: 'Flawless recall! You have completely mastered this state\'s national parks!'
     };
   }
@@ -75,7 +75,7 @@ export function getPerformanceTier(percentage: number): {
     return {
       tier: 'excellent',
       title: 'Excellent work!',
-      badgeColor: 'bg-teal-100 text-teal-800 border-teal-300',
+      badgeColor: 'bg-red-100 text-red-900 border-red-400',
       subtext: 'Impressive retention! Your memory of previous and new parks is crystal clear!'
     };
   }

@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
-import type { 
-  QuizAttempt, 
-  DailyQuiz 
+import type {
+  QuizAttempt,
+  DailyQuiz
 } from '../types/quiz';
-import { 
-  getWhatsAppShareUrl, 
-  shareResultNative, 
-  copyToClipboard, 
+import {
+  getWhatsAppShareUrl,
+  shareResultNative,
+  copyToClipboard,
   formatWhatsAppMessage,
   DEFAULT_SANJU_WHATSAPP_NUMBER
 } from '../utils/whatsapp';
-import { 
-  getUserSettings, 
-  getAllAttempts, 
+import {
+  getUserSettings,
+  getAllAttempts,
   calculateCurrentStreak,
   getRetakeStatusForQuiz,
   saveRetakeRequest,
@@ -25,19 +25,19 @@ import { ReviewMistakesSection } from './ReviewMistakesSection';
 import { generateDayNotesPDF } from '../utils/pdfGenerator';
 import { submitRetakeRequestCloud } from '../utils/supabase';
 import type { RetakeRequest } from '../types/quiz';
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  RotateCcw, 
-  FileText, 
-  Home, 
-  Share2, 
-  Copy, 
-  Check, 
-  Sparkles, 
-  HelpCircle, 
-  Percent, 
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  RotateCcw,
+  FileText,
+  Home,
+  Share2,
+  Copy,
+  Check,
+  Sparkles,
+  HelpCircle,
+  Percent,
   Heart,
   MapPin,
   Download,
@@ -138,16 +138,16 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-fadeIn">
-      
+
       {/* Celebration Header Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-forest-950 text-white p-6 sm:p-10 shadow-elevated text-center">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-10 shadow-elevated text-center">
         {/* Subtle glow background */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-emerald-500/20 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-teal-400/15 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-red-700/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-72 h-72 rounded-full bg-red-500/15 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-200 text-xs sm:text-sm font-semibold">
-            <Sparkles className="w-4 h-4 text-emerald-300" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-red-300 text-xs sm:text-sm font-semibold">
+            <Sparkles className="w-4 h-4 text-red-400" />
             <span>Boddukuri's Quiz #Mahi</span>
           </div>
 
@@ -155,18 +155,18 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             🎉 #Mahi – Day {dayStr} Completed!
           </h1>
 
-          <div className="text-emerald-200/90 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2">
+          <div className="text-red-300/90 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2">
             <span>📅 Quiz Date: {quiz?.displayDate || '09 November 2026'} ({quiz?.quizDate || '09-11-2026'})</span>
           </div>
 
-          <div className="text-emerald-200 text-xs sm:text-sm font-medium pt-1">
-            <span className="text-emerald-300 font-bold block mb-1">📚 States Covered ({attempt.statesCovered.length}):</span>
+          <div className="text-red-300 text-xs sm:text-sm font-medium pt-1">
+            <span className="text-red-400 font-bold block mb-1">📚 States Covered ({attempt.statesCovered.length}):</span>
             <span className="text-white font-semibold">{attempt.statesCovered.join(', ')}</span>
           </div>
 
           {/* Performance Badge */}
           <div className="pt-2">
-            <span className="inline-block px-5 py-2 rounded-2xl bg-white text-emerald-950 font-black text-lg sm:text-xl shadow-lg border border-emerald-100">
+            <span className="inline-block px-5 py-2 rounded-2xl bg-white text-red-950 font-black text-lg sm:text-xl shadow-lg border border-red-100">
               🏆 Performance: {attempt.performanceMessage}
             </span>
           </div>
@@ -203,9 +203,9 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
       {/* Main Score Visualization & Key Metrics */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-          
+
           {/* Circular Progress Gauge (Left) */}
           <div className="md:col-span-5 flex flex-col items-center justify-center p-4">
             <div className="relative w-44 h-44 flex items-center justify-center">
@@ -252,7 +252,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             </div>
 
             <div className="mt-4 text-center">
-              <div className="text-xl font-black text-emerald-800">
+              <div className="text-xl font-black text-red-900">
                 Marks: {attempt.marksObtained} / {attempt.maxMarks}
               </div>
               <p className="text-xs text-slate-400 mt-0.5">1 mark per correct answer</p>
@@ -261,7 +261,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
           {/* Key Stat Blocks (Right) */}
           <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-3">
-            
+
             {/* Total Questions */}
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mb-1">
@@ -274,12 +274,12 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             </div>
 
             {/* Correct Answers */}
-            <div className="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-100">
-              <div className="flex items-center gap-1.5 text-xs text-emerald-800 font-semibold mb-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="bg-red-50/80 p-4 rounded-2xl border border-red-100">
+              <div className="flex items-center gap-1.5 text-xs text-red-900 font-semibold mb-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-red-800" />
                 Correct
               </div>
-              <div className="text-2xl font-black text-emerald-700">
+              <div className="text-2xl font-black text-red-900">
                 {attempt.correctCount}
               </div>
             </div>
@@ -307,12 +307,12 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             </div>
 
             {/* Accuracy */}
-            <div className="bg-teal-50/80 p-4 rounded-2xl border border-teal-100">
-              <div className="flex items-center gap-1.5 text-xs text-teal-800 font-semibold mb-1">
-                <Percent className="w-3.5 h-3.5 text-teal-600" />
+            <div className="bg-red-50/80 p-4 rounded-2xl border border-red-100">
+              <div className="flex items-center gap-1.5 text-xs text-red-900 font-semibold mb-1">
+                <Percent className="w-3.5 h-3.5 text-red-700" />
                 Hit Accuracy
               </div>
-              <div className="text-2xl font-black text-teal-800">
+              <div className="text-2xl font-black text-red-900">
                 {attempt.accuracy}%
               </div>
             </div>
@@ -339,7 +339,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-emerald-700" />
+              <MapPin className="w-5 h-5 text-red-900" />
               <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                 State-by-State Performance ({attempt.statesCovered.length} States)
               </h3>
@@ -352,13 +352,13 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
               <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 text-xs sm:text-sm">{sb.stateName}</span>
-                  <span className="font-black text-emerald-800 text-xs">
+                  <span className="font-black text-red-900 text-xs">
                     {sb.correct}/{sb.total}
                   </span>
                 </div>
                 <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                  <div 
-                    className="bg-emerald-600 h-full rounded-full transition-all"
+                  <div
+                    className="bg-red-800 h-full rounded-full transition-all"
                     style={{ width: `${sb.percentage}%` }}
                   />
                 </div>
@@ -377,9 +377,9 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
       />
 
       {/* Motivational Quote & Personal Message for Mahi */}
-      <div className="rounded-3xl bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-6 sm:p-8 shadow-elevated space-y-4">
-        <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-          <Heart className="w-4 h-4 fill-emerald-300" />
+      <div className="rounded-3xl bg-gradient-to-r from-red-900 to-red-950 text-white p-6 sm:p-8 shadow-elevated space-y-4">
+        <div className="flex items-center gap-2 text-red-400 text-xs font-bold uppercase tracking-wider">
+          <Heart className="w-4 h-4 fill-red-400" />
           <span>Daily Motivation for Mahi</span>
         </div>
 
@@ -387,16 +387,16 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           "Every day you learn something new, you become a better version of yourself."
         </blockquote>
 
-        <div className="pt-2 border-t border-emerald-700/60 flex items-start gap-3">
+        <div className="pt-2 border-t border-red-900/60 flex items-start gap-3">
           <div className="text-2xl">🌱</div>
-          <p className="text-sm sm:text-base text-emerald-100 font-medium leading-relaxed">
+          <p className="text-sm sm:text-base text-red-100 font-medium leading-relaxed">
             Keep learning, Mahi! 💚 Every single state you practice becomes a permanent pillar of your knowledge!
           </p>
         </div>
       </div>
 
       {/* WHATSAPP RESULT SHARING SECTION */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-emerald-500/30 shadow-card space-y-4">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border-2 border-red-700/30 shadow-card space-y-4">
         <div>
           <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
             <span>🌿</span>
@@ -409,13 +409,13 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
         {/* WhatsApp & Share Buttons Grid */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-          
+
           {/* Main WhatsApp Share Button */}
           <a
             href={getWhatsAppShareUrl(attempt, whatsappNumber)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 px-6 py-4 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-500/20 active:scale-98 transition-all flex items-center justify-center gap-3 text-center"
+            className="flex-1 px-6 py-4 rounded-2xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-sm sm:text-base shadow-lg shadow-red-700/20 active:scale-98 transition-all flex items-center justify-center gap-3 text-center"
           >
             {/* WhatsApp SVG Icon */}
             <svg className="w-5 h-5 fill-white shrink-0" viewBox="0 0 24 24">
@@ -438,13 +438,13 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
             onClick={handleCopyResult}
             className={`px-5 py-4 rounded-2xl border font-bold text-sm transition-all flex items-center justify-center gap-2 ${
               copied
-                ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                ? 'bg-red-50 border-red-400 text-red-900'
                 : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600" />
+                <Check className="w-4 h-4 text-red-800" />
                 <span>Copied!</span>
               </>
             ) : (
@@ -463,19 +463,19 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
         <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
           <button
             onClick={onReviewAnswers}
-            className="flex-1 sm:flex-none px-6 py-3.5 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-sm sm:text-base shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none px-6 py-3.5 rounded-2xl bg-red-900 hover:bg-red-950 text-white font-extrabold text-sm sm:text-base shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            <FileText className="w-5 h-5 text-emerald-300" />
+            <FileText className="w-5 h-5 text-red-400" />
             <span>Review Answer Sheet</span>
           </button>
 
           {quiz && (
             <button
               onClick={() => generateDayNotesPDF(quiz)}
-              className="px-4 py-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold text-sm hover:bg-emerald-100 transition-colors shadow-xs flex items-center justify-center gap-2"
+              className="px-4 py-3.5 rounded-2xl bg-red-50 border border-red-300 text-red-950 font-bold text-sm hover:bg-red-100 transition-colors shadow-xs flex items-center justify-center gap-2"
               title="Download full revision notes and answer key PDF"
             >
-              <Download className="w-4 h-4 text-emerald-700" />
+              <Download className="w-4 h-4 text-red-900" />
               <span>Download PDF</span>
             </button>
           )}
@@ -485,7 +485,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           {retakeStatus?.status === 'approved' ? (
             <button
               onClick={handleStartApprovedRetake}
-              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-emerald-600 text-white font-extrabold text-sm hover:bg-emerald-700 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 animate-pulse"
+              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-red-800 text-white font-extrabold text-sm hover:bg-red-900 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 animate-pulse"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Retake Approved! Start Quiz</span>
@@ -510,10 +510,10 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
           ) : (
             <button
               onClick={handleRequestRetake}
-              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 font-bold text-sm hover:bg-emerald-100 transition-colors shadow-sm flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-red-50 border border-red-400 text-red-950 font-bold text-sm hover:bg-red-100 transition-colors shadow-sm flex items-center justify-center gap-2"
               title="Request Sanju to approve another attempt"
             >
-              <RotateCcw className="w-4 h-4 text-emerald-700" />
+              <RotateCcw className="w-4 h-4 text-red-900" />
               <span>Attempt Again (Request Retake)</span>
             </button>
           )}

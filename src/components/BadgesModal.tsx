@@ -28,13 +28,13 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
-      <div 
+      <div
         className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-scaleUp"
         onClick={e => e.stopPropagation()}
       >
-        
+
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-emerald-900 via-emerald-800 to-forest-950 text-white p-6 sm:p-8">
+        <div className="relative bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-8">
           <button
             onClick={onClose}
             className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -43,7 +43,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="flex items-center gap-2 text-red-400 text-xs font-bold uppercase tracking-wider mb-2">
             <Sparkles className="w-4 h-4" />
             <span>Mahi's Trophy Cabinet</span>
           </div>
@@ -52,19 +52,19 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
             <span>🏆 Learning Badges & Achievements</span>
           </h2>
 
-          <p className="text-xs sm:text-sm text-emerald-200/90 mt-1 max-w-xl">
+          <p className="text-xs sm:text-sm text-red-300/90 mt-1 max-w-xl">
             Unlock trophies as you build streaks, score high marks, and conquer the National Parks of India!
           </p>
 
           {/* Progress Bar */}
           <div className="mt-4 pt-4 border-t border-white/15">
-            <div className="flex items-center justify-between text-xs font-bold text-emerald-200 mb-1.5">
+            <div className="flex items-center justify-between text-xs font-bold text-red-300 mb-1.5">
               <span>Overall Progress</span>
               <span className="text-white">{unlockedCount} of {totalBadges} Badges Unlocked ({unlockPercentage}%)</span>
             </div>
             <div className="w-full bg-white/20 h-2.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-emerald-400 to-teal-300 h-full rounded-full transition-all duration-700"
+              <div
+                className="bg-gradient-to-r from-red-600 to-red-400 h-full rounded-full transition-all duration-700"
                 style={{ width: `${unlockPercentage}%` }}
               />
             </div>
@@ -81,8 +81,8 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-1.5 rounded-xl capitalize transition-all ${
-                selectedCategory === cat 
-                  ? 'bg-emerald-800 text-white font-bold shadow-xs' 
+                selectedCategory === cat
+                  ? 'bg-red-900 text-white font-bold shadow-xs'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
               }`}
             >
@@ -102,14 +102,14 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
                   key={badge.id}
                   className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 ${
                     isUnlocked
-                      ? 'bg-gradient-to-br from-white to-emerald-50/40 border-emerald-300 shadow-sm ring-1 ring-emerald-100'
+                      ? 'bg-gradient-to-br from-white to-red-50/40 border-red-400 shadow-sm ring-1 ring-red-100'
                       : 'bg-slate-50/60 border-slate-200 text-slate-400'
                   }`}
                 >
                   {/* Badge Icon */}
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-sm ${
-                    isUnlocked 
-                      ? 'bg-emerald-100 border border-emerald-300 text-emerald-900' 
+                    isUnlocked
+                      ? 'bg-red-100 border border-red-400 text-red-950'
                       : 'bg-slate-200 border border-slate-300 text-slate-400 grayscale opacity-60'
                   }`}>
                     {badge.icon}
@@ -122,8 +122,8 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
                         {badge.title}
                       </h4>
                       {isUnlocked ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Unlocked
+                        <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-red-900 bg-red-100/80 px-2 py-0.5 rounded-full border border-red-300">
+                          <CheckCircle2 className="w-3 h-3 text-red-800" /> Unlocked
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">
@@ -163,7 +163,7 @@ export const BadgesModal: React.FC<BadgesModalProps> = ({
           <span>Keep learning every day, Mahi! 💚</span>
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold transition-colors"
+            className="px-5 py-2 rounded-xl bg-red-900 hover:bg-red-950 text-white font-bold transition-colors"
           >
             Close Cabinet
           </button>

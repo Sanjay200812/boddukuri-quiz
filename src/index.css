@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#F7FAF7] text-slate-800 antialiased font-sans selection:bg-emerald-200 selection:text-emerald-900 min-h-screen;
+    @apply bg-[#0b0b0d] text-stone-100 antialiased font-sans selection:bg-red-300 selection:text-red-950 min-h-screen;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
@@ -16,16 +16,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f1;
+  background: #17171b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #4a2028;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #7f1d2d;
 }
 
 /* Smooth card transitions */

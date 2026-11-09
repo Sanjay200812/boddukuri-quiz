@@ -116,7 +116,7 @@ export function updateRetakeRequestStatus(
       targetRole: 'student',
       type: 'retake',
       title: status === 'approved' ? 'Quiz Retake Approved!' : 'Retake Request Reviewed',
-      message: status === 'approved' 
+      message: status === 'approved'
         ? `Sanju has approved your request to retake ${affectedReq.dayTitle || affectedReq.quizId.toUpperCase()}. You can now reattempt the quiz!`
         : `Sanju reviewed your retake request for ${affectedReq.dayTitle || affectedReq.quizId.toUpperCase()}: ${notes || 'Please revise your study guide first.'}`,
       quizId: affectedReq.quizId,
@@ -164,13 +164,13 @@ export function consumeApprovedRetake(quizId: string): void {
 
 export function getProgressSnapshot(): ProgressSnapshot {
   const meta = safeGet<{ updatedAt?: string; settingsUpdatedAt?: string }>('mahi_quiz_sync_meta_v1', {});
-  return { 
-    version: 1, 
-    updatedAt: meta.updatedAt || new Date(0).toISOString(), 
-    settingsUpdatedAt: meta.settingsUpdatedAt || new Date(0).toISOString(), 
-    settings: getUserSettings(), 
-    attempts: getAllAttempts(), 
-    completedDays: getCompletedDayIds(), 
+  return {
+    version: 1,
+    updatedAt: meta.updatedAt || new Date(0).toISOString(),
+    settingsUpdatedAt: meta.settingsUpdatedAt || new Date(0).toISOString(),
+    settings: getUserSettings(),
+    attempts: getAllAttempts(),
+    completedDays: getCompletedDayIds(),
     inProgress: safeGet<Record<string, InProgressQuiz>>(STORAGE_KEYS.IN_PROGRESS, {}),
     bookmarks: getBookmarks(),
     retakeRequests: getRetakeRequests(),
@@ -183,16 +183,16 @@ function saveSyncMeta(updatedAt: string, settingsUpdatedAt: string): void { safe
 export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnapshot {
   const local = getProgressSnapshot();
   const attempts = new Map<string, QuizAttempt>();
-  [...local.attempts, ...(incoming.attempts || [])].forEach(attempt => { 
-    const old = attempts.get(attempt.id); 
-    if (!old || new Date(attempt.timestamp).getTime() > new Date(old.timestamp).getTime()) attempts.set(attempt.id, attempt); 
+  [...local.attempts, ...(incoming.attempts || [])].forEach(attempt => {
+    const old = attempts.get(attempt.id);
+    if (!old || new Date(attempt.timestamp).getTime() > new Date(old.timestamp).getTime()) attempts.set(attempt.id, attempt);
   });
-  
+
   const inProgress = { ...local.inProgress };
-  Object.entries(incoming.inProgress || {}).forEach(([id, value]) => { 
-    if (!inProgress[id] || new Date(value.lastUpdated).getTime() > new Date(inProgress[id].lastUpdated).getTime()) inProgress[id] = value; 
+  Object.entries(incoming.inProgress || {}).forEach(([id, value]) => {
+    if (!inProgress[id] || new Date(value.lastUpdated).getTime() > new Date(inProgress[id].lastUpdated).getTime()) inProgress[id] = value;
   });
-  
+
   const mergedBookmarks = Array.from(new Set([...(local.bookmarks || []), ...(incoming.bookmarks || [])]));
   const incomingSettings = new Date(incoming.settingsUpdatedAt || 0).getTime() > new Date(local.settingsUpdatedAt || 0).getTime();
 
@@ -213,31 +213,31 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
       notifMap.set(n.id, n);
     }
   });
-  
+
   const mergedNotifications = Array.from(notifMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  
-  const merged: ProgressSnapshot = { 
-    version: 1, 
-    updatedAt: new Date(Math.max(new Date(local.updatedAt).getTime(), new Date(incoming.updatedAt || 0).getTime(), Date.now())).toISOString(), 
-    settingsUpdatedAt: incomingSettings ? incoming.settingsUpdatedAt : local.settingsUpdatedAt, 
-    settings: incomingSettings ? incoming.settings : local.settings, 
-    attempts: Array.from(attempts.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), 
-    completedDays: Array.from(new Set([...(local.completedDays || []), ...(incoming.completedDays || [])])), 
+
+  const merged: ProgressSnapshot = {
+    version: 1,
+    updatedAt: new Date(Math.max(new Date(local.updatedAt).getTime(), new Date(incoming.updatedAt || 0).getTime(), Date.now())).toISOString(),
+    settingsUpdatedAt: incomingSettings ? incoming.settingsUpdatedAt : local.settingsUpdatedAt,
+    settings: incomingSettings ? incoming.settings : local.settings,
+    attempts: Array.from(attempts.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+    completedDays: Array.from(new Set([...(local.completedDays || []), ...(incoming.completedDays || [])])),
     inProgress,
     bookmarks: mergedBookmarks,
     retakeRequests: Array.from(retakeMap.values()),
     notifications: mergedNotifications
   };
-  
-  safeSet(STORAGE_KEYS.ATTEMPTS, merged.attempts); 
-  safeSet(STORAGE_KEYS.COMPLETED_DAYS, merged.completedDays); 
-  safeSet(STORAGE_KEYS.IN_PROGRESS, merged.inProgress); 
-  safeSet(STORAGE_KEYS.SETTINGS, merged.settings); 
+
+  safeSet(STORAGE_KEYS.ATTEMPTS, merged.attempts);
+  safeSet(STORAGE_KEYS.COMPLETED_DAYS, merged.completedDays);
+  safeSet(STORAGE_KEYS.IN_PROGRESS, merged.inProgress);
+  safeSet(STORAGE_KEYS.SETTINGS, merged.settings);
   safeSet(STORAGE_KEYS.BOOKMARKS, merged.bookmarks);
   safeSet(STORAGE_KEYS.RETAKE_REQUESTS, merged.retakeRequests);
   safeSet(STORAGE_KEYS.NOTIFICATIONS, mergedNotifications);
-  saveSyncMeta(merged.updatedAt, merged.settingsUpdatedAt); 
-  notifyStorageChanged(); 
+  saveSyncMeta(merged.updatedAt, merged.settingsUpdatedAt);
+  notifyStorageChanged();
   return merged;
 }
 
@@ -436,7 +436,7 @@ export function ensureMahiBaselineAttempt(): QuizAttempt {
 
 export function saveQuizAttempt(attempt: QuizAttempt): void {
   const attempts = getAllAttempts();
-  
+
   // Ensure student metadata
   const enrichedAttempt: QuizAttempt = {
     ...attempt,
@@ -618,7 +618,7 @@ export function calculateCurrentStreak(attempts: QuizAttempt[]): number {
   for (const dateStr of uniqueDates) {
     const curDate = new Date(dateStr);
     const diffDays = Math.round((expectedDate.getTime() - curDate.getTime()) / 86400000);
-    
+
     if (diffDays === 0) {
       streak += 1;
       // Decrement expected date by 1 day
@@ -718,8 +718,8 @@ export function getOverallProgress(availableQuizzes: DailyQuiz[]): OverallProgre
     }
   });
 
-  const overallAccuracy = overallMaxMarks > 0 
-    ? Math.round((overallMarks / overallMaxMarks) * 100) 
+  const overallAccuracy = overallMaxMarks > 0
+    ? Math.round((overallMarks / overallMaxMarks) * 100)
     : 0;
 
   const currentStreak = calculateCurrentStreak(attempts);
@@ -827,9 +827,9 @@ export function importBackupData(jsonString: string): { success: boolean; messag
     if (data.inProgress) safeSet(STORAGE_KEYS.IN_PROGRESS, data.inProgress);
     if (data.bookmarks && Array.isArray(data.bookmarks)) safeSet(STORAGE_KEYS.BOOKMARKS, data.bookmarks);
 
-    return { 
-      success: true, 
-      message: `Successfully imported ${data.attempts.length} attempts and ${data.completedDays?.length || 0} completed days!` 
+    return {
+      success: true,
+      message: `Successfully imported ${data.attempts.length} attempts and ${data.completedDays?.length || 0} completed days!`
     };
   } catch (err: unknown) {
     return { success: false, message: `Import failed: ${(err as Error)?.message || 'Unknown error'}` };

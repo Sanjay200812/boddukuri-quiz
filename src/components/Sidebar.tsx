@@ -1,28 +1,28 @@
 import React from 'react';
-import { 
-  Home, 
-  Play, 
-  BarChart3, 
-  Award, 
-  Flame, 
-  Bell, 
-  Settings, 
-  HelpCircle, 
-  LogOut, 
-  Inbox, 
-  Users, 
-  Calendar, 
-  FileCheck, 
-  TrendingUp, 
-  ShieldCheck, 
-  Sparkles, 
+import {
+  Home,
+  Play,
+  BarChart3,
+  Award,
+  Flame,
+  Bell,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Inbox,
+  Users,
+  Calendar,
+  FileCheck,
+  TrendingUp,
+  ShieldCheck,
+  Sparkles,
   X,
   RotateCcw,
   UserCheck,
   FileText
 } from 'lucide-react';
 
-export type StudentNavView = 
+export type StudentNavView =
   | 'dashboard'
   | 'today-quiz'
   | 'progress'
@@ -34,7 +34,7 @@ export type StudentNavView =
   | 'settings'
   | 'help';
 
-export type AdminNavTab = 
+export type AdminNavTab =
   | 'overview'
   | 'students'
   | 'mahi-profile'
@@ -99,17 +99,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'my-results', label: 'My Results', icon: FileCheck },
     { id: 'review-mistakes', label: 'Review Mistakes', icon: RotateCcw },
     { id: 'achievements', label: 'Achievements', icon: Award },
-    { 
-      id: 'streak', 
-      label: 'Learning Streak', 
-      icon: Flame, 
-      badge: streakDays > 0 ? `${streakDays}d` : undefined 
+    {
+      id: 'streak',
+      label: 'Learning Streak',
+      icon: Flame,
+      badge: streakDays > 0 ? `${streakDays}d` : undefined
     },
-    { 
-      id: 'notifications', 
-      label: 'Notifications', 
-      icon: Bell, 
-      badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined 
+    {
+      id: 'notifications',
+      label: 'Notifications',
+      icon: Bell,
+      badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined
     },
     { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'help', label: 'Help / About', icon: HelpCircle },
@@ -126,21 +126,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'students', label: 'Students', icon: Users },
     { id: 'mahi-profile', label: "Mahi's Profile", icon: UserCheck },
     { id: 'attempts', label: 'Quiz Attempts', icon: FileText },
-    { 
-      id: 'retake-requests', 
-      label: 'Retake Requests', 
-      icon: RotateCcw, 
+    {
+      id: 'retake-requests',
+      label: 'Retake Requests',
+      icon: RotateCcw,
       badge: pendingRetakesCount > 0 ? pendingRetakesCount : undefined,
-      badgeColor: 'bg-amber-500 text-amber-950 font-black' 
+      badgeColor: 'bg-amber-500 text-amber-950 font-black'
     },
     { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
     { id: 'schedule', label: 'Quiz Schedule', icon: Calendar },
-    { 
-      id: 'inbox', 
-      label: 'Inbox', 
-      icon: Inbox, 
+    {
+      id: 'inbox',
+      label: 'Inbox',
+      icon: Inbox,
       badge: unreadInboxCount > 0 ? unreadInboxCount : undefined,
-      badgeColor: 'bg-emerald-500 text-white' 
+      badgeColor: 'bg-red-700 text-white'
     },
     { id: 'analytics', label: 'Analytics', icon: TrendingUp },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -167,7 +167,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <>
       {/* Mobile Backdrop */}
       {isOpen && (
-        <div 
+        <div
           onClick={onClose}
           className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
           aria-hidden="true"
@@ -177,8 +177,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar Container */}
       <aside
         className={`fixed top-0 bottom-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out flex flex-col ${
-          isStudent 
-            ? 'bg-white border-r border-emerald-100 text-slate-800 shadow-xl lg:shadow-none' 
+          isStudent
+            ? 'bg-white border-r border-red-100 text-slate-800 shadow-xl lg:shadow-none'
             : 'bg-slate-950 border-r border-slate-800 text-slate-200 shadow-2xl lg:shadow-none'
         } ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
@@ -186,15 +186,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       >
         {/* Sidebar Header / Brand */}
         <div className={`p-5 flex items-center justify-between border-b ${
-          isStudent ? 'border-emerald-100/80 bg-emerald-50/40' : 'border-slate-800 bg-slate-900/60'
+          isStudent ? 'border-red-100/80 bg-red-50/40' : 'border-slate-800 bg-slate-900/60'
         }`}>
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-md ${
-              isStudent 
-                ? 'bg-gradient-to-tr from-emerald-800 to-emerald-600 text-white shadow-emerald-800/20' 
-                : 'bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-emerald-900/40'
+              isStudent
+                ? 'bg-gradient-to-tr from-red-900 to-red-800 text-white shadow-red-900/20'
+                : 'bg-gradient-to-tr from-red-800 to-red-600 text-white shadow-red-950/40'
             }`}>
-              {isStudent ? <Sparkles className="w-5 h-5 text-emerald-200" /> : <ShieldCheck className="w-5 h-5 text-white" />}
+              {isStudent ? <Sparkles className="w-5 h-5 text-red-300" /> : <ShieldCheck className="w-5 h-5 text-white" />}
             </div>
             <div>
               <div className="flex items-center gap-1.5">
@@ -202,7 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   Boddukuri's Quiz
                 </span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                  isStudent ? 'bg-emerald-100 text-emerald-800' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                  isStudent ? 'bg-red-100 text-red-900' : 'bg-red-700/20 text-red-400 border border-red-700/30'
                 }`}>
                   {isStudent ? '#Mahi' : 'Admin'}
                 </span>
@@ -214,7 +214,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Close button for mobile */}
-          <button 
+          <button
             onClick={onClose}
             className={`p-1.5 rounded-xl lg:hidden transition-colors ${
               isStudent ? 'hover:bg-slate-100 text-slate-500' : 'hover:bg-slate-800 text-slate-400'
@@ -238,7 +238,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
           <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] uppercase tracking-wide shrink-0 ${
-            isStudent ? 'bg-emerald-100 text-emerald-800' : 'bg-teal-500/20 text-teal-300'
+            isStudent ? 'bg-red-100 text-red-900' : 'bg-red-600/20 text-red-400'
           }`}>
             {role}
           </span>
@@ -255,22 +255,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={item.id}
                     onClick={() => handleItemClick(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left group ${
-                      isActive 
-                        ? 'bg-emerald-700 text-white shadow-sm shadow-emerald-700/20' 
-                        : 'text-slate-600 hover:text-emerald-800 hover:bg-emerald-50/70'
+                      isActive
+                        ? 'bg-red-900 text-white shadow-sm shadow-red-900/20'
+                        : 'text-slate-600 hover:text-red-900 hover:bg-red-50/70'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-emerald-700'
+                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-red-900'
                       }`} />
                       <span>{item.label}</span>
                     </div>
                     {item.badge !== undefined && (
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                        isActive 
-                          ? 'bg-emerald-900/80 text-white' 
-                          : 'bg-emerald-100 text-emerald-800'
+                        isActive
+                          ? 'bg-red-950/80 text-white'
+                          : 'bg-red-100 text-red-900'
                       }`}>
                         {item.badge}
                       </span>
@@ -286,20 +286,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     key={item.id}
                     onClick={() => handleItemClick(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left group ${
-                      isActive 
-                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30' 
+                      isActive
+                        ? 'bg-red-800 text-white shadow-md shadow-red-950/30'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400'
+                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-red-600'
                       }`} />
                       <span>{item.label}</span>
                     </div>
                     {item.badge !== undefined && (
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                        item.badgeColor || (isActive ? 'bg-slate-900 text-white' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30')
+                        item.badgeColor || (isActive ? 'bg-slate-900 text-white' : 'bg-red-700/20 text-red-400 border border-red-700/30')
                       }`}>
                         {item.badge}
                       </span>
@@ -311,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Sidebar Footer: Settings & Sign Out */}
         <div className={`p-4 border-t space-y-2 ${
-          isStudent ? 'border-emerald-100/80 bg-slate-50/40' : 'border-slate-800 bg-slate-900/40'
+          isStudent ? 'border-red-100/80 bg-slate-50/40' : 'border-slate-800 bg-slate-900/40'
         }`}>
           <button
             onClick={() => {
@@ -319,8 +319,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClose();
             }}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
-              isStudent 
-                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' 
+              isStudent
+                ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
             }`}
           >
@@ -335,8 +335,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }
             }}
             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${
-              isStudent 
-                ? 'text-rose-600 hover:bg-rose-50' 
+              isStudent
+                ? 'text-rose-600 hover:bg-rose-50'
                 : 'text-rose-400 hover:bg-rose-950/40'
             }`}
           >

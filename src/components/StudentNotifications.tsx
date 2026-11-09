@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Bell, 
-  CheckCircle2, 
-  Clock, 
-  ArrowLeft, 
-  CheckCheck, 
-  Trash2, 
-  Play, 
-  FileCheck, 
-  RotateCcw, 
+import {
+  Bell,
+  CheckCircle2,
+  Clock,
+  ArrowLeft,
+  CheckCheck,
+  Trash2,
+  Play,
+  FileCheck,
+  RotateCcw,
   Sparkles,
   Inbox
 } from 'lucide-react';
 import type { InboxNotification } from '../types/quiz';
-import { 
-  getInboxNotifications, 
-  markNotificationRead, 
-  markAllNotificationsRead, 
+import {
+  getInboxNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
   deleteInboxNotification
 } from '../utils/storage';
 
@@ -75,9 +75,9 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-16 animate-fadeIn">
-      
+
       {/* Top Header Card */}
-      <div className="rounded-3xl bg-white border border-emerald-100 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="rounded-3xl bg-white border border-red-100 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
             onClick={onGoHome}
@@ -90,7 +90,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
 
           <div>
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-emerald-100 text-emerald-800">
+              <div className="p-2 rounded-xl bg-red-100 text-red-900">
                 <Bell className="w-5 h-5" />
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900">
@@ -132,7 +132,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
           {unreadCount > 0 && (
             <button
               onClick={handleMarkAllRead}
-              className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-300 text-red-900 text-xs font-bold transition-colors flex items-center gap-1.5"
             >
               <CheckCheck className="w-3.5 h-3.5" />
               <span>Mark all read</span>
@@ -144,20 +144,20 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
       {/* Notifications List */}
       {filteredList.length === 0 ? (
         <div className="rounded-3xl bg-white border border-slate-200/80 p-12 text-center space-y-3">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto shadow-inner">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-800 flex items-center justify-center mx-auto shadow-inner">
             <Inbox className="w-7 h-7" />
           </div>
           <h3 className="text-base font-bold text-slate-900">
             {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            {filter === 'unread' 
+            {filter === 'unread'
               ? 'You are all caught up! When Sanju reviews retake requests or unlocks new days, updates will appear here.'
               : 'As you complete daily quizzes and unlock milestones, your updates and Sanju’s review notes will appear here.'}
           </p>
           <button
             onClick={onGoHome}
-            className="mt-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-colors"
+            className="mt-2 px-5 py-2.5 rounded-xl bg-red-900 hover:bg-red-900 text-white font-bold text-xs transition-colors"
           >
             Return to Dashboard
           </button>
@@ -173,18 +173,18 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
               <div
                 key={notif.id}
                 className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
-                  isUnread 
-                    ? 'bg-emerald-50/40 border-emerald-200 ring-1 ring-emerald-300/60 shadow-sm' 
+                  isUnread
+                    ? 'bg-red-50/40 border-red-300 ring-1 ring-red-400/60 shadow-sm'
                     : 'bg-white border-slate-200/80 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-start gap-3.5 flex-1">
                   <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 ${
-                    isRetake 
-                      ? 'bg-amber-100 text-amber-700' 
-                      : isSubmission 
-                      ? 'bg-emerald-100 text-emerald-700' 
-                      : 'bg-teal-100 text-teal-700'
+                    isRetake
+                      ? 'bg-amber-100 text-amber-700'
+                      : isSubmission
+                      ? 'bg-red-100 text-red-900'
+                      : 'bg-red-100 text-red-800'
                   }`}>
                     {isRetake ? (
                       <RotateCcw className="w-5 h-5" />
@@ -201,7 +201,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
                         {notif.title}
                       </h4>
                       {isUnread && (
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="w-2 h-2 rounded-full bg-red-700 shrink-0" />
                       )}
                     </div>
 
@@ -219,7 +219,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
                         })} • {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                       {notif.scoreText && (
-                        <span className="font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">
+                        <span className="font-semibold text-red-900 bg-red-100/70 px-2 py-0.5 rounded-md">
                           Score: {notif.scoreText} ({notif.percentage}%)
                         </span>
                       )}
@@ -232,7 +232,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
                   {notif.quizId && (
                     <button
                       onClick={() => handleAction(notif)}
-                      className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
+                      className="px-3.5 py-2 rounded-xl bg-red-900 hover:bg-red-900 text-white font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
                     >
                       {isSubmission ? (
                         <>
@@ -251,7 +251,7 @@ export const StudentNotifications: React.FC<StudentNotificationsProps> = ({
                   {isUnread && (
                     <button
                       onClick={() => handleMarkAsRead(notif.id)}
-                      className="p-2 rounded-xl text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                      className="p-2 rounded-xl text-slate-400 hover:text-red-900 hover:bg-red-50 transition-colors"
                       title="Mark as read"
                       aria-label="Mark as read"
                     >
