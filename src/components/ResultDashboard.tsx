@@ -11,10 +11,20 @@ import {
   formatWhatsAppMessage,
   DEFAULT_SANJU_WHATSAPP_NUMBER
 } from '../utils/whatsapp';
-import { getUserSettings, getAllAttempts, calculateCurrentStreak } from '../utils/storage';
+import { 
+  getUserSettings, 
+  getAllAttempts, 
+  calculateCurrentStreak,
+  getRetakeStatusForQuiz,
+  saveRetakeRequest,
+  consumeApprovedRetake
+} from '../utils/storage';
 import { getFreshlyUnlockedBadges } from '../utils/achievements';
 import { playCompletionChime } from '../utils/sound';
 import { ReviewMistakesSection } from './ReviewMistakesSection';
+import { generateDayNotesPDF } from '../utils/pdfGenerator';
+import { submitRetakeRequestCloud } from '../utils/supabase';
+import type { RetakeRequest } from '../types/quiz';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -29,7 +39,9 @@ import {
   HelpCircle, 
   Percent, 
   Heart,
-  MapPin
+  MapPin,
+  Download,
+  Hourglass
 } from 'lucide-react';
 
 interface ResultDashboardProps {
@@ -38,6 +50,7 @@ interface ResultDashboardProps {
   onReviewAnswers: () => void;
   onReattempt: () => void;
   onGoHome: () => void;
+  userEmail?: string | null;
 }
 
 export const ResultDashboard: React.FC<ResultDashboardProps> = ({
@@ -46,8 +59,10 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
   onReviewAnswers,
   onReattempt,
   onGoHome,
+  userEmail,
 }) => {
   const [copied, setCopied] = useState<boolean>(false);
+  const [retakeStatus, setRetakeStatus] = useState<RetakeRequest | null>(() => getRetakeStatusForQuiz(attempt.quizId));
   const settings = getUserSettings();
   const whatsappNumber = settings.sanjuWhatsAppNumber || DEFAULT_SANJU_WHATSAPP_NUMBER;
 
@@ -95,6 +110,31 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
   const strokeDashoffset = circumference - (attempt.percentage / 100) * circumference;
 
   const dayStr = attempt.dayNumber < 10 ? `0${attempt.dayNumber}` : `${attempt.dayNumber}`;
+
+  const handleRequestRetake = async () => {
+    const req: RetakeRequest = {
+      id: 'retake-' + Date.now(),
+      userId: 'mahi-user',
+      userEmail: userEmail || 'mahi@boddukuri.quiz',
+      dayNumber: attempt.dayNumber,
+      quizId: attempt.quizId,
+      dayTitle: quiz?.title || `Day ${attempt.dayNumber}`,
+      status: 'pending',
+      requestedAt: new Date().toISOString()
+    };
+    saveRetakeRequest(req);
+    setRetakeStatus(req);
+    try {
+      await submitRetakeRequestCloud(req);
+    } catch (err) {
+      console.warn('Retake cloud submission:', err);
+    }
+  };
+
+  const handleStartApprovedRetake = () => {
+    consumeApprovedRetake(attempt.quizId);
+    onReattempt();
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-20 animate-fadeIn">
@@ -420,22 +460,63 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
 
       {/* Navigation & Action Options */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
-        <button
-          onClick={onReviewAnswers}
-          className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-sm sm:text-base shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <FileText className="w-5 h-5 text-emerald-300" />
-          <span>Review Answer Sheet & Explanations</span>
-        </button>
+        <div className="w-full sm:w-auto flex flex-wrap items-center gap-2">
+          <button
+            onClick={onReviewAnswers}
+            className="flex-1 sm:flex-none px-6 py-3.5 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-sm sm:text-base shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <FileText className="w-5 h-5 text-emerald-300" />
+            <span>Review Answer Sheet</span>
+          </button>
+
+          {quiz && (
+            <button
+              onClick={() => generateDayNotesPDF(quiz)}
+              className="px-4 py-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 font-bold text-sm hover:bg-emerald-100 transition-colors shadow-xs flex items-center justify-center gap-2"
+              title="Download full revision notes and answer key PDF"
+            >
+              <Download className="w-4 h-4 text-emerald-700" />
+              <span>Download PDF</span>
+            </button>
+          )}
+        </div>
 
         <div className="w-full sm:w-auto flex items-center gap-2">
-          <button
-            onClick={onReattempt}
-            className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-white border border-slate-200 text-slate-800 font-bold text-sm hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2"
-          >
-            <RotateCcw className="w-4 h-4 text-slate-600" />
-            <span>Reattempt Quiz</span>
-          </button>
+          {retakeStatus?.status === 'approved' ? (
+            <button
+              onClick={handleStartApprovedRetake}
+              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-emerald-600 text-white font-extrabold text-sm hover:bg-emerald-700 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2 animate-pulse"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Retake Approved! Start Quiz</span>
+            </button>
+          ) : retakeStatus?.status === 'pending' ? (
+            <button
+              disabled
+              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <Hourglass className="w-4 h-4 text-amber-600 animate-spin" />
+              <span>Retake Pending Sanju's Approval</span>
+            </button>
+          ) : retakeStatus?.status === 'rejected' ? (
+            <button
+              onClick={handleRequestRetake}
+              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 font-bold text-sm hover:bg-rose-100 transition-colors shadow-sm flex items-center justify-center gap-2"
+              title="Sanju suggested reviewing study notes first. Click to ask again."
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>Request Retake Again</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleRequestRetake}
+              className="flex-1 sm:flex-none px-5 py-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 font-bold text-sm hover:bg-emerald-100 transition-colors shadow-sm flex items-center justify-center gap-2"
+              title="Request Sanju to approve another attempt"
+            >
+              <RotateCcw className="w-4 h-4 text-emerald-700" />
+              <span>Attempt Again (Request Retake)</span>
+            </button>
+          )}
 
           <button
             onClick={onGoHome}

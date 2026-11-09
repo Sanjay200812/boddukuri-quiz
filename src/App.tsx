@@ -3,15 +3,17 @@ import { DAILY_QUIZZES, getQuizForDay } from './data/quizzes';
 import type { 
   QuizAttempt, 
   DailyQuiz, 
-  OverallProgress 
+  OverallProgress,
+  UserProfile,
+  UserRole
 } from './types/quiz';
 import { 
   getOverallProgress, 
-  clearInProgressQuiz,
-  getAllAttempts,
-  getProgressSnapshot,
-  mergeProgressSnapshot,
-  STORAGE_CHANGE_EVENT
+  clearInProgressQuiz, 
+  getAllAttempts, 
+  getProgressSnapshot, 
+  mergeProgressSnapshot, 
+  STORAGE_CHANGE_EVENT 
 } from './utils/storage';
 import { evaluateBadges } from './utils/achievements';
 import { Header } from './components/Header';
@@ -25,8 +27,9 @@ import { SettingsModal } from './components/SettingsModal';
 import { BadgesModal } from './components/BadgesModal';
 import { OpeningMotivation } from './components/OpeningMotivation';
 import { LoginScreen } from './components/LoginScreen';
-import { supabase, loadCloudProgress, saveCloudProgress } from './utils/supabase';
-import { Sparkles } from 'lucide-react';
+import { AdminDashboard } from './components/AdminDashboard';
+import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile } from './utils/supabase';
+import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Opening Motivation state (once per session, replayable from Settings)
@@ -39,6 +42,10 @@ export const App: React.FC = () => {
   const [sessionChecked, setSessionChecked] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userRole, setUserRole] = useState<UserRole>('student');
+  const [isAdminPreviewingStudent, setIsAdminPreviewingStudent] = useState<boolean>(false);
+
   const [syncStatus, setSyncStatus] = useState<'synced' | 'offline' | 'pending'>(() => 
     typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'synced'
   );
@@ -76,18 +83,23 @@ export const App: React.FC = () => {
     }
   }, [refreshProgress]);
 
-  // Auth Gate: Check active session on mount
+  // Auth Gate: Check active session on mount & determine role
   useEffect(() => {
     if (!supabase) {
       setSessionChecked(true);
       return;
     }
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       const user = data.session?.user;
       if (user) {
         setUserEmail(user.email || null);
         setUserId(user.id);
+        const profile = await getUserProfile(user.id);
+        if (profile) {
+          setUserProfile(profile);
+          setUserRole(profile.role);
+        }
         void performCloudSync(user.id);
       }
       setSessionChecked(true);
@@ -95,17 +107,25 @@ export const App: React.FC = () => {
       setSessionChecked(true);
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       const user = session?.user;
       if (user) {
         setUserEmail(user.email || null);
         setUserId(user.id);
+        const profile = await getUserProfile(user.id);
+        if (profile) {
+          setUserProfile(profile);
+          setUserRole(profile.role);
+        }
         if (event !== 'SIGNED_OUT') {
           void performCloudSync(user.id);
         }
       } else {
         setUserEmail(null);
         setUserId(null);
+        setUserProfile(null);
+        setUserRole('student');
+        setIsAdminPreviewingStudent(false);
       }
     });
 
@@ -151,14 +171,9 @@ export const App: React.FC = () => {
     };
   }, [refreshProgress, userId]);
 
-  // Current active quiz object (supports Days 01 to 07)
+  // Current active quiz object (supports Days 01 to 07, Semi-Final, Grand Final)
   const currentQuiz: DailyQuiz = (() => {
-    const dayMatch = activeQuizId.match(/\d+/);
-    if (dayMatch) {
-      const dayNum = parseInt(dayMatch[0], 10);
-      return getQuizForDay(dayNum);
-    }
-    return DAILY_QUIZZES[0];
+    return getQuizForDay(activeQuizId);
   })();
 
   // Handler: Start or resume a quiz
@@ -194,7 +209,7 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handler: Reattempt quiz (clears in-progress to start clean new attempt)
+  // Handler: Reattempt quiz
   const handleReattempt = () => {
     if (activeQuizId) {
       clearInProgressQuiz(activeQuizId);
@@ -224,6 +239,9 @@ export const App: React.FC = () => {
     }
     setUserEmail(null);
     setUserId(null);
+    setUserProfile(null);
+    setUserRole('student');
+    setIsAdminPreviewingStudent(false);
   };
 
   // -------------------------------------------------------------
@@ -261,8 +279,22 @@ export const App: React.FC = () => {
   if (!userEmail) {
     return (
       <LoginScreen
-        onLoginSuccess={(email) => {
+        onLoginSuccess={async (email, role) => {
           setUserEmail(email);
+          if (role) {
+            setUserRole(role);
+          }
+          if (supabase) {
+            const { data } = await supabase.auth.getSession();
+            if (data.session?.user) {
+              setUserId(data.session.user.id);
+              const p = await getUserProfile(data.session.user.id);
+              if (p) {
+                setUserProfile(p);
+                setUserRole(p.role);
+              }
+            }
+          }
         }}
         onReplayMotivation={() => {
           setHasSeenMotivation(false);
@@ -271,12 +303,53 @@ export const App: React.FC = () => {
     );
   }
 
+  // 4. Role Gate: If authenticated user is Admin Sanju and not in preview mode, show Admin Dashboard
+  if (userRole === 'admin' && !isAdminPreviewingStudent) {
+    return (
+      <AdminDashboard
+        adminProfile={userProfile || {
+          id: userId || 'admin-id',
+          email: userEmail,
+          role: 'admin',
+          fullName: 'Sanju'
+        }}
+        onSignOut={handleSignOut}
+        onPreviewStudentView={() => {
+          setIsAdminPreviewingStudent(true);
+          setCurrentView('dashboard');
+        }}
+        onPreviewDayQuiz={(quizId) => {
+          setActiveQuizId(quizId);
+          setIsAdminPreviewingStudent(true);
+          setCurrentView('quiz');
+        }}
+      />
+    );
+  }
+
   // -------------------------------------------------------------
-  // MAIN APPLICATION (RENDERED ONLY AFTER SUCCESSFUL LOGIN)
+  // STUDENT LEARNING PORTAL (OR ADMIN PREVIEWING STUDENT VIEW)
   // -------------------------------------------------------------
   return (
     <div className="min-h-screen flex flex-col bg-[#F7FAF7] text-slate-800">
       
+      {/* Admin Preview Mode Floating Bar */}
+      {userRole === 'admin' && isAdminPreviewingStudent && (
+        <div className="bg-slate-950 text-amber-300 px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-slate-800 sticky top-0 z-50">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Sanju Admin: Previewing Student Interface</span>
+          </div>
+          <button
+            onClick={() => setIsAdminPreviewingStudent(false)}
+            className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-colors flex items-center gap-1"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            <span>Return to Admin Dashboard</span>
+          </button>
+        </div>
+      )}
+
       {/* Sticky Header with branding, streak counter & navigation */}
       <Header
         currentView={currentView}
@@ -308,6 +381,7 @@ export const App: React.FC = () => {
             onViewResult={handleViewResult}
             onOpenStudyGuide={handleOpenStudyGuide}
             onOpenBadges={() => setIsBadgesModalOpen(true)}
+            userEmail={userEmail}
           />
         )}
 
@@ -329,6 +403,7 @@ export const App: React.FC = () => {
             onReviewAnswers={() => handleReviewAnswers()}
             onReattempt={handleReattempt}
             onGoHome={handleGoHome}
+            userEmail={userEmail}
           />
         )}
 
@@ -381,12 +456,13 @@ export const App: React.FC = () => {
         </div>
       </footer>
 
-      {/* Settings & Account Modal */}
+      {/* Settings & Account Modal (Shows only Change Name & Log Out for students) */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onDataChanged={refreshProgress}
         userEmail={userEmail}
+        userRole={userRole}
         syncStatus={syncStatus}
         onSyncNow={() => userId && performCloudSync(userId)}
         onSignOut={handleSignOut}

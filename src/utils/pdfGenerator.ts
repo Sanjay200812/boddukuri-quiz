@@ -237,3 +237,4 @@ export function generateDayNotesPDF(quiz: DailyQuiz): void {
   const safeFilename = `Boddukuris_Quiz_${quiz.title.replace(/\s+/g, '_')}_Notes.pdf`;
   doc.save(safeFilename);
 }
+

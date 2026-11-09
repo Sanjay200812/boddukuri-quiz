@@ -140,3 +140,26 @@ export interface UserSettings {
   sanjuWhatsAppNumber: string;
   studentName: string;
 }
+
+export type UserRole = 'student' | 'admin';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  role: UserRole;
+  fullName: string;
+}
+
+export interface RetakeRequest {
+  id: string;
+  userId: string;
+  userEmail: string;
+  dayNumber: number;
+  quizId: string;
+  dayTitle: string;
+  status: 'pending' | 'approved' | 'rejected';
+  requestedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  adminNotes?: string;
+}

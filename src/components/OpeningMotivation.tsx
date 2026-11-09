@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Sparkles, ArrowRight, FastForward, Heart } from 'lucide-react';
 
 interface OpeningMotivationProps {
@@ -6,26 +6,58 @@ interface OpeningMotivationProps {
 }
 
 export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete }) => {
-  const [currentLineIndex, setCurrentLineIndex] = useState(0);
+  // Check prefers-reduced-motion media query
+  const prefersReducedMotion = useMemo(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return false;
+  }, []);
 
-  const lines = [
-    { text: 'Boddukuri Mahima…', highlight: true, delay: 1200 },
-    { text: 'Wake up.', delay: 1000 },
-    { text: 'Start learning.', delay: 1000 },
-    { text: 'Prove yourself to everyone who thought you were wrong.', delay: 1400 },
-    { text: 'You can achieve it.', highlight: true, delay: 1100 },
-    { text: 'Wake up and prove them wrong.', delay: 1200 },
-    { text: 'Show them who you are.', highlight: true, delay: 1400 },
-  ];
+  // Diverse motivational pools cycling around core theme
+  const phrasePools = useMemo(() => [
+    [
+      { text: 'Boddukuri Mahima…', highlight: true, delay: 1100 },
+      { text: 'Wake up.', delay: 900 },
+      { text: 'Keep learning.', delay: 900 },
+      { text: 'Believe in yourself.', highlight: true, delay: 1000 },
+      { text: 'Show your progress through your actions.', highlight: true, delay: 1400 },
+      { text: 'Every quiz brings you closer to mastery.', delay: 1100 }
+    ],
+    [
+      { text: 'Boddukuri Mahima…', highlight: true, delay: 1100 },
+      { text: 'A new day of opportunity is here.', delay: 1000 },
+      { text: 'Wake up and focus your energy.', delay: 900 },
+      { text: 'Learn with complete confidence.', highlight: true, delay: 1100 },
+      { text: 'Prove them right who believe in you.', delay: 1000 },
+      { text: 'Show your greatness through your actions.', highlight: true, delay: 1400 }
+    ],
+    [
+      { text: 'Boddukuri Mahima…', highlight: true, delay: 1100 },
+      { text: 'Wake up and stay determined.', delay: 900 },
+      { text: 'Consistent revision builds champions.', delay: 1000 },
+      { text: 'Believe in your preparation.', highlight: true, delay: 1000 },
+      { text: 'Let your scores and progress speak for you.', highlight: true, delay: 1400 }
+    ]
+  ], []);
+
+  // Pick one variant per session based on timestamp or random index
+  const lines = useMemo(() => {
+    const idx = Math.floor(Date.now() / 3600000) % phrasePools.length;
+    return phrasePools[idx];
+  }, [phrasePools]);
+
+  const [currentLineIndex, setCurrentLineIndex] = useState(() => prefersReducedMotion ? lines.length : 0);
 
   useEffect(() => {
+    if (prefersReducedMotion) return;
     if (currentLineIndex < lines.length) {
       const timer = setTimeout(() => {
         setCurrentLineIndex(prev => prev + 1);
       }, lines[currentLineIndex].delay);
       return () => clearTimeout(timer);
     }
-  }, [currentLineIndex, lines]);
+  }, [currentLineIndex, lines, prefersReducedMotion]);
 
   const isFinished = currentLineIndex >= lines.length;
 
@@ -45,7 +77,7 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
         <button
           onClick={onComplete}
           className="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-xs text-emerald-100 font-bold transition-all flex items-center gap-1.5 border border-white/15"
-          title="Skip to login"
+          title="Skip to learning portal"
         >
           <span>Skip</span>
           <FastForward className="w-3.5 h-3.5" />
@@ -56,7 +88,7 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
       <div className="relative z-10 max-w-xl mx-auto my-auto w-full space-y-4 py-8">
         <div className="space-y-3.5">
           {lines.map((item, idx) => {
-            const isVisible = idx <= currentLineIndex;
+            const isVisible = idx <= currentLineIndex || prefersReducedMotion;
             const isCurrent = idx === currentLineIndex;
 
             if (!isVisible) return null;
@@ -91,7 +123,7 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
               onClick={onComplete}
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black text-base shadow-lg shadow-emerald-500/25 active:scale-98 transition-all flex items-center justify-center gap-2.5 mx-auto"
             >
-              <span>Start Learning Now</span>
+              <span>Enter Learning Portal</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>

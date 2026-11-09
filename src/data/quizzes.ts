@@ -55,7 +55,7 @@ export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
     quizDate: '10-11-2026',
     displayDate: '10 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Tamil Nadu'],
+    newStates: ['Tamil Nadu', 'Rajasthan', 'Gujarat', 'Maharashtra'],
     totalQuestions: 30
   },
   {
@@ -64,7 +64,7 @@ export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
     quizDate: '11-11-2026',
     displayDate: '11 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Rajasthan'],
+    newStates: ['Uttarakhand', 'West Bengal', 'Odisha', 'Himachal Pradesh'],
     totalQuestions: 30
   },
   {
@@ -73,7 +73,7 @@ export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
     quizDate: '12-11-2026',
     displayDate: '12 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Gujarat'],
+    newStates: ['Uttar Pradesh', 'Bihar', 'Jharkhand', 'Chhattisgarh'],
     totalQuestions: 30
   },
   {
@@ -82,7 +82,7 @@ export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
     quizDate: '13-11-2026',
     displayDate: '13 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Uttarakhand'],
+    newStates: ['Goa', 'Haryana', 'Punjab', 'Sikkim'],
     totalQuestions: 30
   },
   {
@@ -91,7 +91,7 @@ export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
     quizDate: '14-11-2026',
     displayDate: '14 November 2026',
     statusLabel: 'Locked',
-    newStates: ['West Bengal'],
+    newStates: ['Arunachal Pradesh', 'Meghalaya', 'Manipur'],
     totalQuestions: 30
   },
   {
@@ -100,8 +100,28 @@ export const ALL_SCHEDULED_CONFIGS: DayConfig[] = [
     quizDate: '15-11-2026',
     displayDate: '15 November 2026',
     statusLabel: 'Locked',
-    newStates: ['Odisha'],
+    newStates: ['Mizoram', 'Nagaland', 'Tripura'],
     totalQuestions: 30
+  },
+  // 16 November: Semi-Final Test (40 Questions across all 28 states)
+  {
+    dayNumber: 8,
+    title: 'Semi-Final Test',
+    quizDate: '16-11-2026',
+    displayDate: '16 November 2026',
+    statusLabel: 'Locked',
+    newStates: [],
+    totalQuestions: 40
+  },
+  // 17 November: Grand Final Test (50 Questions across all 28 states)
+  {
+    dayNumber: 9,
+    title: 'Grand Final Test',
+    quizDate: '17-11-2026',
+    displayDate: '17 November 2026',
+    statusLabel: 'Locked',
+    newStates: [],
+    totalQuestions: 50
   }
 ];
 
@@ -173,8 +193,14 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_CONFIGS): Da
       }
     });
 
+    const quizId = dayNumber === 8 
+      ? 'semi-final' 
+      : dayNumber === 9 
+      ? 'grand-final' 
+      : `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`;
+
     quizzes.push({
-      id: `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`,
+      id: quizId,
       dayNumber,
       title: config.title,
       quizDate: config.quizDate || '09-11-2026',
@@ -195,13 +221,17 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_CONFIGS): Da
 // Master DAILY_QUIZZES list (contains ONLY Day 01 for test verification)
 export const DAILY_QUIZZES: DailyQuiz[] = buildCumulativeQuizzes(DAILY_CONFIGS);
 
-// All scheduled quizzes for the 09 Nov to 15 Nov schedule
+// All scheduled quizzes for the 09 Nov to 17 Nov schedule
 export const ALL_SCHEDULED_QUIZZES: DailyQuiz[] = buildCumulativeQuizzes(ALL_SCHEDULED_CONFIGS);
 
 /**
- * Returns the quiz for a given day number (Days 01 through 07)
+ * Returns the quiz for a given day number or ID (Days 01-07, Semi-Final, Grand Final)
  */
-export function getQuizForDay(dayNumber: number): DailyQuiz {
-  const found = ALL_SCHEDULED_QUIZZES.find(q => q.dayNumber === dayNumber);
+export function getQuizForDay(identifier: number | string): DailyQuiz {
+  if (typeof identifier === 'number') {
+    const found = ALL_SCHEDULED_QUIZZES.find(q => q.dayNumber === identifier);
+    return found || DAILY_QUIZZES[0];
+  }
+  const found = ALL_SCHEDULED_QUIZZES.find(q => q.id === identifier);
   return found || DAILY_QUIZZES[0];
 }

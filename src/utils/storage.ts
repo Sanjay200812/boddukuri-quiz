@@ -1,4 +1,4 @@
-import type { QuizAttempt, InProgressQuiz, OverallProgress, UserSettings, DailyQuiz } from '../types/quiz';
+import type { QuizAttempt, InProgressQuiz, OverallProgress, UserSettings, DailyQuiz, RetakeRequest } from '../types/quiz';
 import { DEFAULT_SANJU_WHATSAPP_NUMBER } from './whatsapp.ts';
 import { evaluateBadges } from './achievements.ts';
 
@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   SETTINGS: 'mahi_quiz_settings_v1',
   COMPLETED_DAYS: 'mahi_quiz_completed_days_v1',
   BOOKMARKS: 'mahi_quiz_bookmarks_v1',
+  RETAKE_REQUESTS: 'mahi_quiz_retake_requests_v1',
 };
 
 export const STORAGE_CHANGE_EVENT = 'mahi-quiz-storage-changed';
@@ -42,6 +43,7 @@ export interface ProgressSnapshot {
   completedDays: string[];
   inProgress: Record<string, InProgressQuiz>;
   bookmarks?: string[];
+  retakeRequests?: RetakeRequest[];
 }
 
 export function getBookmarks(): string[] {
@@ -61,6 +63,71 @@ export function toggleBookmark(questionId: string): boolean {
   return !exists;
 }
 
+// -------------------------------------------------------------
+// RETAKE REQUESTS
+// -------------------------------------------------------------
+
+export function getRetakeRequests(): RetakeRequest[] {
+  return safeGet<RetakeRequest[]>(STORAGE_KEYS.RETAKE_REQUESTS, []);
+}
+
+export function saveRetakeRequest(req: RetakeRequest): void {
+  const list = getRetakeRequests();
+  const filtered = list.filter(r => r.id !== req.id);
+  const updated = [req, ...filtered];
+  safeSet(STORAGE_KEYS.RETAKE_REQUESTS, updated);
+  markProgressChanged();
+}
+
+export function updateRetakeRequestStatus(
+  requestId: string,
+  status: 'pending' | 'approved' | 'rejected',
+  notes?: string,
+  reviewedBy?: string
+): void {
+  const list = getRetakeRequests();
+  const now = new Date().toISOString();
+  const updated = list.map(req => {
+    if (req.id === requestId) {
+      return {
+        ...req,
+        status,
+        reviewedAt: now,
+        reviewedBy: reviewedBy || req.reviewedBy,
+        adminNotes: notes !== undefined ? notes : req.adminNotes
+      };
+    }
+    return req;
+  });
+  safeSet(STORAGE_KEYS.RETAKE_REQUESTS, updated);
+  markProgressChanged();
+}
+
+export function getRetakeStatusForQuiz(quizId: string): RetakeRequest | null {
+  const list = getRetakeRequests();
+  const matching = list.filter(r => r.quizId === quizId);
+  if (matching.length === 0) return null;
+  return matching.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime())[0];
+}
+
+export function isRetakeApproved(quizId: string): boolean {
+  const status = getRetakeStatusForQuiz(quizId);
+  return status?.status === 'approved';
+}
+
+export function consumeApprovedRetake(quizId: string): void {
+  const list = getRetakeRequests();
+  const updated = list.map(r => {
+    if (r.quizId === quizId && r.status === 'approved') {
+      return { ...r, status: 'rejected' as const, adminNotes: 'Attempt completed' };
+    }
+    return r;
+  });
+  safeSet(STORAGE_KEYS.RETAKE_REQUESTS, updated);
+  clearInProgressQuiz(quizId);
+  markProgressChanged();
+}
+
 export function getProgressSnapshot(): ProgressSnapshot {
   const meta = safeGet<{ updatedAt?: string; settingsUpdatedAt?: string }>('mahi_quiz_sync_meta_v1', {});
   return { 
@@ -71,7 +138,8 @@ export function getProgressSnapshot(): ProgressSnapshot {
     attempts: getAllAttempts(), 
     completedDays: getCompletedDayIds(), 
     inProgress: safeGet<Record<string, InProgressQuiz>>(STORAGE_KEYS.IN_PROGRESS, {}),
-    bookmarks: getBookmarks()
+    bookmarks: getBookmarks(),
+    retakeRequests: getRetakeRequests()
   };
 }
 
@@ -92,6 +160,15 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
   
   const mergedBookmarks = Array.from(new Set([...(local.bookmarks || []), ...(incoming.bookmarks || [])]));
   const incomingSettings = new Date(incoming.settingsUpdatedAt || 0).getTime() > new Date(local.settingsUpdatedAt || 0).getTime();
+
+  // Merge retake requests
+  const retakeMap = new Map<string, RetakeRequest>();
+  [...(local.retakeRequests || []), ...(incoming.retakeRequests || [])].forEach(req => {
+    const existing = retakeMap.get(req.id);
+    if (!existing || new Date(req.requestedAt).getTime() > new Date(existing.requestedAt).getTime()) {
+      retakeMap.set(req.id, req);
+    }
+  });
   
   const merged: ProgressSnapshot = { 
     version: 1, 
@@ -101,7 +178,8 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
     attempts: Array.from(attempts.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), 
     completedDays: Array.from(new Set([...(local.completedDays || []), ...(incoming.completedDays || [])])), 
     inProgress,
-    bookmarks: mergedBookmarks
+    bookmarks: mergedBookmarks,
+    retakeRequests: Array.from(retakeMap.values())
   };
   
   safeSet(STORAGE_KEYS.ATTEMPTS, merged.attempts); 
@@ -109,6 +187,7 @@ export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnaps
   safeSet(STORAGE_KEYS.IN_PROGRESS, merged.inProgress); 
   safeSet(STORAGE_KEYS.SETTINGS, merged.settings); 
   safeSet(STORAGE_KEYS.BOOKMARKS, merged.bookmarks);
+  safeSet(STORAGE_KEYS.RETAKE_REQUESTS, merged.retakeRequests);
   saveSyncMeta(merged.updatedAt, merged.settingsUpdatedAt); 
   notifyStorageChanged(); 
   return merged;
@@ -477,13 +556,50 @@ export function importBackupData(jsonString: string): { success: boolean; messag
   }
 }
 
+export function deleteAttemptById(attemptId: string): void {
+  const attempts = getAllAttempts();
+  const target = attempts.find(a => a.id === attemptId);
+  if (!target) return;
+
+  const remaining = attempts.filter(a => a.id !== attemptId);
+  safeSet(STORAGE_KEYS.ATTEMPTS, remaining);
+
+  // If no attempts remain for this quiz, remove it from completedDays
+  const stillHasAttempt = remaining.some(a => a.quizId === target.quizId);
+  if (!stillHasAttempt) {
+    const completed = getCompletedDayIds().filter(id => id !== target.quizId);
+    safeSet(STORAGE_KEYS.COMPLETED_DAYS, completed);
+  }
+
+  markProgressChanged();
+}
+
+export function resetDayProgress(quizId: string): void {
+  const attempts = getAllAttempts().filter(a => a.quizId !== quizId);
+  safeSet(STORAGE_KEYS.ATTEMPTS, attempts);
+
+  const completed = getCompletedDayIds().filter(id => id !== quizId);
+  safeSet(STORAGE_KEYS.COMPLETED_DAYS, completed);
+
+  clearInProgressQuiz(quizId);
+
+  const retakes = getRetakeRequests().filter(r => r.quizId !== quizId);
+  safeSet(STORAGE_KEYS.RETAKE_REQUESTS, retakes);
+
+  markProgressChanged();
+}
+
 export function resetAllData(): void {
   localStorage.removeItem(STORAGE_KEYS.ATTEMPTS);
   localStorage.removeItem(STORAGE_KEYS.IN_PROGRESS);
   localStorage.removeItem(STORAGE_KEYS.COMPLETED_DAYS);
   localStorage.removeItem(STORAGE_KEYS.BOOKMARKS);
+  localStorage.removeItem(STORAGE_KEYS.RETAKE_REQUESTS);
   saveUserSettings({
     sanjuWhatsAppNumber: DEFAULT_SANJU_WHATSAPP_NUMBER,
     studentName: 'Mahi'
   });
+  markProgressChanged();
 }
+
+export const resetAllMahiProgress = resetAllData;
