@@ -39,6 +39,7 @@ export type AdminNavTab =
   | 'students'
   | 'mahi-profile'
   | 'attempts'
+  | 'retake-requests'
   | 'answer-sheets'
   | 'quiz-management'
   | 'schedule'
@@ -59,6 +60,7 @@ interface SidebarProps {
   onAdminNavigate?: (tab: AdminNavTab) => void;
   unreadInboxCount?: number;
   unreadNotifsCount?: number;
+  pendingRetakesCount?: number;
   streakDays?: number;
   userName?: string;
   userEmail?: string | null;
@@ -76,6 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onAdminNavigate,
   unreadInboxCount = 0,
   unreadNotifsCount = 0,
+  pendingRetakesCount = 0,
   streakDays = 0,
   userName,
   userEmail,
@@ -123,6 +126,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'students', label: 'Students', icon: Users },
     { id: 'mahi-profile', label: "Mahi's Profile", icon: UserCheck },
     { id: 'attempts', label: 'Quiz Attempts', icon: FileText },
+    { 
+      id: 'retake-requests', 
+      label: 'Retake Requests', 
+      icon: RotateCcw, 
+      badge: pendingRetakesCount > 0 ? pendingRetakesCount : undefined,
+      badgeColor: 'bg-amber-500 text-amber-950 font-black' 
+    },
     { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
     { id: 'schedule', label: 'Quiz Schedule', icon: Calendar },
     { 

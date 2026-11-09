@@ -31,6 +31,7 @@ import { OpeningMotivation } from './components/OpeningMotivation';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Sidebar, type StudentNavView } from './components/Sidebar';
+import { StudentNotifications } from './components/StudentNotifications';
 import { getUnreadNotificationCount } from './utils/storage';
 import { subscribeToQuizRealtime } from './utils/realtime';
 import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID } from './utils/supabase';
@@ -56,8 +57,8 @@ export const App: React.FC = () => {
     typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'synced'
   );
 
-  // Views: 'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review'
-  const [currentView, setCurrentView] = useState<'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review'>('dashboard');
+  // Views: 'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'
+  const [currentView, setCurrentView] = useState<'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'>('dashboard');
   const [activeQuizId, setActiveQuizId] = useState<string>(DAILY_QUIZZES[0].id);
   const [activeAttempt, setActiveAttempt] = useState<QuizAttempt | null>(null);
   const [studyGuideInitialState, setStudyGuideInitialState] = useState<string | undefined>(undefined);
@@ -334,7 +335,7 @@ export const App: React.FC = () => {
         setIsBadgesModalOpen(true);
         break;
       case 'notifications':
-        setIsSettingsOpen(true);
+        setCurrentView('notifications');
         break;
       case 'settings':
         setIsSettingsOpen(true);
@@ -461,6 +462,7 @@ export const App: React.FC = () => {
           currentView === 'quiz' ? 'today-quiz' :
           currentView === 'result' ? 'my-results' :
           currentView === 'review' ? 'review-mistakes' :
+          currentView === 'notifications' ? 'notifications' :
           currentView === 'study' ? 'help' : 'dashboard'
         }
         onStudentNavigate={handleStudentNav}
@@ -507,7 +509,11 @@ export const App: React.FC = () => {
           onOpenBadges={() => setIsBadgesModalOpen(true)}
           onToggleSidebar={() => setIsStudentSidebarOpen(prev => !prev)}
           unreadNotifsCount={getUnreadNotificationCount('student')}
-          onOpenNotifications={() => setIsSettingsOpen(true)}
+          onOpenNotifications={() => {
+            refreshProgress();
+            setCurrentView('notifications');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           streakDays={overallProgress.currentStreak}
           unlockedBadgesCount={overallProgress.unlockedBadgesCount}
           completedQuizzesCount={overallProgress.totalCompletedDays}
@@ -585,6 +591,23 @@ export const App: React.FC = () => {
               initialState={studyGuideInitialState}
               onStartQuiz={handleStartQuiz}
               onGoHome={handleGoHome}
+            />
+          )}
+
+          {/* VIEW 7: STUDENT NOTIFICATIONS */}
+          {currentView === 'notifications' && (
+            <StudentNotifications
+              onGoHome={handleGoHome}
+              onStartQuiz={handleStartQuiz}
+              onViewResult={(quizId, attemptId) => {
+                const attempts = getAllAttempts();
+                const found = attemptId ? attempts.find(a => a.id === attemptId) : attempts.find(a => a.quizId === quizId);
+                if (found) {
+                  handleViewResult(found);
+                } else {
+                  handleStartQuiz(quizId);
+                }
+              }}
             />
           )}
 

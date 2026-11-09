@@ -80,12 +80,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const targetCountdown = getDayCountdown(recommendedDayNumber, completedDayIds);
   const targetStatus = isTargetUnlocked ? getQuizStatus(targetQuiz.id) : 'pending';
 
-  // Automatically clean up any stale in-progress sessions for locked days
+  // Automatically clean up any stale in-progress sessions for locked days or completed days
   useEffect(() => {
     DAILY_SCHEDULE.forEach((item) => {
       const dayQuiz = getQuizForDay(item.dayNumber);
       const isUnlocked = isDayUnlocked(item.dayNumber, completedDayIds);
-      if (!isUnlocked && getInProgressQuiz(dayQuiz.id)) {
+      const isCompleted = completedDayIds.includes(dayQuiz.id);
+      if ((!isUnlocked || isCompleted) && getInProgressQuiz(dayQuiz.id)) {
         clearInProgressQuiz(dayQuiz.id);
       }
     });
@@ -401,7 +402,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             const latestAttempt = getLatestAttempt(dayQuiz.id);
             const isCompleted = status === 'completed';
             const isUnlocked = isDayUnlocked(scheduleItem.dayNumber, completedDayIds);
-            const isInProgress = isUnlocked && status === 'in-progress';
+            const isInProgress = isUnlocked && !isCompleted && status === 'in-progress';
             const countdown = getDayCountdown(scheduleItem.dayNumber, completedDayIds);
             const retakeStatus = getRetakeStatusForQuiz(dayQuiz.id);
 
@@ -586,7 +587,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </button>
                         )}
                       </>
-                    ) : isUnlocked && isInProgress ? (
+                    ) : !isUnlocked ? (
+                      <button
+                        disabled
+                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        <Lock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Unlocks at 8:29 PM IST</span>
+                      </button>
+                    ) : isInProgress ? (
                       <button
                         onClick={() => onStartQuiz(dayQuiz.id)}
                         className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-amber-950 bg-amber-400 hover:bg-amber-500 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2"
@@ -594,21 +603,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <Play className="w-4 h-4 fill-amber-950" />
                         Resume Quiz
                       </button>
-                    ) : isUnlocked ? (
+                    ) : (
                       <button
                         onClick={() => onStartQuiz(dayQuiz.id)}
                         className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:scale-95 transition-all shadow-sm flex items-center justify-center gap-2 group-hover:bg-emerald-800"
                       >
                         <Play className="w-4 h-4 fill-white" />
                         Start Day Quiz ({scheduleItem.totalQuestions} Qs)
-                      </button>
-                    ) : (
-                      <button
-                        disabled
-                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 cursor-not-allowed flex items-center justify-center gap-2"
-                      >
-                        <Lock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Unlocks at 8:29 PM IST</span>
                       </button>
                     )}
                   </div>

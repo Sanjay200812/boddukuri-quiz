@@ -36,7 +36,8 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
-  FileCheck
+  FileCheck,
+  X
 } from 'lucide-react';
 import { DEFAULT_SANJU_WHATSAPP_NUMBER, formatWhatsAppMessage, getWhatsAppShareUrl } from '../utils/whatsapp';
 import { generateAnswerSheetPDF } from '../utils/pdfGenerator';
@@ -48,6 +49,7 @@ import {
   updateRetakeRequestStatus, 
   deleteAttemptById, 
   resetDayProgress, 
+  markDayCompleted,
   resetAllMahiProgress,
   exportBackupData,
   getInboxNotifications,
@@ -122,6 +124,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDayFilter, setSelectedDayFilter] = useState<string>('all');
   const [inboxFilter, setInboxFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [retakeFilter, setRetakeFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+
+  // Manual Mark Day Completed Modal State
+  const [markCompletedModalDay, setMarkCompletedModalDay] = useState<number | null>(null);
+  const [manualScore, setManualScore] = useState<number>(30);
+  const [manualMaxMarks, setManualMaxMarks] = useState<number>(30);
+  const [manualDurationSecs, setManualDurationSecs] = useState<number>(86);
+  const [manualDateStr, setManualDateStr] = useState<string>('09 November 2026');
+  const [manualNotes, setManualNotes] = useState<string>('Verified and audited by Sanju');
   
   // Confirmation dialogs
   const [resetConfirmQuizId, setResetConfirmQuizId] = useState<string | null>(null);
@@ -356,7 +367,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Handle Retake approval/rejection
-  const _handleReviewRetake = async (requestId: string, status: 'approved' | 'rejected') => {
+  const handleReviewRetake = async (requestId: string, status: 'approved' | 'rejected') => {
     updateRetakeRequestStatus(requestId, status, 'Sanju (Admin)');
     await reviewRetakeRequestCloud(requestId, status, 'Sanju (Admin)');
     await logAdminActionCloud('REVIEW_RETAKE', requestId, { status });
@@ -365,7 +376,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setTimeout(() => setStatusMessage(null), 3000);
     void refreshAllData();
   };
-  void _handleReviewRetake;
+
+  // Handle manual day completion by Admin
+  const handleExecuteMarkCompleted = async () => {
+    if (!markCompletedModalDay) return;
+    const quizId = `day-${markCompletedModalDay < 10 ? '0' + markCompletedModalDay : markCompletedModalDay}`;
+    markDayCompleted({
+      quizId,
+      dayNumber: markCompletedModalDay,
+      dateStr: manualDateStr,
+      marksObtained: manualScore,
+      maxMarks: manualMaxMarks,
+      timeTakenSeconds: manualDurationSecs,
+      notes: manualNotes,
+      recordedBy: adminProfile.displayName || adminProfile.fullName || 'Sanju (Admin)'
+    });
+    await logAdminActionCloud('MANUAL_MARK_COMPLETED', quizId, { 
+      marks: manualScore, 
+      maxMarks: manualMaxMarks,
+      recordedBy: adminProfile.displayName || adminProfile.fullName
+    });
+    setMarkCompletedModalDay(null);
+    setStatusMessage(`Day 0${markCompletedModalDay} has been recorded as COMPLETED.`);
+    setTimeout(() => setStatusMessage(null), 3000);
+    void refreshAllData();
+  };
 
   // Handle attempt deletion
   const handleDeleteAttempt = async (attemptId: string) => {
@@ -473,6 +508,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setIsSidebarOpen(false);
         }}
         unreadInboxCount={unreadInboxCount}
+        pendingRetakesCount={stats.pendingRetakes}
         userName={adminProfile.displayName || 'Sanju (Admin)'}
         userEmail={adminProfile.email}
         onSignOut={onSignOut}
@@ -603,6 +639,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             { id: 'students', label: 'Students', icon: Users },
             { id: 'mahi-profile', label: "Mahi's Profile", icon: UserCheck },
             { id: 'attempts', label: `Attempts (${attempts.length})`, icon: FileText },
+            { id: 'retake-requests', label: `Retakes (${stats.pendingRetakes})`, icon: RotateCcw, badge: stats.pendingRetakes },
             { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
             { id: 'schedule', label: 'Quiz Schedule', icon: Calendar },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
@@ -929,6 +966,111 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                 </div>
 
+              </div>
+
+              {/* 7-Day Syllabus & Individual Day Management */}
+              <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-emerald-400" />
+                      Learning Progress & Day Management
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Manage individual day completions, reset specific days without affecting others, or record manual scores.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowFullResetModal(true)}
+                    className="px-3 py-1.5 rounded-xl bg-rose-950/70 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-auto"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Reset All Student Progress</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {DAILY_SCHEDULE.map(item => {
+                    const isDayDone = completedDays.includes(item.quizId);
+                    const bestAtt = attempts.find(a => a.quizId === item.quizId);
+                    const isUnlocked = isDayUnlocked(item.quizId);
+
+                    return (
+                      <div
+                        key={item.quizId}
+                        className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 transition-all ${
+                          isDayDone
+                            ? 'bg-emerald-950/20 border-emerald-500/40'
+                            : isUnlocked
+                            ? 'bg-slate-950/60 border-slate-800'
+                            : 'bg-slate-950/30 border-slate-900 opacity-80'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs font-black text-white">
+                                {item.quizId.toUpperCase()}
+                              </span>
+                              <span className="text-xs font-bold text-slate-200">
+                                {item.title}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 block mt-0.5">
+                              {item.displayDate} • {item.states.length} States
+                            </span>
+                          </div>
+
+                          {isDayDone ? (
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" /> Done
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px] font-semibold">
+                              Pending
+                            </span>
+                          )}
+                        </div>
+
+                        {isDayDone && bestAtt && (
+                          <div className="p-2 rounded-lg bg-emerald-950/40 border border-emerald-900/60 text-[11px] flex justify-between items-center">
+                            <span className="text-slate-300">Best Score:</span>
+                            <span className="font-bold text-emerald-300">
+                              {bestAtt.marksObtained}/{bestAtt.maxMarks} ({bestAtt.percentage}%) • {bestAtt.timeTakenSeconds}s
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMarkCompletedModalDay(item.dayNumber);
+                              setManualScore(item.totalQuestions);
+                              setManualMaxMarks(item.totalQuestions);
+                            }}
+                            className="flex-1 py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-all text-center"
+                          >
+                            {isDayDone ? 'Edit Score' : 'Mark Completed'}
+                          </button>
+
+                          {isDayDone && (
+                            <button
+                              type="button"
+                              onClick={() => setResetConfirmQuizId(item.quizId)}
+                              className="py-1 px-2 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-900/60 text-[11px] font-bold transition-all"
+                              title="Reset only this day"
+                            >
+                              Reset Day
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Attempts Table for Mahi */}
@@ -1842,26 +1984,54 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
 
                       {/* Controls Footer */}
-                      <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
-                        {onPreviewDayQuiz && (
+                      <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          {onPreviewDayQuiz && (
+                            <button
+                              type="button"
+                              onClick={() => onPreviewDayQuiz(dayItem.quizId)}
+                              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>Preview</span>
+                            </button>
+                          )}
+
                           <button
                             type="button"
-                            onClick={() => onPreviewDayQuiz(dayItem.quizId)}
-                            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1"
+                            onClick={() => {
+                              setMarkCompletedModalDay(dayItem.dayNumber);
+                              setManualScore(dayItem.totalQuestions);
+                              setManualMaxMarks(dayItem.totalQuestions);
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl bg-teal-950/80 text-teal-300 border border-teal-800 hover:bg-teal-900 text-xs font-bold transition-all flex items-center gap-1"
+                            title="Manually record this day as completed for Mahi"
                           >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Preview</span>
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Mark Completed</span>
                           </button>
-                        )}
+                        </div>
 
                         <div className="flex items-center gap-2">
+                          {isCompleted && (
+                            <button
+                              type="button"
+                              onClick={() => setResetConfirmQuizId(dayItem.quizId)}
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-950/80 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1"
+                              title="Reset this day's progress only"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>Reset Day</span>
+                            </button>
+                          )}
+
                           <button
                             type="button"
                             onClick={() => handleToggleDayLock(dayItem.quizId, unlocked)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                               unlocked 
                                 ? 'bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900' 
-                                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
                             }`}
                           >
                             {unlocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -1983,6 +2153,145 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </table>
                 )}
               </div>
+
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: RETAKE REQUESTS MANAGEMENT */}
+          {/* ========================================================================= */}
+          {activeTab === 'retake-requests' && (
+            <div className="space-y-6 animate-fadeIn">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
+                <div>
+                  <h2 className="text-xl font-black text-white flex items-center gap-2">
+                    <RotateCcw className="w-5 h-5 text-amber-400" />
+                    Student Retake Requests ({retakeRequests.length})
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Review and approve requests from Mahi to reattempt previously submitted quizzes. Approving immediately unlocks the day.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-semibold">
+                    {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setRetakeFilter(f)}
+                        className={`px-3 py-1.5 rounded-lg capitalize transition-all ${
+                          retakeFilter === f 
+                            ? 'bg-slate-800 text-white font-bold shadow-sm' 
+                            : 'text-slate-400 hover:text-slate-200'
+                        }`}
+                      >
+                        {f} ({f === 'all' ? retakeRequests.length : retakeRequests.filter(r => r.status === f).length})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Retake Requests List */}
+              {retakeRequests.filter(r => retakeFilter === 'all' || r.status === retakeFilter).length === 0 ? (
+                <div className="p-12 rounded-3xl bg-slate-900/80 border border-slate-800 text-center space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto">
+                    <RotateCcw className="w-7 h-7" />
+                  </div>
+                  <h3 className="text-base font-bold text-white">No Retake Requests Found</h3>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                    When Mahi clicks "Attempt Again" on any completed day quiz, the request will appear here for your review and approval.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {retakeRequests
+                    .filter(r => retakeFilter === 'all' || r.status === retakeFilter)
+                    .map((req) => {
+                      const isPending = req.status === 'pending';
+                      const isApproved = req.status === 'approved';
+                      const isRejected = req.status === 'rejected';
+
+                      return (
+                        <div
+                          key={req.id}
+                          className="p-5 rounded-2xl bg-slate-900/85 backdrop-blur-md border border-slate-800 hover:border-slate-700 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                        >
+                          <div className="space-y-1.5 flex-1">
+                            <div className="flex items-center gap-2.5">
+                              <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-white font-black text-xs">
+                                {req.quizId.toUpperCase()}
+                              </span>
+                              <h3 className="text-sm font-extrabold text-white">
+                                {req.dayTitle || getQuizForDay(req.quizId).title}
+                              </h3>
+                              {isPending ? (
+                                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase tracking-wider animate-pulse flex items-center gap-1">
+                                  <Clock className="w-3 h-3" /> Pending Review
+                                </span>
+                              ) : isApproved ? (
+                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" /> Approved
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                                  <X className="w-3 h-3" /> Rejected
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-slate-300">
+                              Requested by <strong className="text-white">Mahi</strong> (<span className="text-slate-400">{req.userEmail}</span>)
+                            </p>
+
+                            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-0.5">
+                              <span>Requested: {new Date(req.requestedAt).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                              {req.reviewedBy && (
+                                <span>• Reviewed by: <strong className="text-slate-200">{req.reviewedBy}</strong></span>
+                              )}
+                              {req.adminNotes && (
+                                <span className="text-slate-300 italic">• Note: "{req.adminNotes}"</span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                            <button
+                              type="button"
+                              onClick={() => handleReviewRetake(req.id, 'approved')}
+                              disabled={isApproved}
+                              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm ${
+                                isApproved
+                                  ? 'bg-emerald-950 text-emerald-500 border border-emerald-800/40 opacity-70 cursor-not-allowed'
+                                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950 active:scale-95'
+                              }`}
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>{isApproved ? 'Approved' : 'Approve Retake'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleReviewRetake(req.id, 'rejected')}
+                              disabled={isRejected}
+                              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                isRejected
+                                  ? 'bg-rose-950 text-rose-500 border border-rose-800/40 opacity-70 cursor-not-allowed'
+                                  : 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 active:scale-95'
+                              }`}
+                            >
+                              <X className="w-4 h-4" />
+                              <span>{isRejected ? 'Rejected' : 'Reject'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
 
             </div>
           )}
@@ -2645,6 +2954,109 @@ Performance: Outstanding`}
                 className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Confirm Full Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MARK DAY AS COMPLETED MODAL */}
+      {/* ========================================================================= */}
+      {markCompletedModalDay !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+          <div className="bg-slate-900 w-full max-w-lg rounded-3xl p-6 border border-emerald-500/50 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2.5 text-emerald-400">
+                <CheckCircle2 className="w-6 h-6 shrink-0" />
+                <h3 className="text-base font-black text-white">
+                  Mark Day 0{markCompletedModalDay} as Completed
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMarkCompletedModalDay(null)}
+                className="text-slate-400 hover:text-white p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Manually register completion for Mahi. This will generate full correct answers, update the syllabus progress, learning streak, and send an audited notification.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Score Obtained</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={manualMaxMarks}
+                  value={manualScore}
+                  onChange={e => setManualScore(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Total Marks</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={manualMaxMarks}
+                  onChange={e => setManualMaxMarks(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Duration (Seconds)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={manualDurationSecs}
+                  onChange={e => setManualDurationSecs(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-400 font-semibold mb-1">Completion Date</label>
+                <input
+                  type="text"
+                  value={manualDateStr}
+                  onChange={e => setManualDateStr(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-slate-400 text-xs font-semibold mb-1">Admin Audit Notes</label>
+              <input
+                type="text"
+                value={manualNotes}
+                onChange={e => setManualNotes(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setMarkCompletedModalDay(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteMarkCompleted}
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md shadow-emerald-950 transition-all flex items-center gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Confirm & Mark Completed</span>
               </button>
             </div>
           </div>

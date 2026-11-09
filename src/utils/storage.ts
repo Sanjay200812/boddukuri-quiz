@@ -91,19 +91,49 @@ export function updateRetakeRequestStatus(
 ): void {
   const list = getRetakeRequests();
   const now = new Date().toISOString();
+  let affectedReq: RetakeRequest | undefined;
+
   const updated = list.map(req => {
     if (req.id === requestId) {
-      return {
+      affectedReq = {
         ...req,
         status,
         reviewedAt: now,
         reviewedBy: reviewedBy || req.reviewedBy,
         adminNotes: notes !== undefined ? notes : req.adminNotes
       };
+      return affectedReq;
     }
     return req;
   });
+
   safeSet(STORAGE_KEYS.RETAKE_REQUESTS, updated);
+
+  if (affectedReq) {
+    // Notify student
+    const studentNotif: InboxNotification = {
+      id: `notif-student-retake-${Date.now()}`,
+      targetRole: 'student',
+      type: 'retake',
+      title: status === 'approved' ? 'Quiz Retake Approved!' : 'Retake Request Reviewed',
+      message: status === 'approved' 
+        ? `Sanju has approved your request to retake ${affectedReq.dayTitle || affectedReq.quizId.toUpperCase()}. You can now reattempt the quiz!`
+        : `Sanju reviewed your retake request for ${affectedReq.dayTitle || affectedReq.quizId.toUpperCase()}: ${notes || 'Please revise your study guide first.'}`,
+      quizId: affectedReq.quizId,
+      read: false,
+      createdAt: now
+    };
+    saveInboxNotification(studentNotif);
+
+    // Broadcast Realtime event
+    void broadcastQuizEvent('retake_updated', {
+      requestId,
+      status,
+      quizId: affectedReq.quizId,
+      timestamp: now
+    });
+  }
+
   markProgressChanged();
 }
 
@@ -274,7 +304,14 @@ export function getUnreadNotificationCount(role?: 'admin' | 'student'): number {
 // -------------------------------------------------------------
 
 export function getAllAttempts(): QuizAttempt[] {
-  const rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
+  let rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
+  if (rawAttempts.length === 0) {
+    const hasExplicitReset = safeGet<boolean>('mahi_quiz_explicitly_reset_v1', false);
+    if (!hasExplicitReset) {
+      ensureMahiBaselineAttempt();
+      rawAttempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
+    }
+  }
   // Sort descending by timestamp (newest first)
   return rawAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
@@ -300,9 +337,17 @@ export function getBestAttempt(quizId: string): QuizAttempt | null {
 
 /**
  * Baseline attempt metadata reference for audit and verification (Day 01, 30 marks, 86 seconds, Outstanding)
+ * Restores all 30 questions with correct answers mapped.
  */
 export function getOrRecoverBaselineAttempts(autoInject = false): QuizAttempt[] {
   const day01Quiz = getQuizForDay('day-01');
+  const answers: Record<string, number> = {};
+  if (day01Quiz && day01Quiz.questions) {
+    day01Quiz.questions.forEach((q) => {
+      answers[q.id] = q.correctAnswer;
+    });
+  }
+
   const baselineAttempt: QuizAttempt = {
     id: 'attempt-mahi-day01-100',
     quizId: 'day-01',
@@ -317,7 +362,7 @@ export function getOrRecoverBaselineAttempts(autoInject = false): QuizAttempt[] 
     formattedDate: '09 November 2026',
     quizDate: '2026-11-09',
     displayDate: '09 November 2026',
-    answers: {},
+    answers,
     totalQuestions: 30,
     correctCount: 30,
     incorrectCount: 0,
@@ -329,6 +374,8 @@ export function getOrRecoverBaselineAttempts(autoInject = false): QuizAttempt[] 
     timeTakenSeconds: 86,
     performanceTier: 'outstanding',
     performanceMessage: 'Outstanding',
+    status: 'completed',
+    submissionId: 'sub_baseline_mahi_day01_100',
     quote: {
       quote: 'Every day you learn something new, you become a better version of yourself.',
       personalNote: 'Keep learning, Mahi! 💚'
@@ -343,6 +390,48 @@ export function getOrRecoverBaselineAttempts(autoInject = false): QuizAttempt[] 
     saveQuizAttempt(baselineAttempt);
   }
   return [baselineAttempt];
+}
+
+/**
+ * Ensures Mahi's Day 01 baseline attempt exists with full answer mappings.
+ */
+export function ensureMahiBaselineAttempt(): QuizAttempt {
+  const attempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
+  let day01 = attempts.find(a => a.quizId === 'day-01');
+  const day01Quiz = getQuizForDay('day-01');
+
+  const answers: Record<string, number> = {};
+  if (day01Quiz?.questions) {
+    day01Quiz.questions.forEach((q) => {
+      answers[q.id] = q.correctAnswer;
+    });
+  }
+
+  if (day01) {
+    // If existing day01 attempt has empty answers or needs recovery, enrich it
+    if (!day01.answers || Object.keys(day01.answers).length === 0 || day01.marksObtained !== 30) {
+      day01 = {
+        ...day01,
+        marksObtained: 30,
+        maxMarks: 30,
+        percentage: 100,
+        correctCount: 30,
+        incorrectCount: 0,
+        unansweredCount: 0,
+        timeTakenSeconds: 86,
+        performanceTier: 'outstanding',
+        performanceMessage: 'Outstanding',
+        status: 'completed',
+        answers: Object.keys(day01.answers || {}).length > 0 ? (day01.answers as Record<string, number>) : answers
+      };
+      saveQuizAttempt(day01);
+    }
+    return day01;
+  }
+
+  const baseline = getOrRecoverBaselineAttempts(false)[0]!;
+  saveQuizAttempt(baseline);
+  return baseline;
 }
 
 export function saveQuizAttempt(attempt: QuizAttempt): void {
@@ -777,7 +866,104 @@ export function resetDayProgress(quizId: string): void {
   const retakes = getRetakeRequests().filter(r => r.quizId !== quizId);
   safeSet(STORAGE_KEYS.RETAKE_REQUESTS, retakes);
 
+  if (quizId === 'day-01') {
+    safeSet('mahi_quiz_explicitly_reset_v1', true);
+  }
+
   markProgressChanged();
+}
+
+/**
+ * Manually marks a scheduled day as completed by Sanju with full question answers and audit record.
+ */
+export function markDayCompleted(params: {
+  quizId: string;
+  dayNumber: number;
+  dateStr?: string;
+  marksObtained: number;
+  maxMarks: number;
+  timeTakenSeconds: number;
+  notes?: string;
+  recordedBy?: string;
+}): QuizAttempt {
+  const dayQuiz = getQuizForDay(params.quizId);
+  const percentage = Math.round((params.marksObtained / (params.maxMarks || 1)) * 100);
+  const correctCount = params.marksObtained;
+  const incorrectCount = Math.max(0, params.maxMarks - params.marksObtained);
+
+  const answers: Record<string, number> = {};
+  if (dayQuiz?.questions) {
+    dayQuiz.questions.forEach((q, idx) => {
+      if (idx < params.marksObtained) {
+        answers[q.id] = q.correctAnswer;
+      } else {
+        const wrongOpt = [0, 1, 2, 3].find(k => k !== q.correctAnswer) ?? 0;
+        answers[q.id] = wrongOpt;
+      }
+    });
+  }
+
+  const mins = Math.floor(params.timeTakenSeconds / 60);
+  const secs = params.timeTakenSeconds % 60;
+  const timeTakenFormatted = `${mins}m ${secs}s`;
+
+  const attempt: QuizAttempt = {
+    id: `attempt-manual-${params.quizId}-${Date.now()}`,
+    quizId: params.quizId,
+    dayNumber: params.dayNumber,
+    studentId: '00000000-0000-0000-0000-000000002002',
+    studentName: 'Mahi',
+    studentEmail: 'mahi@boddukuri.quiz',
+    statesCovered: dayQuiz ? dayQuiz.statesCovered : [],
+    timestamp: new Date().toISOString(),
+    formattedDate: params.dateStr || '09 November 2026',
+    quizDate: params.dateStr || new Date().toISOString().split('T')[0],
+    displayDate: params.dateStr || '09 November 2026',
+    answers,
+    totalQuestions: params.maxMarks,
+    correctCount,
+    incorrectCount,
+    unansweredCount: 0,
+    marksObtained: params.marksObtained,
+    maxMarks: params.maxMarks,
+    percentage,
+    accuracy: percentage,
+    timeTakenSeconds: params.timeTakenSeconds,
+    performanceTier: percentage === 100 ? 'outstanding' : percentage >= 80 ? 'excellent' : 'good',
+    performanceMessage: percentage === 100 ? 'Outstanding' : percentage >= 80 ? 'Great job!' : 'Completed',
+    status: 'completed',
+    submissionId: `admin_manual_${Date.now()}`,
+    sectionBreakdown: {
+      previous: { total: 0, correct: 0, incorrect: 0, unanswered: 0, percentage: 0 },
+      new: { total: params.maxMarks, correct: correctCount, incorrect: incorrectCount, unanswered: 0, percentage }
+    },
+    quote: {
+      quote: 'Every day you learn something new, you become a better version of yourself.',
+      personalNote: 'Recorded by Admin'
+    }
+  };
+
+  saveQuizAttempt(attempt);
+  clearInProgressQuiz(params.quizId);
+
+  // Student notification
+  const studentNotif: InboxNotification = {
+    id: `notif-student-manual-${Date.now()}`,
+    targetRole: 'student',
+    type: 'submission',
+    title: `Day 0${params.dayNumber} Completion Recorded`,
+    message: `Sanju recorded completion for Day 0${params.dayNumber}: ${params.marksObtained}/${params.maxMarks} (${percentage}%) in ${timeTakenFormatted}.`,
+    quizId: params.quizId,
+    attemptId: attempt.id,
+    dayNumber: params.dayNumber,
+    scoreText: `${params.marksObtained}/${params.maxMarks}`,
+    percentage,
+    read: false,
+    createdAt: new Date().toISOString()
+  };
+  saveInboxNotification(studentNotif);
+
+  return attempt;
 }
 
 export function resetAllData(): void {
@@ -790,6 +976,7 @@ export function resetAllData(): void {
     localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
     localStorage.removeItem('mahi_quiz_sync_meta_v1');
     localStorage.removeItem('mahi_quiz_whatsapp_logs_v1');
+    localStorage.setItem('mahi_quiz_explicitly_reset_v1', 'true');
   }
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.removeItem('mahi_motivation_seen');
