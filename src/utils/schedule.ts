@@ -327,6 +327,10 @@ export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: s
   const schedule = DAILY_SCHEDULE.find(s => s.quizId === quizId || s.dayNumber === dayNumberOrId);
   if (!schedule) return false;
 
+  // Sanju's current production policy: every scheduled quiz is available.
+  // Keep the function as the single guard so future locking can be reintroduced safely.
+  return true;
+
   // Day 01 is published. Days 02–07 remain scheduled/locked until explicitly published or unlocked by Admin.
   if (!schedule.isPublished) {
     return false;

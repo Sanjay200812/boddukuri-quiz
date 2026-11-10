@@ -158,23 +158,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       // Try to load cloud records without overwriting local data with empty arrays
       const cloudStudents = await loadAllStudentsProgressCloud();
-      if (cloudStudents.length > 0 && cloudStudents[0]?.payload) {
-        const p = cloudStudents[0].payload;
-        if (p.attempts && p.attempts.length > 0) {
+      if (cloudStudents.length > 0) {
+        const cloudPayloads = cloudStudents.map(s => s.payload).filter(Boolean);
+        const cloudAttempts = cloudPayloads.flatMap(p => p.attempts || []);
+        const cloudCompleted = cloudPayloads.flatMap(p => p.completedDays || []);
+        const cloudRetakes = cloudPayloads.flatMap(p => p.retakeRequests || []);
+        if (cloudAttempts.length > 0) {
           // Merge attempts by id deduplication
           const mergedMap = new Map<string, QuizAttempt>();
-          p.attempts.forEach(a => mergedMap.set(a.id, a));
+          cloudAttempts.forEach(a => mergedMap.set(a.id, a));
           localAttempts.forEach(a => {
             if (!mergedMap.has(a.id)) mergedMap.set(a.id, a);
           });
           setAttempts(Array.from(mergedMap.values()));
         }
-        if (p.completedDays && p.completedDays.length > 0) {
-          const mergedDays = Array.from(new Set([...localCompleted, ...p.completedDays]));
+        if (cloudCompleted.length > 0) {
+          const mergedDays = Array.from(new Set([...localCompleted, ...cloudCompleted]));
           setCompletedDays(mergedDays);
         }
-        if (p.retakeRequests && p.retakeRequests.length > 0) {
-          setRetakeRequests(p.retakeRequests);
+        if (cloudRetakes.length > 0) {
+          setRetakeRequests(cloudRetakes);
         }
       }
     } catch (err) {

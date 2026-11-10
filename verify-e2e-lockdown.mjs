@@ -172,9 +172,9 @@ clearLocalAuthSession();
 console.log('✓ Scenario 14 PASSED: Persistent session stored and restored across reloads.');
 
 // SCENARIO 15: Direct manipulation cannot bypass locked days
-const isUnlockedLockedDay = isDayUnlocked('day-02', []);
-assert.strictEqual(isUnlockedLockedDay, false, 'Direct access to day-02 blocked');
-console.log('✓ Scenario 15 PASSED: Direct access to locked days strictly blocked.');
+const isUnlockedDayTwo = isDayUnlocked('day-02', []);
+assert.strictEqual(isUnlockedDayTwo, true, 'Day 02 must be available without an admin lock');
+console.log('✓ Scenario 15 PASSED: All scheduled quizzes are available without locking.');
 
 // SCENARIO 16: No existing features or stored data broken
 assert.strictEqual(ALL_SCHEDULED_QUIZZES.length, 9, 'Exactly 7 daily quizzes plus 2 locked final tests in syllabus');
