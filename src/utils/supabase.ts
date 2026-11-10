@@ -397,16 +397,17 @@ export async function loadAdminScheduleOverridesCloud(): Promise<Record<string, 
   try {
     const { data, error } = await supabase
       .from('admin_schedule_config')
-      .select('*');
+      .select('key, payload');
     if (error) {
       console.warn('loadAdminScheduleOverridesCloud error:', error.message);
       return {};
     }
     const map: Record<string, { isUnlockedOverride?: boolean; customUnlockTime?: string }> = {};
     (data || []).forEach(row => {
-      map[row.quiz_id] = {
-        isUnlockedOverride: row.is_unlocked_override,
-        customUnlockTime: row.custom_unlock_time
+      const payload = (row.payload || {}) as { isUnlockedOverride?: boolean; customUnlockTime?: string };
+      map[row.key] = {
+        isUnlockedOverride: payload.isUnlockedOverride,
+        customUnlockTime: payload.customUnlockTime
       };
     });
     return map;
@@ -423,9 +424,11 @@ export async function saveAdminScheduleOverrideCloud(
   const { error } = await supabase
     .from('admin_schedule_config')
     .upsert({
-      quiz_id: quizId,
-      is_unlocked_override: override.isUnlockedOverride ?? null,
-      custom_unlock_time: override.customUnlockTime ?? null,
+      key: quizId,
+      payload: {
+        isUnlockedOverride: override.isUnlockedOverride ?? null,
+        customUnlockTime: override.customUnlockTime ?? null
+      },
       updated_at: new Date().toISOString()
     });
   if (error) throw error;
