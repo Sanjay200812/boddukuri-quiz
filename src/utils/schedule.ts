@@ -1,4 +1,4 @@
-import { loadAdminScheduleOverridesCloud } from './supabase';
+import { loadAdminScheduleOverridesCloud } from './supabase.ts';
 
 /**
  * Schedule & Time Management for Boddukuri's Quiz #Mahi
