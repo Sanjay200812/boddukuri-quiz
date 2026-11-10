@@ -197,7 +197,10 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
             email: res.email,
             role,
             fullName: role === 'admin' ? 'Sanju' : 'Mahi',
-            authTicket: res.auth_ticket
+            authTicket: res.auth_ticket,
+            // The RPC intentionally returns no user id. Map the two controlled
+            // access-code identities so progress always targets the correct row.
+            userId: role === 'admin' ? SANJU_ADMIN_ID : MAHI_STUDENT_ID
           };
         }
 

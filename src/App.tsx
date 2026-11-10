@@ -256,6 +256,7 @@ export const App: React.FC = () => {
     if (typeof navigator !== 'undefined' && navigator.onLine) {
       const snap = getProgressSnapshot();
       void saveCloudProgress(currentUid, snap);
+      void performCloudSync(currentUid);
     }
     setCurrentView('result');
     window.scrollTo({ top: 0, behavior: 'smooth' });
