@@ -1,3 +1,5 @@
+import { loadAdminScheduleOverridesCloud } from './supabase';
+
 /**
  * Schedule & Time Management for Boddukuri's Quiz #Mahi
  * Approved 7-Day National Parks Study Plan (09 Nov – 15 Nov 2026)
@@ -226,6 +228,24 @@ export interface ScheduleOverrideItem {
 }
 
 const SCHEDULE_OVERRIDES_KEY = 'mahi_admin_schedule_overrides_v1';
+let cloudOverridesLoaded = false;
+
+export async function hydrateScheduleOverridesCloud(): Promise<void> {
+  if (cloudOverridesLoaded) return;
+  const cloud = await loadAdminScheduleOverridesCloud();
+  if (Object.keys(cloud).length === 0) return;
+  const local = getScheduleOverrides();
+  for (const [quizId, value] of Object.entries(cloud)) {
+    local[quizId] = {
+      ...local[quizId],
+      ...(value.isUnlockedOverride === true ? { forceUnlocked: true, forceLocked: false } : {}),
+      ...(value.isUnlockedOverride === false ? { forceUnlocked: false, forceLocked: true } : {}),
+      ...(value.customUnlockTime ? { customUnlockIsoUTC: value.customUnlockTime } : {})
+    };
+  }
+  saveScheduleOverrides(local);
+  cloudOverridesLoaded = true;
+}
 
 export function isDevUnlockAllEnabled(): boolean {
   const overrides = getScheduleOverrides();

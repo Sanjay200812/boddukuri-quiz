@@ -4,7 +4,7 @@ import type { UserRole } from '../types/quiz';
 import { Sparkles, Lock, Mail, Eye, EyeOff, AlertCircle, WifiOff, CheckCircle2, ArrowRight, KeyRound, ShieldAlert, Clock } from 'lucide-react';
 
 interface LoginScreenProps {
-  onLoginSuccess: (userEmail: string, role?: UserRole) => void;
+  onLoginSuccess: (userEmail: string, role?: UserRole, userId?: string) => void;
   onReplayMotivation?: () => void;
 }
 
@@ -172,7 +172,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         userId: result.userId,
         loggedInAt: new Date().toISOString()
       });
-      onLoginSuccess(result.email, resolvedRole);
+      onLoginSuccess(result.email, resolvedRole, result.userId);
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to verify access code.');
     } finally {

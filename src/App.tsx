@@ -16,7 +16,7 @@ import {
   mergeProgressSnapshot,
   STORAGE_CHANGE_EVENT
 } from './utils/storage';
-import { isDayUnlocked } from './utils/schedule';
+import { isDayUnlocked, hydrateScheduleOverridesCloud } from './utils/schedule';
 import { evaluateBadges } from './utils/achievements';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
@@ -70,6 +70,10 @@ export const App: React.FC = () => {
   const refreshProgress = useCallback(() => {
     setOverallProgress(getOverallProgress(DAILY_QUIZZES));
   }, []);
+
+  useEffect(() => {
+    void hydrateScheduleOverridesCloud().then(refreshProgress);
+  }, [refreshProgress]);
 
   // Cloud Sync Handler
   const performCloudSync = useCallback(async (uid: string) => {
@@ -398,8 +402,12 @@ export const App: React.FC = () => {
   if (!userEmail) {
     return (
       <LoginScreen
-        onLoginSuccess={async (email, role) => {
+        onLoginSuccess={async (email, role, authenticatedUserId) => {
           setUserEmail(email);
+          if (authenticatedUserId) {
+            setUserId(authenticatedUserId);
+            void performCloudSync(authenticatedUserId);
+          }
           if (role) {
             setUserRole(role);
           }
