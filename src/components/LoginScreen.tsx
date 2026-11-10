@@ -154,13 +154,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       // Valid access code! If backend ticket provided, sign in to Supabase auth session
       if (result.authTicket && supabase) {
-        try {
-          await supabase.auth.signInWithPassword({
-            email: result.email,
-            password: result.authTicket,
-          });
-        } catch {
-          // ignore session activation error in fallback mode
+        const { error: cloudSignInError } = await supabase.auth.signInWithPassword({
+          email: result.email,
+          password: result.authTicket,
+        });
+        if (cloudSignInError) {
+          throw new Error(`Cloud sign-in failed: ${cloudSignInError.message}. Your result cannot sync until Supabase Auth is connected.`);
+        }
+        const { data: cloudSession } = await supabase.auth.getSession();
+        if (!cloudSession.session?.user) {
+          throw new Error('Supabase did not create a cloud session. Please try signing in again.');
         }
       }
 
