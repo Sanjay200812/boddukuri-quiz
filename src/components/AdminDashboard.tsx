@@ -190,6 +190,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   useEffect(() => {
     void refreshAllData();
 
+    // Keep the admin view current even if a realtime broadcast is missed.
+    const refreshTimer = window.setInterval(() => {
+      void refreshAllData();
+    }, 15000);
+
     // Subscribe to Realtime events across devices & tabs
     const unsubscribe = subscribeToQuizRealtime({
       onQuizSubmitted: (payload) => {
@@ -206,6 +211,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         }
         setStatusMessage(`Realtime update: Mahi submitted ${payload.attempt.quizId.toUpperCase()} (${payload.attempt.percentage}%)!`);
         setTimeout(() => setStatusMessage(null), 4000);
+        void refreshAllData();
       },
       onProgressReset: () => {
         setAttempts([]);
@@ -219,7 +225,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      window.clearInterval(refreshTimer);
+      unsubscribe();
+    };
   }, []);
 
   const unreadInboxCount = useMemo(() => {
@@ -245,7 +254,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Overall statistics for Mahi (strictly derived from persisted records)
   const stats = useMemo(() => {
     const totalAttempts = attempts.length;
-    const completedCount = getCompletedDayIds().length;
+    const completedCount = completedDays.length;
     const bestPercentage = attempts.length > 0 ? Math.max(...attempts.map(a => a.percentage || 0)) : 0;
     const avgPercentage = attempts.length > 0 ? Math.round(attempts.reduce((acc, a) => acc + (a.percentage || 0), 0) / attempts.length) : 0;
     const pendingRetakes = retakeRequests.filter(r => r.status === 'pending').length;
