@@ -287,7 +287,7 @@ function normalizeUserId(userId?: string | null): string {
 }
 
 export async function loadCloudProgress(userId: string): Promise<ProgressSnapshot | null> {
-  if (!supabase) return null;
+  if (!supabase) throw new Error('Supabase is not configured in this deployment.');
   const cleanId = normalizeUserId(userId);
   try {
     const { data, error } = await supabase
@@ -298,23 +298,22 @@ export async function loadCloudProgress(userId: string): Promise<ProgressSnapsho
     if (error) throw error;
     return (data?.payload as ProgressSnapshot | undefined) || null;
   } catch (err) {
-    console.warn('Load cloud progress advisory:', err);
-    return null;
+    console.warn('Load cloud progress failed:', err);
+    throw err;
   }
 }
 
 export async function saveCloudProgress(userId: string, payload: ProgressSnapshot): Promise<void> {
-  if (!supabase) return;
+  if (!supabase) throw new Error('Supabase is not configured in this deployment.');
   const cleanId = normalizeUserId(userId);
   try {
     const { error } = await supabase
       .from('quiz_progress')
       .upsert({ user_id: cleanId, payload, updated_at: payload.updatedAt });
-    if (error) {
-      console.warn('Cloud progress upsert note:', error.message);
-    }
+    if (error) throw error;
   } catch (err) {
-    console.warn('saveCloudProgress note:', err);
+    console.warn('saveCloudProgress failed:', err);
+    throw err;
   }
 }
 
