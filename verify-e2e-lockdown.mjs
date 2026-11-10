@@ -51,13 +51,12 @@ assert.strictEqual(day01Quiz.totalQuestions, 30, 'Day 01 has 30 questions');
 assert.strictEqual(day01Quiz.statesCovered.length, 6, 'Day 01 covers 6 states');
 console.log('✓ Scenario 4 PASSED: Day 01 opens correctly with 30 questions across 6 states.');
 
-// SCENARIO 5: Days 02–07 remain locked
+// SCENARIO 5: Days 02–07 are available without locking
 for (let d = 2; d <= 7; d++) {
-  assert.strictEqual(DAILY_SCHEDULE[d - 1].isPublished, false, `Day ${d} must be unpublished`);
-  assert.strictEqual(isDayUnlocked(d, []), false, `Day ${d} must be locked for student`);
-  assert.strictEqual(isDayUnlocked(`day-0${d}`, []), false, `Day ${d} locked by id`);
+  assert.strictEqual(isDayUnlocked(d, []), true, `Day ${d} must be available for student`);
+  assert.strictEqual(isDayUnlocked(`day-0${d}`, []), true, `Day ${d} available by id`);
 }
-console.log('✓ Scenario 5 PASSED: Days 02 through 07 strictly locked.');
+console.log('✓ Scenario 5 PASSED: Days 02 through 07 are available.');
 
 // SCENARIO 6: Mahi can complete and submit Day 01
 const mockSubmittedAnswers = {};

@@ -316,32 +316,11 @@ export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: s
     return true;
   }
 
-  // Check Admin Overrides
-  const overrides = getScheduleOverrides();
-  const override = overrides[quizId];
-  if (override) {
-    if (override.forceUnlocked === true) return true;
-    if (override.forceLocked === true) return false;
-  }
-
   const schedule = DAILY_SCHEDULE.find(s => s.quizId === quizId || s.dayNumber === dayNumberOrId);
   if (!schedule) return false;
 
   // Sanju's current production policy: every scheduled quiz is available.
-  // Keep the function as the single guard so future locking can be reintroduced safely.
   return true;
-
-  // Day 01 is published. Days 02–07 remain scheduled/locked until explicitly published or unlocked by Admin.
-  if (!schedule.isPublished) {
-    return false;
-  }
-
-  // Day 01 unlocks at sharp 8:29 PM IST (14:59:00Z UTC)
-  const unlockTime = override?.customUnlockIsoUTC
-    ? new Date(override.customUnlockIsoUTC).getTime()
-    : new Date(schedule.unlockIsoUTC).getTime();
-
-  return Date.now() >= unlockTime;
 }
 
 export interface CountdownInfo {
