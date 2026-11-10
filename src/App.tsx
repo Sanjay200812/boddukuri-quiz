@@ -34,7 +34,7 @@ import { Sidebar, type StudentNavView } from './components/Sidebar';
 import { StudentNotifications } from './components/StudentNotifications';
 import { getUnreadNotificationCount } from './utils/storage';
 import { subscribeToQuizRealtime } from './utils/realtime';
-import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID } from './utils/supabase';
+import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID, SANJU_ADMIN_ID } from './utils/supabase';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -107,10 +107,11 @@ export const App: React.FC = () => {
         role: localSaved.role,
         fullName: localSaved.fullName
       });
-      if (localSaved.userId) {
-        setUserId(localSaved.userId);
-        void performCloudSync(localSaved.userId);
-      }
+      const canonicalUserId = localSaved.userId || (localSaved.role === 'admin' ? SANJU_ADMIN_ID : MAHI_STUDENT_ID);
+      setUserId(canonicalUserId);
+      // This uploads any already-completed local attempts after an app update;
+      // the student does not need to repeat the quiz.
+      void performCloudSync(canonicalUserId);
     }
 
     if (!supabase) {
