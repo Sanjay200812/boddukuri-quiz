@@ -139,7 +139,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Hero Welcome Banner */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-10 shadow-elevated">
+      <section className="portal-hero relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-10 shadow-elevated">
         {/* Decorative background botanicals / shapes */}
         <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-red-900/20 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 -mb-20 w-64 h-64 rounded-full bg-red-600/10 blur-2xl pointer-events-none" />

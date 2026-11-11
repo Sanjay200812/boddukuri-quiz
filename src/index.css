@@ -142,3 +142,7 @@
   background-color: #8f1f31 !important;
   color: #fff8fa !important;
 }
+.portal-hero,
+.portal-hero [class*="text-white"] { color: #fff8fa !important; }
+.portal-hero [class*="text-red-100"],
+.portal-hero [class*="text-red-300"] { color: #ffdce2 !important; }
