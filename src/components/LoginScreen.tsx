@@ -227,21 +227,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <button
               type="button"
               onClick={() => {
-                setAuthMethod('password');
-                setErrorMessage(null);
-              }}
-              className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
-                authMethod === 'password'
-                  ? 'bg-red-900 text-white shadow-sm'
-                  : 'text-stone-400 hover:text-white'
-              }`}
-            >
-              <Mail className="w-3.5 h-3.5" />
-              <span>Email & Password</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
                 setAuthMethod('code');
                 setErrorMessage(null);
               }}
@@ -253,6 +238,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             >
               <KeyRound className="w-3.5 h-3.5" />
               <span>Access Code</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMethod('password');
+                setErrorMessage(null);
+              }}
+              className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                authMethod === 'password'
+                  ? 'bg-red-900 text-white shadow-sm'
+                  : 'text-stone-400 hover:text-white'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Email & Password</span>
             </button>
           </div>
 

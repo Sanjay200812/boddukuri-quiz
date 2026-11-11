@@ -490,7 +490,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+    <div className="portal-light min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
 
       {/* Luxury Villa Background Layer (Admin Dashboard Exclusive) */}
       <div

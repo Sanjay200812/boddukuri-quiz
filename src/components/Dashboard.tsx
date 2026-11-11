@@ -132,7 +132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="relative space-y-8 pb-16 animate-fadeIn">
+    <div className="portal-light relative space-y-8 pb-16 animate-fadeIn">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-[#050506]">
         <div className="absolute -left-32 top-20 h-96 w-96 rounded-full bg-red-950/30 blur-3xl animate-pulse" />
         <div className="absolute right-0 top-1/3 h-[32rem] w-[32rem] rounded-full bg-[#3a1822]/20 blur-3xl" />

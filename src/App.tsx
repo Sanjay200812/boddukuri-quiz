@@ -32,7 +32,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Sidebar, type StudentNavView } from './components/Sidebar';
 import { StudentNotifications } from './components/StudentNotifications';
-import { getUnreadNotificationCount } from './utils/storage';
+import { getUnreadNotificationCount, resetAllData } from './utils/storage';
 import { subscribeToQuizRealtime } from './utils/realtime';
 import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID, SANJU_ADMIN_ID } from './utils/supabase';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
@@ -70,6 +70,15 @@ export const App: React.FC = () => {
   // Refresh progress state whenever returning to dashboard or after actions
   const refreshProgress = useCallback(() => {
     setOverallProgress(getOverallProgress(DAILY_QUIZZES));
+  }, []);
+
+  useEffect(() => {
+    // Production clean-start marker: the cloud quiz data was intentionally
+    // reset, so discard stale offline attempts once on every existing device.
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('mahi_clean_start_v2') !== 'true') {
+      resetAllData();
+      localStorage.setItem('mahi_clean_start_v2', 'true');
+    }
   }, []);
 
   useEffect(() => {
