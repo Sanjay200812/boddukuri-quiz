@@ -152,6 +152,41 @@
 .portal-light [class*="border-white"] {
   border-color: #e7b8c2 !important;
 }
+.portal-light [class*="text-amber-"],
+.portal-light [class*="text-orange-"],
+.portal-light [class*="text-yellow-"],
+.portal-light [class*="text-cyan-"],
+.portal-light [class*="text-blue-"],
+.portal-light [class*="text-sky-"] {
+  color: #8f1d2c !important;
+}
+.portal-light [class*="bg-amber-"],
+.portal-light [class*="bg-orange-"],
+.portal-light [class*="bg-yellow-"],
+.portal-light [class*="bg-cyan-"],
+.portal-light [class*="bg-blue-"],
+.portal-light [class*="bg-sky-"] {
+  background-color: #fff7f8 !important;
+}
+.portal-light [class*="border-amber-"],
+.portal-light [class*="border-orange-"],
+.portal-light [class*="border-yellow-"],
+.portal-light [class*="border-cyan-"],
+.portal-light [class*="border-blue-"],
+.portal-light [class*="border-sky-"] {
+  border-color: #e7b8c2 !important;
+}
+.portal-light [class*="from-amber-"],
+.portal-light [class*="to-amber-"],
+.portal-light [class*="via-amber-"],
+.portal-light [class*="from-orange-"],
+.portal-light [class*="to-orange-"],
+.portal-light [class*="from-yellow-"],
+.portal-light [class*="to-yellow-"] {
+  --tw-gradient-from: #fff7f8 !important;
+  --tw-gradient-to: #fff7f8 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
 .portal-light button[class*="bg-red-"],
 .portal-light [class*="bg-red-900"] {
   background-color: #8f1f31 !important;
