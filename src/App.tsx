@@ -249,18 +249,27 @@ export const App: React.FC = () => {
   };
 
   // Handler: Quiz submitted & finished
-  const handleFinishQuiz = (attempt: QuizAttempt) => {
-    setActiveAttempt(attempt);
-    refreshProgress();
-    // Persist to Supabase cloud immediately upon submission
+  const handleFinishQuiz = async (attempt: QuizAttempt) => {
     const currentUid = userId || MAHI_STUDENT_ID;
-    if (typeof navigator !== 'undefined' && navigator.onLine) {
+    try {
+      // Supabase is the source of truth. Local storage is only the offline
+      // recovery copy; do not show a completed result until cloud persistence succeeds.
+      if (!supabase || !userId) {
+        throw new Error('Cloud session is not active. Please sign in again before submitting.');
+      }
+      setSyncStatus('pending');
       const snap = getProgressSnapshot();
-      void saveCloudProgress(currentUid, snap);
-      void performCloudSync(currentUid);
+      await saveCloudProgress(currentUid, snap);
+      await performCloudSync(currentUid);
+      setActiveAttempt(attempt);
+      refreshProgress();
+      setSyncStatus('synced');
+      setCurrentView('result');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setSyncStatus('pending');
+      alert(`Result was kept safely on this device, but cloud upload failed: ${err instanceof Error ? err.message : 'Unknown Supabase error'}`);
     }
-    setCurrentView('result');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Handler: View past result
