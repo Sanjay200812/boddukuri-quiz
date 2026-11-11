@@ -41,9 +41,15 @@
 .portal-light .border-slate-700 { border-color: #e7b8c2 !important; }
 .portal-light .text-slate-100,
 .portal-light .text-slate-200 { color: #32151f !important; }
+.portal-light .text-white { color: #32151f !important; }
 .portal-light .text-slate-300,
 .portal-light .text-slate-400,
 .portal-light .text-slate-500 { color: #76515b !important; }
+.portal-light table { font-size: 0.95rem; }
+.portal-light th { color: #6d3b48 !important; letter-spacing: 0.04em; }
+.portal-light td { color: #32151f !important; }
+.portal-light input,
+.portal-light select { color: #32151f !important; background-color: #fff7f8 !important; }
 
 /* Black + maroon product theme: keep white utility classes from becoming
    accidental light surfaces while preserving readable status colors. */
