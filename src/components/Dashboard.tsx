@@ -56,7 +56,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenBadges,
   userEmail,
 }) => {
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('pending');
   const [, setTick] = useState<number>(Date.now());
   const [requestSentQuizId, setRequestSentQuizId] = useState<string | null>(null);
 
@@ -283,7 +283,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <button onClick={() => setFilter('all')} className="text-sm font-bold text-red-900 hover:text-red-700">View All →</button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {DAILY_SCHEDULE.slice(0, 3).map(day => {
+          {DAILY_SCHEDULE.filter(day => getQuizStatus(getQuizForDay(day.dayNumber).id) !== 'completed').slice(0, 3).map(day => {
             const quiz = getQuizForDay(day.dayNumber);
             const status = getQuizStatus(quiz.id);
             const unlocked = isDayUnlocked(day.dayNumber, completedDayIds);

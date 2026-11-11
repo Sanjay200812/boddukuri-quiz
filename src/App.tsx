@@ -355,12 +355,7 @@ export const App: React.FC = () => {
         setCurrentView('progress');
         break;
       case 'my-results': {
-        const attempts = getAllAttempts();
-        if (attempts.length > 0) {
-          handleViewResult(attempts[0]);
-        } else {
-          setCurrentView('progress');
-        }
+        setCurrentView('progress');
         break;
       }
       case 'review-mistakes': {

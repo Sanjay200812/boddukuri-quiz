@@ -89,9 +89,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     badge?: string | number;
   }> = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'today-quiz', label: "Today's Quiz", icon: Play },
-    { id: 'progress', label: 'Learning History', icon: BarChart3 },
-    { id: 'my-results', label: 'My Results', icon: FileCheck },
+    { id: 'today-quiz', label: 'My Quizzes', icon: Play },
+    { id: 'progress', label: 'Progress', icon: BarChart3 },
+    { id: 'my-results', label: 'My Attempts', icon: FileCheck },
     { id: 'review-mistakes', label: 'Review Mistakes', icon: RotateCcw },
     {
       id: 'notifications',
