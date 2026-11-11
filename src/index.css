@@ -135,6 +135,14 @@
 }
 .portal-light aside button,
 .portal-light nav button { opacity: 1 !important; }
+.portal-light button:disabled {
+  opacity: 1 !important;
+  color: #32151f !important;
+  -webkit-text-fill-color: #32151f !important;
+}
+.portal-light aside button:disabled svg,
+.portal-light nav button:disabled svg { color: #7b4b58 !important; opacity: .9 !important; }
+.reference-search { min-width: 260px; }
 .portal-light [class*="text-slate-300"],
 .portal-light [class*="text-slate-400"],
 .portal-light [class*="text-slate-500"] {
