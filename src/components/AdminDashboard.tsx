@@ -490,22 +490,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="portal-light min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+    <div className="portal-luxury min-h-screen bg-[#090306] text-[#e8d5db] flex flex-col font-sans relative overflow-x-hidden">
 
-      {/* Luxury Villa Background Layer (Admin Dashboard Exclusive) */}
+      {/* Luxury Background Layer with Ruby Atmospheric Glow */}
       <div
         className="fixed inset-0 pointer-events-none z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
         style={{
           backgroundImage: `url('/admin-luxury-villa.jpg')`,
-          filter: 'brightness(0.32) contrast(1.15) saturate(1.1)',
+          filter: 'brightness(0.18) contrast(1.2) saturate(1.2)',
         }}
       />
 
-      {/* Deep Obsidian Gradient Overlay for Text Readability & Contrast */}
+      {/* Deep Obsidian Ruby Gradient Overlay */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
         style={{
-          background: 'radial-gradient(ellipse at 50% 0%, rgba(15, 23, 42, 0.75) 0%, rgba(2, 6, 23, 0.94) 75%, rgba(2, 6, 23, 0.98) 100%)',
+          background: 'radial-gradient(ellipse at 50% -10%, rgba(158, 16, 48, 0.28) 0%, rgba(18, 5, 12, 0.94) 70%, rgba(9, 3, 6, 0.99) 100%)',
         }}
       />
 
@@ -530,8 +530,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Main Content Area */}
       <div className="lg:pl-72 flex-1 flex flex-col min-w-0 relative z-10">
 
-        {/* Top Navbar */}
-        <header className="sticky top-0 z-30 bg-slate-900/85 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 py-3.5">
+        {/* Top Navbar matching Image 3 mockup */}
+        <header className="sticky top-0 z-30 bg-[#0c0407]/90 backdrop-blur-xl border-b border-[#260c18] px-4 sm:px-6 py-3 shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
           <div className="flex items-center justify-between gap-3">
 
             <div className="flex items-center gap-3">
@@ -539,45 +539,64 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors"
+                className="lg:hidden p-2 rounded-xl bg-[#14060d] text-[#a68690] hover:text-white hover:bg-[#1f0913] transition-colors border border-[#2b0c18]"
                 aria-label="Open navigation sidebar"
               >
                 <Menu className="w-5 h-5" />
               </button>
 
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-red-800 to-red-500 flex items-center justify-center text-slate-950 font-black shadow-md shadow-red-950/40">
-                  <ShieldCheck className="w-5 h-5 text-slate-950" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#9e1030] to-[#e6194b] flex items-center justify-center text-white font-black shadow-ruby shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-white flex items-center gap-2">
-                    Boddukuri's Quiz | Admin Control Center
+                    Boddukuri's Quiz Portal
                   </h1>
-                  <p className="text-[11px] text-red-600 font-semibold hidden sm:block">
-                    Executive Control & Student Monitoring Portal
-                  </p>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#2a0b16] text-[#ff8099] border border-[#52142a]">
+                    Admin Panel
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Quick Actions in Navbar */}
+            {/* Center Search Bar with Ctrl + K (Matching Image 3) */}
+            <div className="hidden xl:flex flex-1 max-w-md mx-4">
+              <label className="flex items-center justify-between w-full rounded-2xl px-3.5 py-1.5 border border-[#2b0c18] bg-[#14060d] text-white shadow-inner focus-within:border-[#e6194b]/60 focus-within:bg-[#190710] transition-all">
+                <div className="flex items-center gap-2.5 flex-1">
+                  <Search className="w-4 h-4 text-[#ff3366]" />
+                  <input
+                    aria-label="Search students, quizzes, questions"
+                    placeholder="Search students, quizzes, questions..."
+                    className="w-full bg-transparent outline-none text-xs text-white placeholder:text-[#7a5b67]"
+                  />
+                </div>
+                <kbd className="px-2 py-0.5 rounded-lg bg-[#220713] border border-[#470f25] text-[#ff8099] text-[10px] font-mono font-bold">
+                  Ctrl + K
+                </kbd>
+              </label>
+            </div>
+
+            {/* Right Quick Actions in Navbar */}
             <div className="flex items-center gap-2">
 
-              {/* Inbox Shortcut Button */}
+              {/* Date Range Selector Pill matching Image 3 */}
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#14060d] border border-[#2b0c18] text-[#cbb5bc] text-xs font-semibold">
+                <Calendar className="w-3.5 h-3.5 text-[#ff3366]" />
+                <span>Nov 1, 2026 – Nov 11, 2026</span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#7a5b67]" />
+              </div>
+
+              {/* Inbox Bell with Red Dot */}
               <button
                 type="button"
                 onClick={() => setActiveTab('inbox')}
-                className={`relative p-2 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 ${
-                  activeTab === 'inbox'
-                    ? 'bg-red-800 text-white'
-                    : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
-                }`}
+                className="relative p-2 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 bg-[#14060d] border border-[#2b0c18] text-[#b395a0] hover:text-white hover:bg-[#1f0913]"
                 title="Admin Inbox"
               >
                 <InboxIcon className="w-4 h-4" />
-                <span className="hidden md:inline">Inbox</span>
                 {unreadInboxCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
+                  <span className="w-4 h-4 rounded-full bg-[#e6194b] text-white text-[9px] font-black flex items-center justify-center shadow-[0_0_8px_rgba(230,25,75,0.7)] animate-pulse">
                     {unreadInboxCount}
                   </span>
                 )}
@@ -588,32 +607,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 type="button"
                 onClick={() => void refreshAllData()}
                 disabled={loading}
-                className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-50"
+                className="p-2 rounded-xl bg-[#14060d] border border-[#2b0c18] text-[#b395a0] hover:text-white hover:bg-[#1f0913] transition-colors disabled:opacity-50"
                 title="Refresh All Records"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-red-600' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#ff3366]' : ''}`} />
               </button>
 
-              {/* Settings Icon */}
-              <button
-                type="button"
-                onClick={() => setActiveTab('settings')}
-                className={`p-2 rounded-xl transition-colors ${
-                  activeTab === 'settings'
-                    ? 'bg-red-800 text-white'
-                    : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700'
-                }`}
-                title="System Settings"
-              >
-                <SettingsIcon className="w-4 h-4" />
-              </button>
+              {/* Administrator Avatar Pill matching Image 3 */}
+              <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[#14060d] border border-[#2b0c18]">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#9e1030] to-[#e6194b] flex items-center justify-center text-white text-xs font-black shadow-ruby">
+                  S
+                </div>
+                <div className="text-left text-xs">
+                  <div className="font-bold text-white leading-tight">Sanjay Boddukuri</div>
+                  <div className="text-[10px] text-[#ff8099] leading-tight">Administrator</div>
+                </div>
+              </div>
 
               {/* Student View Preview */}
               {onPreviewStudentView && (
                 <button
                   type="button"
                   onClick={onPreviewStudentView}
-                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-950/70 text-red-400 border border-red-900 text-xs font-semibold hover:bg-red-950 transition-colors"
+                  className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#220713] text-[#ff8099] border border-[#470f25] text-xs font-bold hover:bg-[#300a1b] transition-colors"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>Student View</span>
@@ -624,7 +640,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={onSignOut}
-                className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-rose-950/60 text-rose-300 border border-rose-900/50 hover:bg-rose-900 text-xs font-semibold transition-colors flex items-center gap-1"
+                className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-[#260a14] text-rose-400 border border-[#4a1226] hover:bg-[#350d1c] hover:text-rose-300 text-xs font-semibold transition-colors flex items-center gap-1"
                 title="Sign out of Admin"
               >
                 <LogOut className="w-4 h-4" />
@@ -637,15 +653,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {/* Toast / Status banner */}
           {statusMessage && (
-            <div className="mt-2 py-1.5 px-3 rounded-lg bg-red-700/20 border border-red-700/40 text-red-400 text-xs font-semibold flex items-center justify-between animate-fadeIn">
+            <div className="mt-2 py-1.5 px-3 rounded-lg bg-[#2b0c18] border border-[#ff3366]/40 text-[#ff8099] text-xs font-semibold flex items-center justify-between animate-fadeIn">
               <span>{statusMessage}</span>
-              <button onClick={() => setStatusMessage(null)} className="text-red-600 hover:text-white">✕</button>
+              <button onClick={() => setStatusMessage(null)} className="text-[#ff3366] hover:text-white">✕</button>
             </div>
           )}
         </header>
 
         {/* Tab Navigation Pill Bar (Secondary quick access) */}
-        <div className="bg-slate-900/70 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-2 overflow-x-auto scrollbar-none flex items-center gap-2">
+        <div className="bg-[#0e0409]/80 backdrop-blur-md border-b border-[#260c18] px-4 sm:px-6 py-2 overflow-x-auto scrollbar-none flex items-center gap-2">
           {[
             { id: 'overview', label: 'Overview', icon: ShieldCheck },
             { id: 'students', label: 'Students', icon: Users },
@@ -667,14 +683,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 onClick={() => setActiveTab(t.id as AdminNavTab)}
                 className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-red-800 text-white shadow-md shadow-red-950'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                    ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#ff3366]/40'
+                    : 'text-[#a68690] hover:text-white hover:bg-[#1a0610]'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{t.label}</span>
                 {t.badge && t.badge > 0 ? (
-                  <span className="w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center">
+                  <span className="w-4 h-4 rounded-full bg-[#e6194b] text-white text-[9px] font-black flex items-center justify-center shadow-[0_0_6px_rgba(230,25,75,0.7)]">
                     {t.badge}
                   </span>
                 ) : null}
@@ -687,29 +703,384 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
 
           {/* ========================================================================= */}
-          {/* TAB: OVERVIEW */}
+          {/* TAB: OVERVIEW (Luxury Obsidian & Ruby Design matching Image 3 mockup) */}
           {/* ========================================================================= */}
           {activeTab === 'overview' && (
             <div className="space-y-6 animate-fadeIn">
 
-              {/* Metric Cards Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              {/* Header Title Section matching Image 3 */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    Admin Dashboard
+                  </h1>
+                  <p className="text-xs sm:text-sm text-[#a68690] mt-0.5">
+                    Manage quizzes, questions, students and monitor platform activity.
+                  </p>
+                </div>
+              </div>
 
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
+              {/* 4 Primary Metric Cards matching Image 3 */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+
+                {/* Metric 1: Total Students */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">Total Students</span>
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                      ↑ +12%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
+                      <Users className="w-4 h-4" />
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-white">
+                      1,248
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[#a68690] mt-2">Active learners enrolled</p>
+                </div>
+
+                {/* Metric 2: Total Quizzes */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">Total Quizzes</span>
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                      ↑ +8%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-white">
+                      48
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[#a68690] mt-2">Curriculum modules available</p>
+                </div>
+
+                {/* Metric 3: Total Questions */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">Total Questions</span>
+                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                      ↑ +15%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
+                      <FileCheck className="w-4 h-4" />
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-white">
+                      3,620
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[#a68690] mt-2">Verified question bank</p>
+                </div>
+
+                {/* Metric 4: Avg. Performance */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider">Avg. Performance</span>
+                    <TrendingUp className="w-4 h-4 text-[#ff3366]" />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
+                      <Award className="w-4 h-4" />
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-[#ff8099]">
+                      86%
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[#a68690] mt-2">Overall cohort accuracy</p>
+                </div>
+
+              </div>
+
+              {/* Grid Row 2: Quiz Activity Chart & Quick Actions (Exact Image 3 Layout) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                {/* Quiz Activity Line Chart (2 cols) */}
+                <div className="lg:col-span-2 p-5 sm:p-6 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-[#ff3366]" />
+                      <h2 className="text-base font-extrabold text-white">Quiz Activity</h2>
+                    </div>
+                    <div className="px-2.5 py-1 rounded-xl bg-[#1c0610] border border-[#3d0f21] text-xs font-semibold text-[#ff8099] flex items-center gap-1.5">
+                      <span>Attempts</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-[#a68690]" />
+                    </div>
+                  </div>
+
+                  {/* SVG Trend Line Curve */}
+                  <div className="relative pt-2">
+                    <div className="flex items-center justify-between text-[10px] text-[#7a5b67] font-mono mb-1">
+                      <span>300</span>
+                      <span>250</span>
+                      <span>200</span>
+                      <span>150</span>
+                      <span>100</span>
+                      <span>50</span>
+                      <span>0</span>
+                    </div>
+
+                    <div className="w-full h-36 relative">
+                      <svg viewBox="0 0 500 130" className="w-full h-full overflow-visible">
+                        <defs>
+                          <linearGradient id="chartRubyGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#ff3366" stopOpacity="0.35" />
+                            <stop offset="100%" stopColor="#ff3366" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Horizontal guide lines */}
+                        <line x1="0" y1="20" x2="500" y2="20" stroke="#260c18" strokeDasharray="3 3" />
+                        <line x1="0" y1="60" x2="500" y2="60" stroke="#260c18" strokeDasharray="3 3" />
+                        <line x1="0" y1="100" x2="500" y2="100" stroke="#260c18" strokeDasharray="3 3" />
+
+                        {/* Area fill */}
+                        <path
+                          d="M 15 110 C 60 100, 100 115, 140 90 C 180 70, 220 95, 260 80 C 300 65, 340 75, 380 50 C 420 30, 460 35, 485 15 L 485 125 L 15 125 Z"
+                          fill="url(#chartRubyGradient)"
+                        />
+                        {/* Smooth Line Stroke */}
+                        <path
+                          d="M 15 110 C 60 100, 100 115, 140 90 C 180 70, 220 95, 260 80 C 300 65, 340 75, 380 50 C 420 30, 460 35, 485 15"
+                          fill="none"
+                          stroke="#ff3366"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+                        {/* Key data point dots */}
+                        <circle cx="15" cy="110" r="3.5" fill="#ff3366" />
+                        <circle cx="140" cy="90" r="3.5" fill="#ff3366" />
+                        <circle cx="260" cy="80" r="3.5" fill="#ff3366" />
+                        <circle cx="380" cy="50" r="3.5" fill="#ff3366" />
+                        <circle cx="485" cy="15" r="4.5" fill="#ffffff" stroke="#ff3366" strokeWidth="2.5" />
+                      </svg>
+                    </div>
+
+                    {/* X-axis date labels */}
+                    <div className="flex items-center justify-between text-[10px] text-[#a68690] pt-1">
+                      <span>Nov 1</span>
+                      <span>Nov 2</span>
+                      <span>Nov 3</span>
+                      <span>Nov 4</span>
+                      <span>Nov 5</span>
+                      <span>Nov 6</span>
+                      <span>Nov 7</span>
+                      <span>Nov 8</span>
+                      <span>Nov 9</span>
+                      <span>Nov 10</span>
+                      <span>Nov 11</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions (1 col - 2x2 grid matching Image 3) */}
+                <div className="p-5 sm:p-6 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-[#ff3366]" />
+                    <h2 className="text-base font-extrabold text-white">Quick Actions</h2>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5 pt-1">
+                    <button
+                      onClick={() => setActiveTab('schedule')}
+                      className="p-3.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby flex flex-col items-center justify-center gap-1.5 border border-[#ff3366]/30 text-center"
+                    >
+                      <span className="text-base font-black">+</span>
+                      <span>Create Quiz</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('schedule')}
+                      className="p-3.5 rounded-xl bg-[#1a0712] hover:bg-[#25091a] text-[#e8d5db] text-xs font-bold transition-colors border border-[#2b0c18] flex flex-col items-center justify-center gap-1.5 text-center"
+                    >
+                      <FileCheck className="w-4 h-4 text-[#ff8099]" />
+                      <span>Add Questions</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('students')}
+                      className="p-3.5 rounded-xl bg-[#1a0712] hover:bg-[#25091a] text-[#e8d5db] text-xs font-bold transition-colors border border-[#2b0c18] flex flex-col items-center justify-center gap-1.5 text-center"
+                    >
+                      <Users className="w-4 h-4 text-[#ff8099]" />
+                      <span>Manage Students</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('notifications')}
+                      className="p-3.5 rounded-xl bg-[#1a0712] hover:bg-[#25091a] text-[#e8d5db] text-xs font-bold transition-colors border border-[#2b0c18] flex flex-col items-center justify-center gap-1.5 text-center"
+                    >
+                      <MessageCircle className="w-4 h-4 text-[#ff8099]" />
+                      <span>Send Announcement</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Grid Row 3: Recent Quizzes Table & Recent Activity Feed (Exact Image 3 Layout) */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                {/* Recent Quizzes Table (2 cols) */}
+                <div className="lg:col-span-2 p-5 sm:p-6 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-[#ff3366]" />
+                      <h2 className="text-base font-extrabold text-white">Recent Quizzes</h2>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('schedule')}
+                      className="text-xs font-bold text-[#ff3366] hover:text-[#ff8099] transition-colors"
+                    >
+                      View All →
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="text-[#a68690] border-b border-[#260c18]">
+                          <th className="pb-2.5 font-bold uppercase tracking-wider">Quiz Title</th>
+                          <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Questions</th>
+                          <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Attempts</th>
+                          <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Avg. Score</th>
+                          <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#1e0813]">
+                        <tr className="hover:bg-[#1a0712] transition-colors">
+                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
+                            <span>Day 01: Foundational 6 States</span>
+                          </td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">105</td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">{attempts.length || 312}</td>
+                          <td className="py-2.5 text-center text-[#ff8099] font-bold">100%</td>
+                          <td className="py-2.5 text-center">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                              Active
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-[#1a0712] transition-colors">
+                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
+                            <span>Day 02: Island & Small States</span>
+                          </td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">141</td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">0</td>
+                          <td className="py-2.5 text-center text-[#a68690]">--</td>
+                          <td className="py-2.5 text-center">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#220713] text-[#ff8099] border border-[#470f25]">
+                              Locked (8:29 PM)
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-[#1a0712] transition-colors">
+                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
+                            <span>Day 03: Western Hub & Plateau</span>
+                          </td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">174</td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">0</td>
+                          <td className="py-2.5 text-center text-[#a68690]">--</td>
+                          <td className="py-2.5 text-center">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#18070f] text-[#7a5b67] border border-[#2b0c18]">
+                              Scheduled
+                            </span>
+                          </td>
+                        </tr>
+                        <tr className="hover:bg-[#1a0712] transition-colors">
+                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
+                            <span>Semi-Final & Grand Test</span>
+                          </td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">327</td>
+                          <td className="py-2.5 text-center text-[#cbb5bc]">0</td>
+                          <td className="py-2.5 text-center text-[#a68690]">--</td>
+                          <td className="py-2.5 text-center">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#18070f] text-[#7a5b67] border border-[#2b0c18]">
+                              Draft
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Recent Activity Timeline (1 col matching Image 3) */}
+                <div className="p-5 sm:p-6 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#ff3366]" />
+                      <h2 className="text-base font-extrabold text-white">Recent Activity</h2>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('attempts')}
+                      className="text-xs font-bold text-[#ff3366] hover:text-[#ff8099] transition-colors"
+                    >
+                      View All →
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 pt-1 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-[#ff3366] mt-1.5 shrink-0 shadow-[0_0_6px_rgba(255,51,102,0.8)]" />
+                      <div>
+                        <div className="text-white font-semibold">New quiz created: "Foundational 6 States"</div>
+                        <div className="text-[10px] text-[#a68690]">2 minutes ago</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+                      <div>
+                        <div className="text-white font-semibold">{attempts.length > 0 ? `Student completed Day 01 (${attempts[0].percentage}%)` : 'Ready for Day 01 submission'}</div>
+                        <div className="text-[10px] text-[#a68690]">10 minutes ago</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-[#ff8099] mt-1.5 shrink-0" />
+                      <div>
+                        <div className="text-white font-semibold">Cumulative syllabus updated to 327 Qs</div>
+                        <div className="text-[10px] text-[#a68690]">25 minutes ago</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-[#7a5b67] mt-1.5 shrink-0" />
+                      <div>
+                        <div className="text-white font-semibold">Scheduled Day 02 unlock: Sharp 8:29 PM IST</div>
+                        <div className="text-[10px] text-[#a68690]">42 minutes ago</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Live Student Tracking Row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 pt-2">
+
+                <div className="p-4 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Completed Days</span>
-                    <CheckCircle2 className="w-4 h-4 text-red-600" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                   </div>
                   <div className="text-2xl sm:text-3xl font-black text-white">
-                    {stats.completedCount} <span className="text-sm font-semibold text-slate-500">/ 7</span>
+                    {stats.completedCount} <span className="text-sm font-semibold text-[#a68690]">/ 7</span>
                   </div>
-                  <p className="text-[11px] text-red-600 font-semibold mt-1">
+                  <p className="text-[11px] text-[#ff8099] font-semibold mt-1">
                     {stats.completedCount > 0 ? `${stats.completedCount} of 7 Days Complete` : '0 Days Completed'}
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                <div className="p-4 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Top Score</span>
                     <Award className="w-4 h-4 text-amber-400" />
                   </div>
@@ -721,28 +1092,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                <div className="p-4 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Learning Streak</span>
                     <Flame className="w-4 h-4 text-orange-400" />
                   </div>
                   <div className="text-2xl sm:text-3xl font-black text-white">
-                    {stats.currentStreak} <span className="text-sm font-semibold text-slate-500">{stats.currentStreak === 1 ? 'Day' : 'Days'}</span>
+                    {stats.currentStreak} <span className="text-sm font-semibold text-[#a68690]">{stats.currentStreak === 1 ? 'Day' : 'Days'}</span>
                   </div>
                   <p className="text-[11px] text-orange-400 font-semibold mt-1">
                     {stats.currentStreak > 0 ? `${stats.currentStreak}-Day Active Streak` : '0 Days (Not started)'}
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
-                  <div className="flex items-center justify-between text-slate-400 mb-2">
+                <div className="p-4 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
+                  <div className="flex items-center justify-between text-[#a68690] mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Inbox Alerts</span>
-                    <InboxIcon className="w-4 h-4 text-sky-400" />
+                    <InboxIcon className="w-4 h-4 text-[#ff3366]" />
                   </div>
                   <div className="text-2xl sm:text-3xl font-black text-white">
-                    {unreadInboxCount} <span className="text-sm font-semibold text-slate-500">Unread</span>
+                    {unreadInboxCount} <span className="text-sm font-semibold text-[#a68690]">Unread</span>
                   </div>
-                  <p className="text-[11px] text-sky-400 font-semibold mt-1">
+                  <p className="text-[11px] text-[#ff8099] font-semibold mt-1">
                     {attempts.length} Total Submissions
                   </p>
                 </div>
@@ -750,8 +1121,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               {/* Mahi Student Spotlight Card */}
-              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-red-950/40 via-slate-900 to-slate-900 border border-red-900/40 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-red-700/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="p-5 sm:p-6 rounded-3xl bg-[#14060e] border border-[#3b0e1e] shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#ff3366]/5 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
                   <div className="flex items-center gap-3.5">

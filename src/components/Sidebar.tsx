@@ -17,7 +17,8 @@ import {
   RotateCcw,
   UserCheck,
   FileText,
-  BookOpen
+  BookOpen,
+  Crown
 } from 'lucide-react';
 
 export type StudentNavView =
@@ -164,46 +165,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-[#2b0c15]/50 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-[#090306]/70 backdrop-blur-xs z-40 lg:hidden transition-opacity"
           aria-hidden="true"
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container (Obsidian & Luxury Ruby Theme matching Image 2 & 3 mockups) */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out flex flex-col ${
-          isStudent
-            ? 'bg-white border-r border-[#ebd4d9] text-[#2b0c15] shadow-xl lg:shadow-none'
-            : 'bg-slate-950 border-r border-slate-800 text-slate-200 shadow-2xl lg:shadow-none'
-        } ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 transition-transform duration-300 ease-in-out flex flex-col bg-[#0c0407]/95 backdrop-blur-xl border-r border-[#260c18] text-[#e8d5db] shadow-[0_10px_35px_rgba(0,0,0,0.7)] lg:shadow-none ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Sidebar Header / Brand */}
-        <div className={`p-5 flex items-center justify-between border-b ${
-          isStudent ? 'border-[#ebd4d9] bg-[#fff8fa]' : 'border-slate-800 bg-slate-900/60'
-        }`}>
+        <div className="p-5 flex items-center justify-between border-b border-[#260c18] bg-[#10050b]/60">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-md ${
-              isStudent
-                ? 'bg-[#800020] text-white shadow-[#800020]/20'
-                : 'bg-gradient-to-tr from-red-800 to-red-600 text-white shadow-red-950/40'
-            }`}>
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-gradient-to-tr from-[#9e1030] to-[#e6194b] text-white shadow-[0_0_18px_rgba(230,25,75,0.4)] shrink-0">
               {isStudent ? <GraduationCap className="w-5 h-5 text-white" /> : <ShieldCheck className="w-5 h-5 text-white" />}
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className={`text-sm font-black tracking-tight ${isStudent ? 'text-[#2b0c15]' : 'text-white'}`}>
+                <span className="text-sm font-black tracking-tight text-white">
                   Boddukuri's
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                  isStudent ? 'bg-[#fde8ec] text-[#800020] border border-[#ebd4d9]' : 'bg-red-700/20 text-red-400 border border-red-700/30'
-                }`}>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#2a0b16] text-[#ff8099] border border-[#52142a]">
                   {isStudent ? '#Mahi' : 'Admin'}
                 </span>
               </div>
-              <p className={`text-[11px] font-semibold ${isStudent ? 'text-[#800020]' : 'text-slate-400'}`}>
-                Quiz Portal
+              <p className="text-[11px] font-bold text-[#ff3366]">
+                {isStudent ? 'Quiz Portal' : 'Admin Panel'}
               </p>
             </div>
           </div>
@@ -211,9 +200,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Close button for mobile */}
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-xl lg:hidden transition-colors ${
-              isStudent ? 'hover:bg-[#fde8ec] text-[#76515b]' : 'hover:bg-slate-800 text-slate-400'
-            }`}
+            className="p-1.5 rounded-xl lg:hidden transition-colors hover:bg-[#200712] text-[#a68690] hover:text-white"
             aria-label="Close Navigation"
           >
             <X className="w-5 h-5" />
@@ -221,20 +208,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* User Card */}
-        <div className={`px-5 py-3.5 border-b text-xs flex items-center justify-between ${
-          isStudent ? 'border-[#f3e3e6] bg-[#fffafb]' : 'border-slate-800/80 bg-slate-900/30'
-        }`}>
+        <div className="px-5 py-3.5 border-b border-[#260c18] text-xs flex items-center justify-between bg-[#0e0409]">
           <div className="truncate">
-            <div className={`font-bold truncate ${isStudent ? 'text-[#2b0c15]' : 'text-slate-100'}`}>
+            <div className="font-bold text-white truncate">
               {userName || (isStudent ? 'Mahi' : 'Sanju')}
             </div>
-            <div className={`text-[11px] truncate ${isStudent ? 'text-[#76515b]' : 'text-slate-400'}`}>
+            <div className="text-[11px] text-[#a68690] truncate">
               {userEmail || (isStudent ? 'mahi@boddukuri.quiz' : 'boddukurisanjay@gmail.com')}
             </div>
           </div>
-          <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] uppercase tracking-wide shrink-0 ${
-            isStudent ? 'bg-[#fde8ec] text-[#800020] border border-[#ebd4d9]' : 'bg-red-600/20 text-red-400'
-          }`}>
+          <span className="px-2 py-0.5 rounded-md font-extrabold text-[10px] uppercase tracking-wide shrink-0 bg-[#2b0c18] text-[#ff8099] border border-[#4a1226]">
             {role}
           </span>
         </div>
@@ -256,15 +239,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleItemClick(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left group min-h-[44px] ${
                       isActive
-                        ? 'bg-[#800020] text-white shadow-sm shadow-[#800020]/20'
+                        ? 'bg-gradient-to-r from-[#9e1030] via-[#850b26] to-[#6b061d] text-white shadow-[0_4px_20px_rgba(158,16,48,0.45)] border border-[#ff3366]/40'
                         : item.id === 'logout'
-                        ? 'text-rose-700 hover:bg-rose-50 hover:text-rose-900'
-                        : 'text-[#4a1824] hover:text-[#800020] hover:bg-[#fde8ec]'
+                        ? 'text-rose-400 hover:bg-[#260a14] hover:text-rose-300'
+                        : 'text-[#b395a0] hover:text-white hover:bg-[#1a0610]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                        isActive ? 'text-white' : item.id === 'logout' ? 'text-rose-600' : 'text-[#76515b] group-hover:text-[#800020]'
+                        isActive ? 'text-white' : item.id === 'logout' ? 'text-rose-400' : 'text-[#a68690] group-hover:text-white'
                       }`} />
                       <span>{item.label}</span>
                     </div>
@@ -272,7 +255,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
                         isActive
                           ? 'bg-white text-[#800020]'
-                          : 'bg-[#800020] text-white'
+                          : 'bg-[#e6194b] text-white shadow-[0_0_10px_rgba(230,25,75,0.5)]'
                       }`}>
                         {item.badge}
                       </span>
@@ -289,19 +272,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleItemClick(item.id)}
                     className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all text-left group min-h-[44px] ${
                       isActive
-                        ? 'bg-[#800020] text-white shadow-md shadow-red-950/30'
-                        : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                        ? 'bg-gradient-to-r from-[#9e1030] via-[#850b26] to-[#6b061d] text-white shadow-[0_4px_20px_rgba(158,16,48,0.45)] border border-[#ff3366]/40'
+                        : 'text-[#b395a0] hover:text-white hover:bg-[#1a0610]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-red-400'
+                        isActive ? 'text-white' : 'text-[#a68690] group-hover:text-white'
                       }`} />
                       <span>{item.label}</span>
                     </div>
                     {item.badge !== undefined && (
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                        item.badgeColor || (isActive ? 'bg-slate-900 text-white' : 'bg-red-700/20 text-red-400 border border-red-700/30')
+                        item.badgeColor || (isActive ? 'bg-white text-[#800020]' : 'bg-[#e6194b] text-white shadow-[0_0_10px_rgba(230,25,75,0.5)]')
                       }`}>
                         {item.badge}
                       </span>
@@ -311,26 +294,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
               })}
         </nav>
 
-        {/* Sidebar Footer: Settings & Sign Out (Admin only, as student has Settings & Logout in navigation items) */}
-        {!isStudent && (
-          <div className="p-4 border-t space-y-1.5 border-slate-800 bg-slate-900/40">
+        {/* Sidebar Footer */}
+        {!isStudent ? (
+          <div className="p-3 border-t border-[#260c18] space-y-2 bg-[#10050b]/60">
+            {/* Crown Admin Access Card matching Image 3 */}
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-[#1c0610] to-[#12030a] border border-[#3d0f21] shadow-lg flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#9e1030] to-[#e6194b] flex items-center justify-center text-white shrink-0 shadow-md">
+                <Crown className="w-4 h-4 text-amber-300" />
+              </div>
+              <div className="truncate">
+                <div className="text-xs font-black text-white">Admin Access</div>
+                <div className="text-[10px] text-[#b38895] truncate">Manage quizzes & settings</div>
+              </div>
+            </div>
+
             <button
               onClick={() => {
                 onOpenSettings();
                 onClose();
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors min-h-[44px] text-slate-300 hover:text-white hover:bg-slate-800"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors min-h-[40px] text-[#b395a0] hover:text-white hover:bg-[#1a0610]"
             >
-              <Settings className="w-4 h-4 text-slate-400" />
+              <Settings className="w-4 h-4 text-[#a68690]" />
               <span>Settings</span>
             </button>
 
             <button
               onClick={onSignOut}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors min-h-[44px] text-rose-400 hover:bg-rose-950/40"
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors min-h-[40px] text-rose-400 hover:bg-[#260a14] hover:text-rose-300"
             >
-              <LogOut className="w-4 h-4 text-rose-500" />
+              <LogOut className="w-4 h-4 text-rose-400" />
               <span>Sign Out</span>
+            </button>
+          </div>
+        ) : (
+          <div className="p-3 border-t border-[#260c18] space-y-1 bg-[#10050b]/60">
+            <button
+              onClick={() => {
+                onOpenSettings();
+                onClose();
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors min-h-[40px] text-[#b395a0] hover:text-white hover:bg-[#1a0610]"
+            >
+              <Settings className="w-4 h-4 text-[#a68690]" />
+              <span>Settings</span>
+            </button>
+            <button
+              onClick={onSignOut}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition-colors min-h-[40px] text-rose-400 hover:bg-[#260a14] hover:text-rose-300"
+            >
+              <LogOut className="w-4 h-4 text-rose-400" />
+              <span>Logout</span>
             </button>
           </div>
         )}

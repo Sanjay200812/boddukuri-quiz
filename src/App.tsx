@@ -76,11 +76,11 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Production clean-start marker: the cloud quiz data was intentionally
-    // reset, so discard stale offline attempts once on every existing device.
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('mahi_clean_start_v2') !== 'true') {
+    // Production clean-start marker: reset to fresh launch state
+    // Discard stale offline attempts, reset streak to 0, clear badges and notifications
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('mahi_launch_reset_v4') !== 'true') {
       resetAllData();
-      localStorage.setItem('mahi_clean_start_v2', 'true');
+      localStorage.setItem('mahi_launch_reset_v4', 'true');
     }
   }, []);
 
@@ -497,7 +497,7 @@ export const App: React.FC = () => {
   // STUDENT LEARNING PORTAL (OR ADMIN PREVIEWING STUDENT VIEW)
   // -------------------------------------------------------------
   return (
-    <div className="portal-light min-h-screen flex flex-col bg-[#fff8fa] text-[#2b0c15] font-sans selection:bg-[#fde8ec] selection:text-[#800020]">
+    <div className="portal-luxury min-h-screen flex flex-col bg-[#090306] text-[#e8d5db] font-sans selection:bg-[#9e1030] selection:text-white">
 
       {/* Responsive Sidebar for Student */}
       <Sidebar

@@ -182,6 +182,22 @@ function saveSyncMeta(updatedAt: string, settingsUpdatedAt: string): void { safe
 
 export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnapshot {
   const local = getProgressSnapshot();
+
+  // If cloud data was explicitly reset (attempts is empty with valid recent timestamp),
+  // purge local stale attempts to synchronize cleanly with the fresh launch state.
+  if (
+    Array.isArray(incoming.attempts) &&
+    incoming.attempts.length === 0 &&
+    new Date(incoming.updatedAt || 0).getTime() >= new Date(local.updatedAt || 0).getTime()
+  ) {
+    local.attempts = [];
+    local.completedDays = [];
+    local.inProgress = {};
+    local.notifications = [];
+    local.retakeRequests = [];
+    local.bookmarks = [];
+  }
+
   const attempts = new Map<string, QuizAttempt>();
   [...local.attempts, ...(incoming.attempts || [])].forEach(attempt => {
     const old = attempts.get(attempt.id);

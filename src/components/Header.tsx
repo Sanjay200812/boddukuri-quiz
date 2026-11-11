@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#ebd4d9] shadow-soft transition-all">
+    <header className="sticky top-0 z-30 bg-[#0c0407]/90 backdrop-blur-xl border-b border-[#260c18] text-[#e8d5db] transition-all shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-3">
 
@@ -60,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
             {onToggleSidebar && (
               <button
                 onClick={onToggleSidebar}
-                className="p-2 rounded-xl text-[#76515b] hover:text-[#800020] hover:bg-[#fde8ec] transition-colors lg:hidden"
+                className="p-2 rounded-xl text-[#a68690] hover:text-white hover:bg-[#1a0610] transition-colors lg:hidden"
                 aria-label="Toggle navigation menu"
                 title="Open menu"
               >
@@ -72,19 +72,19 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('dashboard')}
               className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group"
             >
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-[#800020] flex items-center justify-center text-white shadow-md shadow-[#800020]/20 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-[#9e1030] to-[#e6194b] flex items-center justify-center text-white shadow-[0_0_18px_rgba(230,25,75,0.4)] group-hover:scale-105 transition-transform shrink-0">
                 <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-base sm:text-lg font-black tracking-tight text-[#2b0c15] group-hover:text-[#800020] transition-colors">
+                  <span className="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-[#ff8099] transition-colors">
                     Boddukuri's
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-[#fde8ec] text-[#800020] border border-[#ebd4d9]">
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-[#2b0c18] text-[#ff8099] border border-[#4a1226]">
                     #Mahi
                   </span>
                 </div>
-                <p className="text-[11px] font-semibold text-[#76515b] hidden sm:block">
+                <p className="text-[11px] font-bold text-[#ff3366] hidden sm:block">
                   Quiz Portal
                 </p>
               </div>
@@ -93,24 +93,24 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Center Search Bar (Reference Mockup) */}
           <div className="hidden xl:flex flex-1 max-w-sm mx-4">
-            <label className="flex items-center gap-2.5 w-full rounded-2xl px-3.5 py-2 border border-[#ebd4d9] bg-[#fffafb] shadow-2xs focus-within:border-[#800020] focus-within:bg-white transition-all">
-              <Search className="w-4 h-4 text-[#800020]" />
+            <label className="flex items-center gap-2.5 w-full rounded-2xl px-3.5 py-2 border border-[#2b0c18] bg-[#14060d] text-white shadow-inner focus-within:border-[#e6194b]/60 focus-within:bg-[#190710] transition-all">
+              <Search className="w-4 h-4 text-[#ff3366]" />
               <input
                 aria-label="Search quizzes, topics"
                 placeholder="Search quizzes, topics..."
-                className="w-full bg-transparent outline-none text-xs text-[#2b0c15] placeholder:text-[#76515b]"
+                className="w-full bg-transparent outline-none text-xs text-white placeholder:text-[#7a5b67]"
               />
             </label>
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 bg-[#fff8fa] p-1 rounded-xl border border-[#ebd4d9]">
+          <nav className="hidden lg:flex items-center gap-1 bg-[#14060d] p-1 rounded-xl border border-[#260c18]">
             <button
               onClick={() => onNavigate('dashboard')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 currentView === 'dashboard'
-                  ? 'bg-[#800020] text-white shadow-sm'
-                  : 'text-[#4a1824] hover:text-[#800020] hover:bg-[#fde8ec]'
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#c41c43]/40'
+                  : 'text-[#b395a0] hover:text-white hover:bg-[#1a0610]'
               }`}
             >
               <Home className="w-3.5 h-3.5" />
@@ -121,8 +121,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('my-quizzes')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 currentView === 'my-quizzes' || currentView === 'quiz'
-                  ? 'bg-[#800020] text-white shadow-sm'
-                  : 'text-[#4a1824] hover:text-[#800020] hover:bg-[#fde8ec]'
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#c41c43]/40'
+                  : 'text-[#b395a0] hover:text-white hover:bg-[#1a0610]'
               }`}
             >
               <Play className="w-3.5 h-3.5 fill-current" />
@@ -133,8 +133,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('my-attempts')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 currentView === 'my-attempts' || currentView === 'result' || currentView === 'review'
-                  ? 'bg-[#800020] text-white shadow-sm'
-                  : 'text-[#4a1824] hover:text-[#800020] hover:bg-[#fde8ec]'
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#c41c43]/40'
+                  : 'text-[#b395a0] hover:text-white hover:bg-[#1a0610]'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -145,8 +145,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('progress')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 currentView === 'progress'
-                  ? 'bg-[#800020] text-white shadow-sm'
-                  : 'text-[#4a1824] hover:text-[#800020] hover:bg-[#fde8ec]'
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#c41c43]/40'
+                  : 'text-[#b395a0] hover:text-white hover:bg-[#1a0610]'
               }`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
@@ -157,8 +157,8 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('study')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 currentView === 'study'
-                  ? 'bg-[#800020] text-white shadow-sm'
-                  : 'text-[#4a1824] hover:text-[#800020] hover:bg-[#fde8ec]'
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#c41c43]/40'
+                  : 'text-[#b395a0] hover:text-white hover:bg-[#1a0610]'
               }`}
             >
               <BookOpen className="w-3.5 h-3.5" />
@@ -171,13 +171,13 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Streak Counter */}
             <div
               title={`${streakDays} days consecutive learning streak!`}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold shadow-2xs transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
                 streakDays > 0
-                  ? 'bg-[#fde8ec] text-[#800020] border-[#ebd4d9]'
-                  : 'bg-stone-50 text-[#76515b] border-stone-200'
+                  ? 'bg-[#220713] text-[#ff8099] border-[#470f25] shadow-[0_0_12px_rgba(255,128,153,0.2)]'
+                  : 'bg-[#14060d] text-[#7a5b67] border-[#2b0c18]'
               }`}
             >
-              <Flame className={`w-3.5 h-3.5 ${streakDays > 0 ? 'text-[#800020] fill-[#800020] animate-pulse' : 'text-[#76515b]'}`} />
+              <Flame className={`w-3.5 h-3.5 ${streakDays > 0 ? 'text-[#ff3366] fill-[#ff3366] animate-pulse' : 'text-[#7a5b67]'}`} />
               <span>{streakDays} <span className="hidden sm:inline">{streakDays === 1 ? 'Day' : 'Days'}</span></span>
             </div>
 
@@ -186,9 +186,9 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onOpenBadges}
                 title={`${unlockedBadgesCount} Badges Unlocked! Click to open Trophy Cabinet`}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#ebd4d9] bg-white hover:bg-[#fde8ec] text-[#800020] text-xs font-bold shadow-2xs transition-colors"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#2b0c18] bg-[#14060d] hover:bg-[#1f0913] text-[#f497aa] text-xs font-bold transition-colors"
               >
-                <Award className="w-3.5 h-3.5 text-[#800020]" />
+                <Award className="w-3.5 h-3.5 text-[#ff8099]" />
                 <span className="hidden lg:inline">{unlockedBadgesCount} Badges</span>
               </button>
             )}
@@ -198,12 +198,12 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onOpenNotifications}
                 title="Notifications"
-                className="relative p-2 rounded-xl text-[#76515b] hover:text-[#800020] hover:bg-[#fde8ec] border border-[#ebd4d9] bg-white transition-colors"
+                className="relative p-2 rounded-xl text-[#b395a0] hover:text-white hover:bg-[#1f0913] border border-[#2b0c18] bg-[#14060d] transition-colors"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                 {unreadNotifsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#800020] text-white font-black text-[10px] flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#e6194b] text-white font-black text-[10px] flex items-center justify-center shadow-[0_0_8px_rgba(230,25,75,0.7)] animate-pulse">
                     {unreadNotifsCount}
                   </span>
                 )}
@@ -214,7 +214,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenSettings}
               title="Settings & Account"
-              className="p-2 rounded-xl text-[#76515b] hover:text-[#800020] hover:bg-[#fde8ec] border border-[#ebd4d9] bg-white transition-colors"
+              className="p-2 rounded-xl text-[#b395a0] hover:text-white hover:bg-[#1f0913] border border-[#2b0c18] bg-[#14060d] transition-colors"
               aria-label="Settings"
             >
               <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -222,12 +222,12 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* User Profile Pill */}
             <div className="hidden sm:flex items-center gap-2 pl-1">
-              <div className="w-8 h-8 rounded-full bg-[#800020] text-white font-black text-xs flex items-center justify-center shadow-xs">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#9e1030] to-[#e6194b] text-white font-black text-xs flex items-center justify-center shadow-[0_0_10px_rgba(230,25,75,0.4)]">
                 {userName.charAt(0).toUpperCase()}
               </div>
               <div className="hidden md:block text-left text-xs">
-                <div className="font-bold text-[#2b0c15] leading-tight">{userName}</div>
-                <div className="text-[10px] text-[#76515b] leading-tight">Student</div>
+                <div className="font-bold text-white leading-tight">{userName}</div>
+                <div className="text-[10px] text-[#a68690] leading-tight">Student</div>
               </div>
             </div>
 
@@ -236,7 +236,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onSignOut}
                 title="Sign out"
-                className="hidden xl:flex items-center justify-center p-2 rounded-xl text-[#76515b] hover:text-rose-700 hover:bg-rose-50 border border-[#ebd4d9] transition-colors"
+                className="hidden xl:flex items-center justify-center p-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-[#250813] border border-[#2b0c18] transition-colors"
               >
                 <LogOut className="w-4 h-4" />
               </button>

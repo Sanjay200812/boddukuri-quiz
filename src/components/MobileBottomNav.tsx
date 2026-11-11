@@ -29,16 +29,16 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#ebd4d9] py-1.5 px-2 flex items-center justify-around lg:hidden shadow-elevated"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-[#0d0408]/95 backdrop-blur-xl border-t border-[#260c18] py-1.5 px-2 flex items-center justify-around lg:hidden shadow-[0_-8px_25px_rgba(0,0,0,0.7)]"
     >
       {/* 1: Dashboard */}
       <button
         onClick={() => onNavigate('dashboard')}
         className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isDashboard ? 'text-[#800020] font-black' : 'text-[#76515b] hover:text-[#2b0c15]'
+          isDashboard ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
         }`}
       >
-        <div className={`p-1 rounded-lg ${isDashboard ? 'bg-[#fde8ec]' : ''}`}>
+        <div className={`p-1 rounded-lg ${isDashboard ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
           <Home className={`w-5 h-5 ${isDashboard ? 'stroke-[2.5]' : ''}`} />
         </div>
         <span className="text-[10px] mt-0.5">Home</span>
@@ -48,11 +48,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => onNavigate('my-quizzes')}
         className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isQuizzes ? 'text-[#800020] font-black' : 'text-[#76515b] hover:text-[#2b0c15]'
+          isQuizzes ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
         }`}
       >
-        <div className={`p-1 rounded-lg ${isQuizzes ? 'bg-[#fde8ec]' : ''}`}>
-          <Play className={`w-5 h-5 ${isQuizzes ? 'stroke-[2.5] fill-[#800020]' : ''}`} />
+        <div className={`p-1 rounded-lg ${isQuizzes ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
+          <Play className={`w-5 h-5 ${isQuizzes ? 'stroke-[2.5] fill-[#ff3366]' : ''}`} />
         </div>
         <span className="text-[10px] mt-0.5">Quizzes</span>
       </button>
@@ -61,10 +61,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => onNavigate('my-attempts')}
         className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isAttempts ? 'text-[#800020] font-black' : 'text-[#76515b] hover:text-[#2b0c15]'
+          isAttempts ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
         }`}
       >
-        <div className={`p-1 rounded-lg ${isAttempts ? 'bg-[#fde8ec]' : ''}`}>
+        <div className={`p-1 rounded-lg ${isAttempts ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
           <FileText className={`w-5 h-5 ${isAttempts ? 'stroke-[2.5]' : ''}`} />
         </div>
         <span className="text-[10px] mt-0.5">Attempts</span>
@@ -74,10 +74,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => onNavigate('progress')}
         className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isProgress ? 'text-[#800020] font-black' : 'text-[#76515b] hover:text-[#2b0c15]'
+          isProgress ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
         }`}
       >
-        <div className={`p-1 rounded-lg ${isProgress ? 'bg-[#fde8ec]' : ''}`}>
+        <div className={`p-1 rounded-lg ${isProgress ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
           <TrendingUp className={`w-5 h-5 ${isProgress ? 'stroke-[2.5]' : ''}`} />
         </div>
         <span className="text-[10px] mt-0.5">Progress</span>
@@ -86,12 +86,12 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       {/* 5: Menu / Drawer toggle */}
       <button
         onClick={onOpenDrawer}
-        className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] text-[#76515b] hover:text-[#2b0c15] relative"
+        className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] text-[#a68690] hover:text-white relative"
       >
         <div className="p-1 rounded-lg relative">
           <Menu className="w-5 h-5" />
           {unreadNotifsCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#800020] animate-pulse" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#e6194b] shadow-[0_0_6px_rgba(230,25,75,0.8)] animate-pulse" />
           )}
         </div>
         <span className="text-[10px] mt-0.5">Menu</span>

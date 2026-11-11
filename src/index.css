@@ -4,28 +4,56 @@
 
 @layer base {
   body {
-    @apply bg-[#fff8fa] text-[#2b0c15] antialiased font-sans min-h-screen selection:bg-[#f0b3be] selection:text-[#541221];
+    @apply bg-[#090306] text-[#e8d5db] antialiased font-sans min-h-screen selection:bg-[#9e1030] selection:text-white;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-image: 
+      radial-gradient(ellipse 90% 60% at 50% -20%, rgba(158, 16, 48, 0.18), transparent 70%),
+      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(117, 7, 32, 0.14), transparent 70%),
+      radial-gradient(ellipse 50% 40% at 0% 50%, rgba(90, 6, 24, 0.12), transparent 70%);
+    background-attachment: fixed;
   }
 }
 
-/* Custom subtle maroon scrollbar */
+/* Custom luxury ruby scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #fcf0f2;
+  background: #0d0408;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d498a4;
+  background: #3d0c1e;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #800020;
+}
+
+/* Glassmorphism surfaces for Luxury Ruby theme */
+.glass-panel {
+  background: rgba(18, 5, 12, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-card {
+  background: rgba(22, 7, 15, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.shadow-ruby {
+  box-shadow: 0 4px 20px -2px rgba(158, 16, 48, 0.4);
+}
+
+.shadow-ruby-lg {
+  box-shadow: 0 10px 30px -5px rgba(158, 16, 48, 0.5);
 }
 
 /* Smooth card transitions */
