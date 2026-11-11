@@ -352,7 +352,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
 
       {/* Top Bar: Navigation, Day info, Live Timer, Palette & Quit */}
-      <div className="bg-[#0f0f12] rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-soft flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#ebd4d9] shadow-soft flex flex-wrap items-center justify-between gap-4">
 
         {/* Left: Day & State */}
         <div className="flex items-center gap-3">
@@ -362,21 +362,21 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                 onExit();
               }
             }}
-            className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-[#2b1118] transition-colors"
+            className="p-2 rounded-xl text-[#76515b] hover:text-[#2b0c15] hover:bg-[#fff8fa] transition-colors"
             title="Save & Return to Dashboard"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-5 h-5 text-[#800020]" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-md text-xs font-black bg-slate-900 text-white">
+              <span className="px-2 py-0.5 rounded-md text-xs font-black bg-[#800020] text-white">
                 {quiz.title}
               </span>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
+              <h2 className="text-base sm:text-lg font-bold text-[#2b0c15]">
                 Boddukuri's Quiz #Mahi
               </h2>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-[#76515b]">
               {quiz.statesCovered.length} States Pool • {quiz.displayDate || '09 November 2026'} ({quiz.totalQuestions} Questions)
             </p>
           </div>
@@ -385,19 +385,19 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
         {/* Right: Live Timer & Palette Button */}
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
           {/* Timer */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2b1118] text-slate-800 text-xs sm:text-sm font-mono font-bold">
-            <Clock className="w-4 h-4 text-red-800" />
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fff8fa] border border-[#ebd4d9] text-[#2b0c15] text-xs sm:text-sm font-mono font-bold">
+            <Clock className="w-4 h-4 text-[#800020]" />
             <span>{formatTime(secondsElapsed)}</span>
           </div>
 
           {/* Palette button */}
           <button
             onClick={() => setShowPaletteModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 text-red-900 border border-red-300 text-xs sm:text-sm font-semibold hover:bg-red-100 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fde8ec] text-[#800020] border border-[#ebd4d9] text-xs sm:text-sm font-semibold hover:bg-[#fbd0d9] transition-colors"
           >
             <Grid className="w-4 h-4" />
             <span className="hidden sm:inline">Palette</span>
-            <span className="font-bold text-red-900">({answeredCount}/{questions.length})</span>
+            <span className="font-bold text-[#800020]">({answeredCount}/{questions.length})</span>
           </button>
         </div>
 
@@ -405,15 +405,15 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
       {/* Progress Bar & Section Header */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-600 px-1">
+        <div className="flex items-center justify-between text-xs font-semibold text-[#76515b] px-1">
           <span>Question {currentIndex + 1} of {questions.length}</span>
-          <span className="text-red-900 font-bold">
+          <span className="text-[#800020] font-bold">
             {Math.round(((currentIndex + 1) / questions.length) * 100)}% Through
           </span>
         </div>
-        <div className="w-full bg-[#3a1822] h-2.5 rounded-full overflow-hidden">
+        <div className="w-full bg-[#fde8ec] h-2.5 rounded-full overflow-hidden">
           <div
-            className="bg-gradient-to-r from-red-800 to-red-600 h-full rounded-full transition-all duration-300 ease-out"
+            className="bg-gradient-to-r from-[#800020] to-[#b91c3c] h-full rounded-full transition-all duration-300 ease-out"
             style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
           />
         </div>
@@ -453,17 +453,17 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       </div>
 
       {/* Question Card */}
-      <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-6 relative overflow-hidden">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#ebd4d9] shadow-soft space-y-6 relative overflow-hidden">
 
         {/* 60-Second Mini Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#2b1118]">
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#fde8ec]">
           <div
             className={`h-full transition-all duration-1000 ${
               questionSecondsLeft <= 10
                 ? 'bg-rose-500 animate-pulse'
                 : questionSecondsLeft <= 20
                 ? 'bg-amber-400'
-                : 'bg-red-700'
+                : 'bg-[#800020]'
             }`}
             style={{ width: `${(questionSecondsLeft / QUESTION_LIMIT_SECONDS) * 100}%` }}
           />
@@ -471,7 +471,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
         {/* Question Header & 60-Second Timer Badge */}
         <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="text-xs font-bold uppercase tracking-wider text-red-900">
+          <div className="text-xs font-bold uppercase tracking-wider text-[#800020]">
             Question #{currentIndex + 1}
           </div>
 
@@ -483,16 +483,16 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                 ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
                 : questionSecondsLeft <= 20
                 ? 'bg-amber-50 text-amber-900 border-amber-300'
-                : 'bg-red-50 text-red-900 border-red-300'
+                : 'bg-[#fde8ec] text-[#800020] border-[#ebd4d9]'
             }`}
           >
-            <Hourglass className={`w-3.5 h-3.5 ${questionSecondsLeft <= 10 ? 'text-rose-600 animate-spin' : 'text-red-900'}`} />
+            <Hourglass className={`w-3.5 h-3.5 ${questionSecondsLeft <= 10 ? 'text-rose-600 animate-spin' : 'text-[#800020]'}`} />
             <span>{questionSecondsLeft}s Left</span>
           </div>
         </div>
 
         {/* Question Text */}
-        <h3 className="text-lg sm:text-2xl font-bold text-slate-900 leading-snug">
+        <h3 className="text-lg sm:text-2xl font-bold text-[#2b0c15] leading-snug">
           {currentQuestion.question}
         </h3>
 
@@ -509,29 +509,29 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                 onClick={() => handleSelectOption(idx)}
                 className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-start sm:items-center gap-3.5 group cursor-pointer ${
                   isSelected
-                    ? 'border-red-800 bg-red-50/80 shadow-md ring-2 ring-red-300 text-slate-900'
-                    : 'border-slate-200 bg-[#0f0f12] hover:border-red-400 hover:bg-[#241014]/70 text-slate-800'
+                    ? 'border-[#800020] bg-[#fde8ec] shadow-md ring-2 ring-[#800020]/20 text-[#2b0c15]'
+                    : 'border-[#ebd4d9] bg-white hover:border-[#800020]/50 hover:bg-[#fff8fa] text-[#2b0c15]'
                 }`}
               >
                 {/* Option Letter Circle */}
                 <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-red-800 text-white'
-                    : 'bg-[#2b1118] text-slate-600 group-hover:bg-red-100 group-hover:text-red-900'
+                    ? 'bg-[#800020] text-white'
+                    : 'bg-[#fff8fa] text-[#76515b] border border-[#ebd4d9] group-hover:bg-[#fde8ec] group-hover:text-[#800020]'
                 }`}>
                   {letters[idx]}
                 </span>
 
                 {/* Option Text */}
                 <span className={`text-sm sm:text-base font-semibold leading-relaxed flex-1 ${
-                  isSelected ? 'text-red-950 font-bold' : 'text-slate-800'
+                  isSelected ? 'text-[#800020] font-bold' : 'text-[#2b0c15]'
                 }`}>
                   {option}
                 </span>
 
                 {/* Checkmark indicator */}
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-red-800 shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-[#800020] shrink-0 ml-auto" />
                 )}
               </button>
             );
@@ -539,7 +539,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
         </div>
 
         {/* Bottom helper tip, Bookmark & Flag */}
-        <div className="pt-2 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+        <div className="pt-2 text-xs text-[#76515b] flex flex-wrap items-center justify-between gap-2 border-t border-[#ebd4d9]">
           <span className="hidden sm:inline">Tip: You can use keys 1-4 on your keyboard</span>
           <div className="flex items-center gap-2 ml-auto">
             {/* Bookmark button */}
@@ -549,11 +549,11 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 bookmarked
                   ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'text-slate-600 hover:text-slate-900 bg-[#241014] hover:bg-[#2b1118] border border-slate-200'
+                  : 'text-[#76515b] hover:text-[#2b0c15] bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9]'
               }`}
               title="Bookmark question for review"
             >
-              <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-amber-600 text-amber-600' : 'text-slate-500'}`} />
+              <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-amber-600 text-amber-600' : 'text-[#76515b]'}`} />
               <span>{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
             </button>
 
@@ -564,7 +564,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 flaggedIds.includes(currentQuestion.id)
                   ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'text-slate-600 hover:text-slate-900 bg-[#241014] hover:bg-[#2b1118] border border-slate-200'
+                  : 'text-[#76515b] hover:text-[#2b0c15] bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9]'
               }`}
             >
               <Flag className={`w-3.5 h-3.5 ${flaggedIds.includes(currentQuestion.id) ? 'fill-amber-600 text-amber-600' : ''}`} />
@@ -582,8 +582,8 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
           disabled={currentIndex === 0}
           className={`px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 transition-all ${
             currentIndex === 0
-              ? 'opacity-40 cursor-not-allowed bg-[#2b1118] text-slate-400'
-              : 'bg-[#0f0f12] border border-slate-200 text-slate-700 hover:bg-[#241014] active:scale-95 shadow-sm'
+              ? 'opacity-40 cursor-not-allowed bg-[#fff8fa] border border-[#ebd4d9] text-[#76515b]'
+              : 'bg-white border border-[#ebd4d9] text-[#2b0c15] hover:bg-[#fff8fa] active:scale-95 shadow-2xs'
           }`}
         >
           <ArrowLeft className="w-4 h-4" />
@@ -594,7 +594,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
           {/* Submit button always accessible */}
           <button
             onClick={() => setShowSubmitModal(true)}
-            className="px-5 py-3 rounded-2xl font-bold text-sm bg-slate-900 text-white hover:bg-slate-800 active:scale-95 transition-all shadow-sm flex items-center gap-2"
+            className="px-5 py-3 rounded-2xl font-bold text-sm bg-[#800020] text-white hover:bg-[#68001a] active:scale-95 transition-all shadow-md flex items-center gap-2"
           >
             <Send className="w-4 h-4" />
             <span className="hidden sm:inline">Submit Quiz</span>
@@ -605,7 +605,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
           {currentIndex < questions.length - 1 ? (
             <button
               onClick={handleNext}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-red-900 text-white hover:bg-red-900 active:scale-95 transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-3 rounded-2xl font-bold text-sm bg-[#800020] text-white hover:bg-[#68001a] active:scale-95 transition-all shadow-md flex items-center gap-2"
             >
               Next
               <ArrowRight className="w-4 h-4" />
@@ -613,7 +613,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
           ) : (
             <button
               onClick={() => setShowSubmitModal(true)}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-red-900 text-white hover:bg-red-900 active:scale-95 transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-3 rounded-2xl font-bold text-sm bg-[#800020] text-white hover:bg-[#68001a] active:scale-95 transition-all shadow-md flex items-center gap-2"
             >
               Finish & Review
               <ArrowRight className="w-4 h-4" />
@@ -624,30 +624,30 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
       {/* Question Palette Modal */}
       {showPaletteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#0f0f12] w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2b0c15]/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#ebd4d9] space-y-6 max-h-[90vh] overflow-y-auto">
 
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center justify-between border-b border-[#ebd4d9] pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Question Palette</h3>
-                <p className="text-xs text-slate-500">Jump directly to any question</p>
+                <h3 className="text-lg font-bold text-[#2b0c15]">Question Palette</h3>
+                <p className="text-xs text-[#76515b]">Jump directly to any question</p>
               </div>
               <button
                 onClick={() => setShowPaletteModal(false)}
-                className="w-8 h-8 rounded-full bg-[#2b1118] text-slate-500 hover:text-slate-800 flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-[#fff8fa] border border-[#ebd4d9] text-[#76515b] hover:text-[#2b0c15] flex items-center justify-center"
               >
                 ✕
               </button>
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 bg-[#241014] p-3 rounded-2xl">
+            <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-[#76515b] bg-[#fff8fa] p-3 rounded-2xl border border-[#ebd4d9]">
               <div className="flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded-md bg-red-800" />
-                <span>Answered ({answeredCount})</span>
+                <span className="w-4 h-4 rounded-md bg-[#800020]" />
+                <span className="text-[#2b0c15] font-semibold">Answered ({answeredCount})</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-4 h-4 rounded-md bg-[#3a1822] border border-slate-300" />
+                <span className="w-4 h-4 rounded-md bg-white border border-[#ebd4d9]" />
                 <span>Unanswered ({unansweredCount})</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -669,14 +669,14 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                     onClick={() => handleJumpToQuestion(idx)}
                     className={`relative h-12 rounded-xl text-sm font-bold transition-all flex items-center justify-center ${
                       isCurrent
-                        ? 'ring-4 ring-red-600/50 scale-105 z-10'
+                        ? 'ring-4 ring-[#800020]/40 scale-105 z-10'
                         : ''
                     } ${
                       isFlagged
                         ? 'bg-amber-100 text-amber-900 border-2 border-amber-400'
                         : isAnswered
-                        ? 'bg-red-800 text-white shadow-xs'
-                        : 'bg-[#2b1118] text-slate-700 hover:bg-[#3a1822] border border-slate-200'
+                        ? 'bg-[#800020] text-white shadow-2xs'
+                        : 'bg-[#fff8fa] text-[#76515b] hover:bg-[#fde8ec] border border-[#ebd4d9]'
                     }`}
                   >
                     <span>{idx + 1}</span>
@@ -688,10 +688,10 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
               })}
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
+            <div className="pt-2 border-t border-[#ebd4d9] flex items-center justify-between gap-3">
               <button
                 onClick={() => setShowPaletteModal(false)}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-[#241014]"
+                className="px-4 py-2.5 rounded-xl border border-[#ebd4d9] text-xs font-bold text-[#76515b] hover:bg-[#fff8fa]"
               >
                 Close Palette
               </button>
@@ -700,7 +700,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                   setShowPaletteModal(false);
                   setShowSubmitModal(true);
                 }}
-                className="px-5 py-2.5 rounded-xl bg-red-900 text-white text-xs font-bold hover:bg-red-900 shadow-sm"
+                className="px-5 py-2.5 rounded-xl bg-[#800020] text-white text-xs font-bold hover:bg-[#68001a] shadow-sm"
               >
                 Proceed to Submit
               </button>
@@ -712,34 +712,34 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
       {/* Submit Confirmation Modal */}
       {showSubmitModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#0f0f12] w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2b0c15]/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#ebd4d9] space-y-5">
 
-            <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-900 flex items-center justify-center mx-auto">
-              <Send className="w-6 h-6 text-red-900" />
+            <div className="w-12 h-12 rounded-2xl bg-[#fde8ec] text-[#800020] flex items-center justify-center mx-auto">
+              <Send className="w-6 h-6 text-[#800020]" />
             </div>
 
             <div className="text-center space-y-1">
-              <h3 className="text-xl font-extrabold text-slate-900">
+              <h3 className="text-xl font-extrabold text-[#2b0c15]">
                 Ready to Submit Quiz?
               </h3>
-              <p className="text-xs sm:text-sm text-slate-500">
+              <p className="text-xs sm:text-sm text-[#76515b]">
                 Your answers will be evaluated and the full answer sheet with explanations will be revealed.
               </p>
             </div>
 
             {/* Summary statistics */}
-            <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-[#241014] border border-slate-100 text-center text-xs">
+            <div className="grid grid-cols-3 gap-2 p-3 rounded-2xl bg-[#fff8fa] border border-[#ebd4d9] text-center text-xs">
               <div>
-                <div className="text-slate-400 font-medium">Answered</div>
-                <div className="text-lg font-black text-red-900">{answeredCount}</div>
+                <div className="text-[#76515b] font-medium">Answered</div>
+                <div className="text-lg font-black text-[#800020]">{answeredCount}</div>
               </div>
               <div>
-                <div className="text-slate-400 font-medium">Unanswered</div>
+                <div className="text-[#76515b] font-medium">Unanswered</div>
                 <div className="text-lg font-black text-rose-600">{unansweredCount}</div>
               </div>
               <div>
-                <div className="text-slate-400 font-medium">Flagged</div>
+                <div className="text-[#76515b] font-medium">Flagged</div>
                 <div className="text-lg font-black text-amber-600">{flaggedCount}</div>
               </div>
             </div>
@@ -758,7 +758,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
             <div className="flex items-center justify-between gap-3 pt-2">
               <button
                 onClick={() => setShowSubmitModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 hover:bg-[#241014] transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-[#ebd4d9] text-xs sm:text-sm font-bold text-[#76515b] hover:bg-[#fff8fa] transition-colors"
               >
                 Go Back & Review
               </button>
@@ -767,7 +767,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                   setShowSubmitModal(false);
                   handleSubmitQuiz();
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-900 hover:bg-red-900 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
               >
                 Confirm & Submit
               </button>

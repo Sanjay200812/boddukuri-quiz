@@ -5,20 +5,22 @@ import type {
   OverallProgress
 } from '../types/quiz';
 import {
-  getAllAttempts,
   getBestAttempt,
-  getCompletedDayIds
+  getCompletedDayIds,
+  getAllAttempts
 } from '../utils/storage';
 import { DAILY_SCHEDULE } from '../utils/schedule';
+import { getQuizForDay } from '../data/quizzes';
 import {
-  BarChart3,
+  TrendingUp,
   Flame,
   CheckCircle2,
   FileText,
   Clock,
-  Download,
   ArrowRight,
-  MapPin
+  MapPin,
+  Award,
+  BookOpen
 } from 'lucide-react';
 
 interface ProgressHistoryProps {
@@ -26,178 +28,212 @@ interface ProgressHistoryProps {
   overallProgress: OverallProgress;
   onSelectAttempt: (attempt: QuizAttempt) => void;
   onStartQuiz: (quizId: string) => void;
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
   onGoHome: () => void;
+  onNavigateToAttempts?: () => void;
 }
 
 export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
-  quizzes,
+  quizzes: _quizzes,
   overallProgress,
   onSelectAttempt,
   onStartQuiz,
-  onOpenSettings,
-  onGoHome,
+  onNavigateToAttempts,
 }) => {
   const attempts = getAllAttempts();
   const completedIds = getCompletedDayIds();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-20 animate-fadeIn">
-
-      {/* Page Title & Intro */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-2 rounded-xl bg-red-100 text-red-900">
-              <BarChart3 className="w-5 h-5 text-red-900" />
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              Boddukuri's Quiz #Mahi — Learning Analytics
-            </h1>
+    <div className="space-y-6 sm:space-y-8 pb-20 animate-fadeIn">
+      {/* Header Banner */}
+      <div className="rounded-3xl bg-gradient-to-br from-[#800020] via-[#6d001b] to-[#450311] text-white p-6 sm:p-8 shadow-elevated relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+        <div className="relative z-10 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-rose-100 text-xs font-semibold mb-3">
+            <TrendingUp className="w-3.5 h-3.5" />
+            <span>Learning Analytics</span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Track cumulative state retention, reattempt past quizzes, and maintain your learning streak!
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mb-2">
+            Learning Progress
+          </h1>
+          <p className="text-sm sm:text-base text-rose-100/90 leading-relaxed">
+            Monitor your cumulative National Parks mastery, state coverage, accuracy trends, and day-by-day study roadmap.
           </p>
         </div>
-
-        {/* Backup / Settings Shortcut */}
-        <button
-          onClick={onOpenSettings}
-          className="px-4 py-2 rounded-xl bg-[#0f0f12] border border-slate-200 text-slate-700 font-bold text-xs sm:text-sm hover:bg-[#241014] shadow-xs flex items-center gap-2"
-        >
-          <Download className="w-4 h-4 text-red-800" />
-          <span>Export / Backup Data</span>
-        </button>
       </div>
 
-      {/* High Level Progress Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-
-        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-slate-200/90 shadow-card">
-          <div className="text-xs font-semibold text-slate-500 mb-1">States Learned</div>
-          <div className="text-3xl font-black text-slate-900">{overallProgress.totalStatesLearned}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Unique states mastered</div>
-        </div>
-
-        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-slate-200/90 shadow-card">
-          <div className="text-xs font-semibold text-slate-500 mb-1">Completed Days</div>
-          <div className="text-3xl font-black text-red-900">
-            {overallProgress.totalCompletedDays} <span className="text-xs text-slate-400 font-normal">/ {DAILY_SCHEDULE.length}</span>
+      {/* 4 Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* Card 1: Completed Days */}
+        <div className="rounded-2xl bg-white border border-[#ebd4d9] p-4 sm:p-5 shadow-soft">
+          <div className="flex items-center justify-between text-[#76515b] text-xs font-bold uppercase tracking-wider mb-2">
+            <span>Completed Days</span>
+            <CheckCircle2 className="w-4 h-4 text-[#800020]" />
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Daily pathways cleared</div>
+          <div className="text-2xl sm:text-3xl font-black text-[#2b0c15]">
+            {completedIds.length} <span className="text-xs text-[#76515b] font-normal">/ {DAILY_SCHEDULE.length}</span>
+          </div>
+          <p className="text-[11px] text-[#76515b] mt-1">{Math.round((completedIds.length / DAILY_SCHEDULE.length) * 100)}% of curriculum</p>
         </div>
 
-        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-slate-200/90 shadow-card">
-          <div className="text-xs font-semibold text-slate-500 mb-1">Overall Accuracy</div>
-          <div className="text-3xl font-black text-red-800">
+        {/* Card 2: States Mastered */}
+        <div className="rounded-2xl bg-white border border-[#ebd4d9] p-4 sm:p-5 shadow-soft">
+          <div className="flex items-center justify-between text-[#76515b] text-xs font-bold uppercase tracking-wider mb-2">
+            <span>States Mastered</span>
+            <MapPin className="w-4 h-4 text-[#800020]" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-[#2b0c15]">
+            {overallProgress.totalStatesLearned} <span className="text-xs text-[#76515b] font-normal">/ 28</span>
+          </div>
+          <p className="text-[11px] text-[#76515b] mt-1">Across cumulative daily pools</p>
+        </div>
+
+        {/* Card 3: Average Accuracy */}
+        <div className="rounded-2xl bg-white border border-[#ebd4d9] p-4 sm:p-5 shadow-soft">
+          <div className="flex items-center justify-between text-[#76515b] text-xs font-bold uppercase tracking-wider mb-2">
+            <span>Average Accuracy</span>
+            <Award className="w-4 h-4 text-[#800020]" />
+          </div>
+          <div className="text-2xl sm:text-3xl font-black text-[#800020]">
             {overallProgress.overallAccuracy}%
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">Across all best scores</div>
+          <p className="text-[11px] text-[#76515b] mt-1">Across all best quiz attempts</p>
         </div>
 
-        <div className="bg-[#0f0f12] p-5 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-card">
-          <div className="text-xs font-bold text-amber-900 mb-1 flex items-center gap-1">
-            <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            Learning Streak
+        {/* Card 4: Learning Streak */}
+        <div className="rounded-2xl bg-white border border-[#ebd4d9] p-4 sm:p-5 shadow-soft">
+          <div className="flex items-center justify-between text-[#76515b] text-xs font-bold uppercase tracking-wider mb-2">
+            <span>Current Streak</span>
+            <Flame className="w-4 h-4 text-[#800020]" />
           </div>
-          <div className="text-3xl font-black text-amber-700">
-            {overallProgress.currentStreak} {overallProgress.currentStreak === 1 ? 'Day' : 'Days'}
+          <div className="text-2xl sm:text-3xl font-black text-[#800020]">
+            {overallProgress.currentStreak} <span className="text-xs text-[#76515b] font-normal">{overallProgress.currentStreak === 1 ? 'Day' : 'Days'}</span>
           </div>
-          <div className="text-[11px] text-amber-800/80 mt-1">Consistent daily progress</div>
+          <p className="text-[11px] text-[#76515b] mt-1">Consecutive learning days</p>
         </div>
-
       </div>
 
-      {/* Day by Day Mastery Breakdown */}
-      <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-5">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-red-900" />
-            <span>Cumulative Days Mastery Level</span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Your best score recorded for each day's quiz. Reattempt any time to improve your accuracy!
-          </p>
+      {/* Link to My Attempts Banner */}
+      {attempts.length > 0 && onNavigateToAttempts && (
+        <div className="rounded-2xl bg-gradient-to-r from-[#fde8ec] via-white to-[#fde8ec] border border-[#ebd4d9] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-soft">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#800020] text-white flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-[#2b0c15]">
+                View All {attempts.length} Detailed Submissions in My Attempts
+              </h3>
+              <p className="text-xs text-[#76515b]">
+                Inspect question-by-question answer sheets, time taken, and retake records.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onNavigateToAttempts}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 shrink-0"
+          >
+            <span>Open My Attempts</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Day by Day Progress Grid */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-[#2b0c15] flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-[#800020]" />
+              <span>Day-by-Day Syllabus Progress</span>
+            </h2>
+            <p className="text-xs text-[#76515b]">
+              Track your best score recorded for each day's National Parks curriculum.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quizzes.map((quiz) => {
-            const best = getBestAttempt(quiz.id);
-            const isCompleted = completedIds.includes(quiz.id);
+          {DAILY_SCHEDULE.map((scheduleItem) => {
+            const dayQuiz = getQuizForDay(scheduleItem.dayNumber);
+            const best = getBestAttempt(dayQuiz.id);
+            const isCompleted = completedIds.includes(dayQuiz.id);
 
             return (
               <div
-                key={quiz.id}
-                className={`p-4 rounded-2xl border transition-all ${
-                  isCompleted
-                    ? 'border-red-300 bg-red-50/20'
-                    : 'border-slate-200 bg-[#241014]/50'
+                key={scheduleItem.quizId}
+                className={`rounded-2xl bg-white border p-5 shadow-soft transition-all hover:shadow-elevated flex flex-col justify-between space-y-4 ${
+                  isCompleted ? 'border-emerald-200 bg-gradient-to-b from-white to-emerald-50/20' : 'border-[#ebd4d9]'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-xs font-black bg-slate-900 text-white">
-                      {quiz.title}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-[#800020] text-white">
+                      {scheduleItem.isSpecialTest ? scheduleItem.title : `Day 0${scheduleItem.dayNumber}`}
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-500">
-                      {quiz.displayDate || '09 November 2026'}
-                    </span>
+                    {isCompleted ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Completed
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-[#76515b] bg-[#f5e6e9] px-2 py-0.5 rounded-full border border-[#ebd4d9]">
+                        Pending
+                      </span>
+                    )}
                   </div>
-                  {isCompleted ? (
-                    <span className="text-xs font-bold text-red-900 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Completed
-                    </span>
+
+                  <h3 className="text-sm font-bold text-[#2b0c15]">
+                    {scheduleItem.title}
+                  </h3>
+                  <p className="text-xs text-[#76515b] line-clamp-1">
+                    {scheduleItem.states.length} States: {scheduleItem.states.slice(0, 3).join(', ')}
+                  </p>
+
+                  {/* Best Score or not attempted */}
+                  {best ? (
+                    <div className="space-y-1.5 pt-2 border-t border-[#f3e3e6]">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[#76515b]">Best Score:</span>
+                        <strong className="text-[#800020] font-black">
+                          {best.marksObtained}/{best.maxMarks} ({best.percentage}%)
+                        </strong>
+                      </div>
+                      <div className="w-full bg-[#fde8ec] h-2 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#800020]"
+                          style={{ width: `${best.percentage}%` }}
+                        />
+                      </div>
+                      <div className="text-[10px] text-[#76515b] flex items-center justify-between pt-0.5">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {Math.floor(best.timeTakenSeconds / 60)}m {best.timeTakenSeconds % 60}s
+                        </span>
+                        <span className="text-emerald-800 font-semibold">{best.performanceMessage || 'Completed'}</span>
+                      </div>
+                    </div>
                   ) : (
-                    <span className="text-xs text-slate-400">Pending</span>
+                    <div className="text-xs text-[#76515b] pt-2 border-t border-[#f3e3e6] italic">
+                      Not attempted yet ({scheduleItem.totalQuestions} Questions)
+                    </div>
                   )}
                 </div>
 
-                <div className="font-bold text-slate-900 text-base mb-1">
-                  {quiz.statesCovered.length} States Pool ({quiz.totalQuestions} Questions)
-                </div>
-
-                <div className="text-xs text-slate-500 line-clamp-1 mb-2">
-                  {quiz.statesCovered.join(', ')}
-                </div>
-
-                {best ? (
-                  <div className="space-y-2 pt-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">Best Score:</span>
-                      <strong className="text-red-900 font-black">
-                        {best.marksObtained}/{best.maxMarks} ({best.percentage}%)
-                      </strong>
-                    </div>
-                    {/* Score Bar */}
-                    <div className="w-full bg-[#3a1822] h-2 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          best.percentage >= 80 ? 'bg-red-800' : best.percentage >= 60 ? 'bg-amber-500' : 'bg-rose-500'
-                        }`}
-                        style={{ width: `${best.percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-xs text-slate-400 py-2 italic">
-                    Not attempted yet.
-                  </div>
-                )}
-
-                <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-2 border-t border-[#f3e3e6]">
                   {best ? (
                     <button
                       onClick={() => onSelectAttempt(best)}
-                      className="text-xs font-bold text-red-900 hover:text-red-900 flex items-center gap-1"
+                      className="w-full py-2 px-3 rounded-xl bg-[#fde8ec] hover:bg-[#fad5dc] border border-[#ebd4d9] text-[#800020] text-xs font-bold transition-all flex items-center justify-center gap-1.5"
                     >
-                      View Answer Sheet <ArrowRight className="w-3 h-3" />
+                      <span>View Answer Sheet</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   ) : (
                     <button
-                      onClick={() => onStartQuiz(quiz.id)}
-                      className="text-xs font-bold text-slate-700 hover:text-red-900 flex items-center gap-1"
+                      onClick={() => onStartQuiz(dayQuiz.id)}
+                      className="w-full py-2 px-3 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
                     >
-                      Start Quiz <ArrowRight className="w-3 h-3" />
+                      <span>Start Quiz</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -205,105 +241,7 @@ export const ProgressHistory: React.FC<ProgressHistoryProps> = ({
             );
           })}
         </div>
-      </div>
-
-      {/* Complete Attempts Log */}
-      <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-card space-y-5">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-red-900" />
-              <span>Full Attempt History Log</span>
-            </h2>
-            <p className="text-xs text-slate-500">
-              Every attempt is saved independently without overwriting previous attempts.
-            </p>
-          </div>
-          <span className="text-xs font-semibold text-slate-400">
-            {attempts.length} Total Records
-          </span>
-        </div>
-
-        {attempts.length === 0 ? (
-          <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl space-y-3">
-            <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-            <h4 className="font-bold text-slate-700">No quiz attempts recorded yet</h4>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              Take your first daily quiz on the dashboard to start logging your learning records!
-            </p>
-            <button
-              onClick={onGoHome}
-              className="px-4 py-2 rounded-xl bg-red-900 text-white font-bold text-xs hover:bg-red-900 transition-colors"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-semibold text-xs">
-                  <th className="pb-3 font-semibold">Date & Time</th>
-                  <th className="pb-3 font-semibold">Quiz Day</th>
-                  <th className="pb-3 font-semibold">States Covered</th>
-                  <th className="pb-3 font-semibold">Marks</th>
-                  <th className="pb-3 font-semibold">Percentage</th>
-                  <th className="pb-3 font-semibold">Time</th>
-                  <th className="pb-3 font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {attempts.map((att) => {
-                  const dayStr = att.dayNumber < 10 ? `0${att.dayNumber}` : att.dayNumber;
-                  const mins = Math.floor(att.timeTakenSeconds / 60);
-                  const secs = att.timeTakenSeconds % 60;
-
-                  return (
-                    <tr key={att.id} className="hover:bg-[#241014]/80 transition-colors">
-                      <td className="py-3.5 font-medium text-slate-500 whitespace-nowrap">
-                        {att.formattedDate}
-                      </td>
-                      <td className="py-3.5 font-bold text-slate-900 whitespace-nowrap">
-                        Day {dayStr}
-                      </td>
-                      <td className="py-3.5 font-medium text-slate-700 max-w-[220px] truncate" title={att.statesCovered.join(', ')}>
-                        {att.statesCovered.join(', ')}
-                      </td>
-                      <td className="py-3.5 font-bold text-slate-900 whitespace-nowrap">
-                        {att.marksObtained} / {att.maxMarks}
-                      </td>
-                      <td className="py-3.5 whitespace-nowrap">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full font-bold text-xs ${
-                          att.percentage >= 80
-                            ? 'bg-red-100 text-red-900'
-                            : att.percentage >= 60
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-rose-100 text-rose-800'
-                        }`}>
-                          {att.percentage}%
-                        </span>
-                      </td>
-                      <td className="py-3.5 text-slate-500 whitespace-nowrap">
-                        {mins}m {secs}s
-                      </td>
-                      <td className="py-3.5 text-right whitespace-nowrap">
-                        <button
-                          onClick={() => onSelectAttempt(att)}
-                          className="px-3 py-1.5 rounded-xl bg-[#2b1118] hover:bg-red-50 hover:text-red-900 text-slate-700 font-bold text-xs transition-colors inline-flex items-center gap-1"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          Answers
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
+      </section>
     </div>
   );
 };

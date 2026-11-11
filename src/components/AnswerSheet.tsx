@@ -72,27 +72,27 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
     <div className="max-w-4xl mx-auto space-y-6 pb-24 animate-fadeIn">
 
       {/* Top Header & Sticky Navigation */}
-      <div className="bg-[#0f0f12] rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-soft space-y-4">
+      <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#ebd4d9] shadow-soft space-y-4">
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
               onClick={onBackToResult}
-              className="p-2.5 rounded-2xl border border-slate-200 text-slate-700 hover:bg-[#2b1118] transition-colors"
+              className="p-2.5 rounded-2xl border border-[#ebd4d9] text-[#2b0c15] hover:bg-[#fff8fa] transition-colors"
               title="Back to Score Summary"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md text-xs font-black bg-slate-900 text-white">
+                <span className="px-2 py-0.5 rounded-md text-xs font-black bg-[#800020] text-white">
                   {quiz.title} Answer Sheet
                 </span>
-                <span className="text-xs text-slate-500 font-medium">
+                <span className="text-xs text-[#76515b] font-medium">
                   {attempt.formattedDate}
                 </span>
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+              <h2 className="text-xl font-bold text-[#2b0c15] mt-0.5">
                 Boddukuri's Quiz #Mahi — {quiz.title} Explanations ({quiz.statesCovered.length} States)
               </h2>
             </div>
@@ -102,22 +102,22 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => generateDayNotesPDF(quiz)}
-              className="px-3 py-1.5 rounded-xl bg-[#0f0f12] border border-slate-200 text-slate-700 hover:bg-[#2b1118] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-white border border-[#ebd4d9] text-[#800020] hover:bg-[#fde8ec] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
               title="Download full revision notes and explanations PDF"
             >
-              <Download className="w-3.5 h-3.5 text-red-800" />
+              <Download className="w-3.5 h-3.5 text-[#800020]" />
               <span>Download PDF</span>
             </button>
 
-            <div className="flex items-center gap-3 bg-[#241014] px-4 py-1.5 rounded-2xl border border-slate-200 text-xs">
+            <div className="flex items-center gap-3 bg-[#fff8fa] px-4 py-1.5 rounded-2xl border border-[#ebd4d9] text-xs">
               <div>
-                <span className="text-slate-400">Score:</span>{' '}
-                <strong className="text-red-900 text-sm">{attempt.marksObtained}/{attempt.maxMarks}</strong>
+                <span className="text-[#76515b]">Score:</span>{' '}
+                <strong className="text-[#800020] text-sm">{attempt.marksObtained}/{attempt.maxMarks}</strong>
               </div>
-              <div className="w-px h-4 bg-slate-300" />
+              <div className="w-px h-4 bg-[#ebd4d9]" />
               <div>
-                <span className="text-slate-400">Accuracy:</span>{' '}
-                <strong className="text-slate-900 text-sm">{attempt.percentage}%</strong>
+                <span className="text-[#76515b]">Accuracy:</span>{' '}
+                <strong className="text-[#2b0c15] text-sm">{attempt.percentage}%</strong>
               </div>
             </div>
           </div>
@@ -185,22 +185,22 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
           </div>
 
           {/* Section Filter */}
-          <div className="flex items-center gap-1 bg-[#2b1118] p-1 rounded-xl text-xs font-semibold self-start sm:self-auto">
+          <div className="flex items-center gap-1 bg-[#fff8fa] p-1 rounded-xl text-xs font-semibold self-start sm:self-auto border border-[#ebd4d9]">
             <button
               onClick={() => setSectionFilter('all')}
-              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'all' ? 'bg-[#0f0f12] text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'all' ? 'bg-[#800020] text-white shadow-2xs font-bold' : 'text-[#76515b]'}`}
             >
               Both Sections
             </button>
             <button
               onClick={() => setSectionFilter('previous')}
-              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'previous' ? 'bg-[#0f0f12] text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'previous' ? 'bg-[#800020] text-white shadow-2xs font-bold' : 'text-[#76515b]'}`}
             >
               Section A (Recall)
             </button>
             <button
               onClick={() => setSectionFilter('new')}
-              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'new' ? 'bg-[#0f0f12] text-slate-900 shadow-xs' : 'text-slate-500'}`}
+              className={`px-2.5 py-1 rounded-lg ${sectionFilter === 'new' ? 'bg-[#800020] text-white shadow-2xs font-bold' : 'text-[#76515b]'}`}
             >
               Section B (New)
             </button>
@@ -213,9 +213,9 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
       {/* Questions Breakdown List */}
       <div className="space-y-5">
         {filteredQuestions.length === 0 ? (
-          <div className="bg-[#0f0f12] rounded-3xl p-10 text-center border border-slate-200 text-slate-500 space-y-2">
-            <HelpCircle className="w-10 h-10 mx-auto text-slate-300" />
-            <h4 className="font-bold text-slate-700">No questions match the selected filter</h4>
+          <div className="bg-white rounded-3xl p-10 text-center border border-[#ebd4d9] text-[#76515b] space-y-2">
+            <HelpCircle className="w-10 h-10 mx-auto text-[#ebd4d9]" />
+            <h4 className="font-bold text-[#2b0c15]">No questions match the selected filter</h4>
             <p className="text-xs">Try switching filters above to see more questions.</p>
           </div>
         ) : (
@@ -232,19 +232,19 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
             return (
               <div
                 key={question.id}
-                className={`bg-[#0f0f12] rounded-3xl p-6 sm:p-7 border-2 transition-all space-y-5 shadow-soft ${
+                className={`bg-white rounded-3xl p-6 sm:p-7 border transition-all space-y-5 shadow-soft ${
                   isCorrect
-                    ? 'border-red-300 bg-gradient-to-b from-[#0f0f12] to-red-50/10'
+                    ? 'border-emerald-300 bg-gradient-to-b from-white to-emerald-50/15'
                     : isIncorrect
-                    ? 'border-rose-200 bg-gradient-to-b from-[#0f0f12] to-rose-50/10'
-                    : 'border-slate-200'
+                    ? 'border-rose-300 bg-gradient-to-b from-white to-rose-50/15'
+                    : 'border-[#ebd4d9]'
                 }`}
               >
 
                 {/* Header: Status pill, Section tag, National Park */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#ebd4d9]/60 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-slate-900 text-white">
+                    <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-[#800020] text-white">
                       Q#{qIndex}
                     </span>
 
@@ -252,7 +252,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${
                       question.section === 'previous'
                         ? 'bg-amber-50 text-amber-900 border-amber-200'
-                        : 'bg-red-50 text-red-950 border-red-300'
+                        : 'bg-[#fde8ec] text-[#800020] border-[#ebd4d9]'
                     }`}>
                       {question.section === 'previous' ? `Revision: ${question.state}` : `State: ${question.state}`}
                     </span>
@@ -266,7 +266,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                       className={`p-1.5 rounded-xl border transition-all ${
                         bookmarksList.includes(question.id)
                           ? 'bg-amber-100 border-amber-300 text-amber-800'
-                          : 'bg-[#241014] border-slate-200 text-slate-400 hover:text-slate-700'
+                          : 'bg-[#fff8fa] border-[#ebd4d9] text-[#76515b] hover:text-[#800020]'
                       }`}
                       title={bookmarksList.includes(question.id) ? 'Remove Bookmark' : 'Bookmark this question'}
                     >
@@ -311,13 +311,13 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                     const isUserPick = optIdx === selectedOption;
                     const letters = ['A', 'B', 'C', 'D'];
 
-                    let optionStyle = 'border-slate-200 bg-[#241014]/50 text-slate-700';
+                    let optionStyle = 'border-[#ebd4d9] bg-[#fff8fa] text-[#2b0c15]';
                     let badge = null;
 
                     if (isOptionCorrect) {
-                      optionStyle = 'border-red-700 bg-red-50 text-red-950 font-bold ring-2 ring-red-300';
+                      optionStyle = 'border-emerald-600 bg-emerald-50 text-emerald-950 font-bold ring-2 ring-emerald-300';
                       badge = (
-                        <span className="ml-auto inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-red-800 text-white shadow-xs">
+                        <span className="ml-auto inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-700 text-white shadow-2xs">
                           <CheckCircle2 className="w-3 h-3" /> Correct Answer
                         </span>
                       );
@@ -337,10 +337,10 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                       >
                         <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
                           isOptionCorrect
-                            ? 'bg-red-800 text-white'
+                            ? 'bg-emerald-700 text-white'
                             : isUserPick && !isOptionCorrect
                             ? 'bg-rose-600 text-white'
-                            : 'bg-[#0f0f12] border border-slate-300 text-slate-600'
+                            : 'bg-white border border-[#ebd4d9] text-[#76515b]'
                         }`}>
                           {letters[optIdx]}
                         </span>
@@ -356,28 +356,28 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                 </div>
 
                 {/* Factual Explanation Box */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-red-50/70 border border-red-300/80 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-red-950">
-                    <Sparkles className="w-4 h-4 text-red-900" />
+                <div className="p-4 sm:p-5 rounded-2xl bg-[#fff8fa] border border-[#ebd4d9] space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#800020]">
+                    <Sparkles className="w-4 h-4 text-[#800020]" />
                     <span>Fact & Explanation</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-red-950 leading-relaxed font-medium">
+                  <p className="text-xs sm:text-sm text-[#2b0c15] leading-relaxed font-medium">
                     {question.explanation}
                   </p>
 
                   {/* Additional Metadata chips if available */}
                   {(question.establishedYear || question.district || question.keyFeature) && (
-                    <div className="pt-2 flex flex-wrap items-center gap-2 text-[11px] text-red-900">
+                    <div className="pt-2 flex flex-wrap items-center gap-2 text-[11px] text-[#800020]">
                       {question.establishedYear && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#0f0f12] border border-red-300">
-                          <Calendar className="w-3 h-3 text-red-800" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-[#ebd4d9]">
+                          <Calendar className="w-3 h-3 text-[#800020]" />
                           Est. {question.establishedYear}
                         </span>
                       )}
                       {question.district && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#0f0f12] border border-red-300">
-                          <MapPin className="w-3 h-3 text-red-800" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-[#ebd4d9]">
+                          <MapPin className="w-3 h-3 text-[#800020]" />
                           {question.district}
                         </span>
                       )}
@@ -392,26 +392,26 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
       </div>
 
       {/* Bottom Sticky Action Bar */}
-      <div className="sticky bottom-4 z-20 bg-[#0f0f12]/95 backdrop-blur-md rounded-2xl p-4 border border-slate-200 shadow-elevated flex flex-wrap items-center justify-between gap-3">
+      <div className="sticky bottom-4 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-4 border border-[#ebd4d9] shadow-elevated flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={onBackToResult}
-          className="px-5 py-2.5 rounded-xl bg-[#2b1118] hover:bg-[#3a1822] text-slate-800 font-bold text-xs sm:text-sm transition-colors flex items-center gap-2"
+          className="px-5 py-2.5 rounded-xl bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9] text-[#2b0c15] font-bold text-xs sm:text-sm transition-colors flex items-center gap-2"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 text-[#800020]" />
           Back to Results
         </button>
 
         <div className="flex items-center gap-2">
           <button
             onClick={onReattempt}
-            className="px-5 py-2.5 rounded-xl bg-[#0f0f12] border border-slate-200 hover:bg-[#241014] text-slate-800 font-bold text-xs sm:text-sm transition-colors shadow-xs flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-white border border-[#ebd4d9] hover:bg-[#fff8fa] text-[#2b0c15] font-bold text-xs sm:text-sm transition-colors shadow-2xs flex items-center gap-1.5"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-4 h-4 text-[#800020]" />
             Reattempt
           </button>
           <button
             onClick={onGoHome}
-            className="px-5 py-2.5 rounded-xl bg-red-900 hover:bg-red-900 text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center gap-1.5"
+            className="px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white font-bold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center gap-1.5"
           >
             <Home className="w-4 h-4" />
             Home Dashboard

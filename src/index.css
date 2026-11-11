@@ -4,91 +4,33 @@
 
 @layer base {
   body {
-    @apply bg-[#0b0b0d] text-stone-100 antialiased font-sans selection:bg-red-300 selection:text-red-950 min-h-screen;
+    @apply bg-[#fff8fa] text-[#2b0c15] antialiased font-sans min-h-screen selection:bg-[#f0b3be] selection:text-[#541221];
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* Custom subtle scrollbar */
+/* Custom subtle maroon scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #17171b;
+  background: #fcf0f2;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4a2028;
+  background: #d498a4;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7f1d2d;
+  background: #800020;
 }
 
 /* Smooth card transitions */
 .transition-smooth {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Blush-and-maroon portal surfaces from the approved reference UI. */
-.portal-light { background: #fff7f8; color: #32151f; }
-.portal-light .bg-slate-950,
-.portal-light .bg-slate-900 { background-color: #fff7f8 !important; }
-.portal-light .border-slate-800,
-.portal-light .border-slate-700 { border-color: #e7b8c2 !important; }
-.portal-light .text-slate-100,
-.portal-light .text-slate-200 { color: #32151f !important; }
-.portal-light .text-white { color: #32151f !important; }
-.portal-light .text-slate-300,
-.portal-light .text-slate-400,
-.portal-light .text-slate-500 { color: #76515b !important; }
-.portal-light table { font-size: 0.95rem; }
-.portal-light th { color: #6d3b48 !important; letter-spacing: 0.04em; }
-.portal-light td { color: #32151f !important; }
-.portal-light input,
-.portal-light select { color: #32151f !important; background-color: #fff7f8 !important; }
-
-/* Black + maroon product theme: keep white utility classes from becoming
-   accidental light surfaces while preserving readable status colors. */
-[class*="bg-[#0f0f12]"] {
-  background-color: #0f0f12 !important;
-}
-
-[class*="from-[#0f0f12]"],
-[class*="to-[#0f0f12]"] {
-  --tw-gradient-from: #0f0f12 !important;
-  --tw-gradient-to: rgb(15 15 18 / 0) !important;
-}
-
-[class*="bg-[#241014]"] {
-  background-color: #241014 !important;
-}
-
-[class*="bg-[#2b1118]"] {
-  background-color: #2b1118 !important;
-}
-
-[class*="bg-[#3a1822]"] {
-  background-color: #3a1822 !important;
-}
-
-[class*="border-slate-"] {
-  border-color: #542331 !important;
-}
-
-[class*="text-slate-900"],
-[class*="text-slate-800"],
-[class*="text-slate-700"] {
-  color: #f5e9eb !important;
-}
-
-[class*="text-slate-600"],
-[class*="text-slate-500"],
-[class*="text-slate-400"] {
-  color: #c9aeb5 !important;
 }
 
 @media print {
@@ -103,96 +45,3 @@
     display: block !important;
   }
 }
-
-/* Final portal theme layer: these rules intentionally come last so legacy
-   dark utility classes cannot override the approved white/maroon design. */
-.portal-light,
-.portal-light [class*="bg-slate-950"],
-.portal-light [class*="bg-slate-900"],
-.portal-light [class*="bg-[#050506]"],
-.portal-light [class*="bg-[#0b0b0d]"],
-.portal-light [class*="bg-[#0f0f12]"] {
-  background-color: #fff8fa !important;
-  background-image: none !important;
-}
-.portal-light [class*="bg-[#241014]"],
-.portal-light [class*="bg-[#2b1118]"],
-.portal-light [class*="bg-red-950"] {
-  background-color: #f5dfe4 !important;
-  background-image: none !important;
-}
-.portal-light [class*="text-white"],
-.portal-light [class*="text-stone-100"],
-.portal-light [class*="text-stone-200"],
-.portal-light [class*="text-slate-100"],
-.portal-light [class*="text-slate-200"] {
-  color: #32151f !important;
-}
-.portal-light [class*="text-slate-900"],
-.portal-light [class*="text-slate-800"],
-.portal-light [class*="text-slate-700"] {
-  color: #32151f !important;
-}
-.portal-light aside button,
-.portal-light nav button { opacity: 1 !important; }
-.portal-light button:disabled {
-  opacity: 1 !important;
-  color: #32151f !important;
-  -webkit-text-fill-color: #32151f !important;
-}
-.portal-light aside button:disabled svg,
-.portal-light nav button:disabled svg { color: #7b4b58 !important; opacity: .9 !important; }
-.reference-search { min-width: 260px; }
-.portal-light [class*="text-slate-300"],
-.portal-light [class*="text-slate-400"],
-.portal-light [class*="text-slate-500"] {
-  color: #76515b !important;
-}
-.portal-light [class*="border-slate-"],
-.portal-light [class*="border-white"] {
-  border-color: #e7b8c2 !important;
-}
-.portal-light [class*="text-amber-"],
-.portal-light [class*="text-orange-"],
-.portal-light [class*="text-yellow-"],
-.portal-light [class*="text-cyan-"],
-.portal-light [class*="text-blue-"],
-.portal-light [class*="text-sky-"] {
-  color: #8f1d2c !important;
-}
-.portal-light [class*="bg-amber-"],
-.portal-light [class*="bg-orange-"],
-.portal-light [class*="bg-yellow-"],
-.portal-light [class*="bg-cyan-"],
-.portal-light [class*="bg-blue-"],
-.portal-light [class*="bg-sky-"] {
-  background-color: #fff7f8 !important;
-}
-.portal-light [class*="border-amber-"],
-.portal-light [class*="border-orange-"],
-.portal-light [class*="border-yellow-"],
-.portal-light [class*="border-cyan-"],
-.portal-light [class*="border-blue-"],
-.portal-light [class*="border-sky-"] {
-  border-color: #e7b8c2 !important;
-}
-.portal-light [class*="from-amber-"],
-.portal-light [class*="to-amber-"],
-.portal-light [class*="via-amber-"],
-.portal-light [class*="from-orange-"],
-.portal-light [class*="to-orange-"],
-.portal-light [class*="from-yellow-"],
-.portal-light [class*="to-yellow-"] {
-  --tw-gradient-from: #fff7f8 !important;
-  --tw-gradient-to: #fff7f8 !important;
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
-}
-.portal-light button[class*="bg-red-"],
-.portal-light [class*="bg-red-900"] {
-  background-color: #8f1f31 !important;
-  color: #fff8fa !important;
-}
-.portal-hero,
-.portal-hero [class*="text-white"] { color: #fff8fa !important; }
-.portal-hero [class*="text-red-100"],
-.portal-hero [class*="text-red-300"] { color: #ffdce2 !important; }

@@ -20,6 +20,9 @@ import { isDayUnlocked, hydrateScheduleOverridesCloud } from './utils/schedule';
 import { evaluateBadges } from './utils/achievements';
 import { Header } from './components/Header';
 import { Dashboard } from './components/Dashboard';
+import { MyQuizzes } from './components/MyQuizzes';
+import { MyAttempts } from './components/MyAttempts';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { QuizRunner } from './components/QuizRunner';
 import { ResultDashboard } from './components/ResultDashboard';
 import { AnswerSheet } from './components/AnswerSheet';
@@ -58,8 +61,8 @@ export const App: React.FC = () => {
     typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'synced'
   );
 
-  // Views: 'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'
-  const [currentView, setCurrentView] = useState<'dashboard' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'>('dashboard');
+  // Views: 'dashboard' | 'my-quizzes' | 'my-attempts' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'
+  const [currentView, setCurrentView] = useState<'dashboard' | 'my-quizzes' | 'my-attempts' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'>('dashboard');
   const [activeQuizId, setActiveQuizId] = useState<string>(DAILY_QUIZZES[0].id);
   const [activeAttempt, setActiveAttempt] = useState<QuizAttempt | null>(null);
   const [studyGuideInitialState, setStudyGuideInitialState] = useState<string | undefined>(undefined);
@@ -339,7 +342,7 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handler: Student Navigation from Sidebar
+  // Handler: Student Navigation from Sidebar or Bottom Nav
   const handleStudentNav = (view: StudentNavView) => {
     setIsStudentSidebarOpen(false);
     refreshProgress();
@@ -347,23 +350,27 @@ export const App: React.FC = () => {
       case 'dashboard':
         setCurrentView('dashboard');
         break;
+      case 'my-quizzes':
       case 'today-quiz':
-        setCurrentView('dashboard');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setCurrentView('my-quizzes');
+        break;
+      case 'my-attempts':
+      case 'my-results':
+        setCurrentView('my-attempts');
         break;
       case 'progress':
         setCurrentView('progress');
         break;
-      case 'my-results': {
-        setCurrentView('progress');
+      case 'study-guide':
+      case 'help':
+        setCurrentView('study');
         break;
-      }
       case 'review-mistakes': {
         const attempts = getAllAttempts();
         if (attempts.length > 0) {
           handleReviewAnswers(attempts[0]);
         } else {
-          setCurrentView('progress');
+          setCurrentView('my-attempts');
         }
         break;
       }
@@ -377,8 +384,8 @@ export const App: React.FC = () => {
       case 'settings':
         setIsSettingsOpen(true);
         break;
-      case 'help':
-        handleOpenStudyGuide();
+      case 'logout':
+        void handleSignOut();
         break;
       default:
         setCurrentView('dashboard');
@@ -490,22 +497,14 @@ export const App: React.FC = () => {
   // STUDENT LEARNING PORTAL (OR ADMIN PREVIEWING STUDENT VIEW)
   // -------------------------------------------------------------
   return (
-    <div className="portal-light min-h-screen flex flex-col bg-[#0b0b0d] text-stone-100 font-sans">
+    <div className="portal-light min-h-screen flex flex-col bg-[#fff8fa] text-[#2b0c15] font-sans selection:bg-[#fde8ec] selection:text-[#800020]">
 
       {/* Responsive Sidebar for Student */}
       <Sidebar
         role="student"
         isOpen={isStudentSidebarOpen}
         onClose={() => setIsStudentSidebarOpen(false)}
-        currentStudentView={
-          currentView === 'dashboard' ? 'dashboard' :
-          currentView === 'progress' ? 'progress' :
-          currentView === 'quiz' ? 'today-quiz' :
-          currentView === 'result' ? 'my-results' :
-          currentView === 'review' ? 'review-mistakes' :
-          currentView === 'notifications' ? 'notifications' :
-          currentView === 'study' ? 'help' : 'dashboard'
-        }
+        currentStudentView={currentView}
         onStudentNavigate={handleStudentNav}
         unreadNotifsCount={getUnreadNotificationCount('student')}
         userName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
@@ -518,20 +517,20 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area (With left margin on desktop to accommodate persistent sidebar) */}
-      <div className="lg:pl-72 flex-1 flex flex-col min-w-0">
+      <div className="lg:pl-72 flex-1 flex flex-col min-w-0 pb-20 lg:pb-8">
 
         {/* Admin Preview Mode Floating Bar */}
         {userRole === 'admin' && isAdminPreviewingStudent && (
-          <div className="bg-slate-950 text-amber-300 px-4 py-2 text-xs font-bold flex items-center justify-between border-b border-slate-800 sticky top-0 z-50">
+          <div className="bg-[#2b0c15] text-rose-200 px-4 py-2.5 text-xs font-bold flex items-center justify-between border-b border-[#800020] sticky top-0 z-50 shadow-md">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-red-600" />
+              <ShieldCheck className="w-4 h-4 text-rose-400" />
               <span>Sanju Admin: Previewing Student Interface</span>
             </div>
             <button
               onClick={() => setIsAdminPreviewingStudent(false)}
-              className="px-3 py-1 rounded-lg bg-red-800 hover:bg-red-700 text-white text-xs font-black transition-colors flex items-center gap-1"
+              className="px-3 py-1 rounded-lg bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
             >
-              <ArrowLeft className="w-3 h-3" />
+              <ArrowLeft className="w-3.5 h-3.5" />
               <span>Return to Admin Dashboard</span>
             </button>
           </div>
@@ -560,6 +559,7 @@ export const App: React.FC = () => {
           totalQuizzesCount={DAILY_QUIZZES.length}
           syncStatus={syncStatus}
           userEmail={userEmail}
+          userName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
           onSignOut={handleSignOut}
         />
 
@@ -573,13 +573,55 @@ export const App: React.FC = () => {
               overallProgress={overallProgress}
               onStartQuiz={handleStartQuiz}
               onViewResult={handleViewResult}
+              onInspectAnswers={handleReviewAnswers}
               onOpenStudyGuide={handleOpenStudyGuide}
+              onNavigateToQuizzes={() => {
+                setCurrentView('my-quizzes');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onNavigateToAttempts={() => {
+                setCurrentView('my-attempts');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onNavigateToProgress={() => {
+                setCurrentView('progress');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               onOpenBadges={() => setIsBadgesModalOpen(true)}
+              userEmail={userEmail}
+              userName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+            />
+          )}
+
+          {/* VIEW 2: MY QUIZZES (Dedicated Chronological Quiz Hub) */}
+          {currentView === 'my-quizzes' && (
+            <MyQuizzes
+              quizzes={DAILY_QUIZZES}
+              overallProgress={overallProgress}
+              onStartQuiz={handleStartQuiz}
+              onViewResult={handleViewResult}
+              onOpenStudyGuide={handleOpenStudyGuide}
+              onNavigateToAttempts={() => {
+                setCurrentView('my-attempts');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               userEmail={userEmail}
             />
           )}
 
-          {/* VIEW 2: QUIZ RUNNER */}
+          {/* VIEW 3: MY ATTEMPTS (Dedicated Attempt Records by Day) */}
+          {currentView === 'my-attempts' && (
+            <MyAttempts
+              onViewResult={handleViewResult}
+              onInspectAnswers={handleReviewAnswers}
+              onNavigateToQuizzes={() => {
+                setCurrentView('my-quizzes');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+          )}
+
+          {/* VIEW 4: QUIZ RUNNER */}
           {currentView === 'quiz' && (
             <QuizRunner
               key={activeQuizId}
@@ -589,7 +631,7 @@ export const App: React.FC = () => {
             />
           )}
 
-          {/* VIEW 3: RESULT DASHBOARD */}
+          {/* VIEW 5: RESULT DASHBOARD */}
           {currentView === 'result' && activeAttempt && (
             <ResultDashboard
               attempt={activeAttempt}
@@ -601,7 +643,7 @@ export const App: React.FC = () => {
             />
           )}
 
-          {/* VIEW 4: ANSWER SHEET & EXPLANATIONS */}
+          {/* VIEW 6: ANSWER SHEET & EXPLANATIONS */}
           {currentView === 'review' && activeAttempt && (
             <AnswerSheet
               attempt={activeAttempt}
@@ -612,7 +654,7 @@ export const App: React.FC = () => {
             />
           )}
 
-          {/* VIEW 5: PROGRESS & ATTEMPTS HISTORY */}
+          {/* VIEW 7: PROGRESS & ROADMAP */}
           {currentView === 'progress' && (
             <ProgressHistory
               quizzes={DAILY_QUIZZES}
@@ -621,10 +663,14 @@ export const App: React.FC = () => {
               onStartQuiz={handleStartQuiz}
               onOpenSettings={() => setIsSettingsOpen(true)}
               onGoHome={handleGoHome}
+              onNavigateToAttempts={() => {
+                setCurrentView('my-attempts');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
             />
           )}
 
-          {/* VIEW 6: NATIONAL PARKS STUDY GUIDE */}
+          {/* VIEW 8: NATIONAL PARKS STUDY GUIDE */}
           {currentView === 'study' && (
             <StudyGuide
               quizzes={DAILY_QUIZZES}
@@ -634,7 +680,7 @@ export const App: React.FC = () => {
             />
           )}
 
-          {/* VIEW 7: STUDENT NOTIFICATIONS */}
+          {/* VIEW 9: STUDENT NOTIFICATIONS */}
           {currentView === 'notifications' && (
             <StudentNotifications
               onGoHome={handleGoHome}
@@ -654,20 +700,28 @@ export const App: React.FC = () => {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-slate-200/80 bg-[#111114] py-6 text-center text-xs text-stone-400">
+        <footer className="border-t border-[#ebd4d9] bg-white py-6 text-center text-xs text-[#76515b]">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-              <span>🌿 Boddukuri's Quiz</span>
-              <span className="text-red-900 font-extrabold">#Mahi</span>
+            <div className="flex items-center gap-1.5 font-bold text-[#2b0c15]">
+              <span className="text-[#800020]">🎓 Boddukuri's Quiz</span>
+              <span className="text-[#800020] font-black">#Mahi</span>
               <span>• Learn. Revise. Remember. Achieve.</span>
             </div>
-            <div className="text-slate-400">
+            <div className="text-[#76515b]">
               Cumulative National Parks learning platform (09 Nov – 15 Nov 2026).
             </div>
           </div>
         </footer>
 
       </div>
+
+      {/* Mobile Fixed Bottom Navigation Bar */}
+      <MobileBottomNav
+        currentView={currentView}
+        onNavigate={handleStudentNav}
+        onOpenDrawer={() => setIsStudentSidebarOpen(true)}
+        unreadNotifsCount={getUnreadNotificationCount('student')}
+      />
 
       {/* Settings & Account Modal (Shows only Change Name & Log Out for students) */}
       <SettingsModal

@@ -85,7 +85,7 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
       </div>
 
       {/* State Selector Tabs */}
-      <div className="bg-[#0f0f12] p-2 sm:p-3 rounded-2xl border border-slate-200/90 shadow-soft overflow-x-auto flex items-center gap-1.5 scrollbar-thin">
+      <div className="bg-white p-2 sm:p-3 rounded-2xl border border-[#ebd4d9] shadow-soft overflow-x-auto flex items-center gap-1.5 scrollbar-thin">
         {allStates.map((st, idx) => {
           const isSelected = st === selectedState;
 
@@ -98,12 +98,12 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
               }}
               className={`whitespace-nowrap px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 shrink-0 ${
                 isSelected
-                  ? 'bg-red-900 text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-[#2b1118]'
+                  ? 'bg-[#800020] text-white shadow-md'
+                  : 'text-[#76515b] hover:text-[#2b0c15] hover:bg-[#fff8fa]'
               }`}
             >
               <span className={`w-5 h-5 rounded-md text-[10px] flex items-center justify-center font-black ${
-                isSelected ? 'bg-red-950 text-red-300' : 'bg-[#3a1822] text-slate-600'
+                isSelected ? 'bg-white text-[#800020]' : 'bg-[#fde8ec] text-[#800020]'
               }`}>
                 {idx + 1}
               </span>
@@ -114,13 +114,13 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
       </div>
 
       {/* State Header Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-red-950 via-red-900 to-forest-950 text-white p-6 sm:p-8 shadow-elevated">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#800020] via-[#6d001b] to-[#450311] text-white p-6 sm:p-8 shadow-elevated">
         <div className="relative z-10 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider bg-[#0f0f12]/20 text-red-300 backdrop-blur-sm border border-white/20">
+            <span className="px-3 py-1 rounded-full text-xs font-black tracking-wider bg-white/10 text-rose-200 backdrop-blur-sm border border-white/20">
               {stateInfo.totalParks} Officially Notified National Parks
             </span>
-            <span className="text-xs text-red-300">
+            <span className="text-xs text-rose-200">
               Capital: <strong className="text-white">{stateInfo.capital}</strong>
             </span>
           </div>
@@ -129,13 +129,13 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
             {stateInfo.stateName}
           </h2>
 
-          <p className="text-sm sm:text-base text-red-100/90 leading-relaxed max-w-3xl">
+          <p className="text-sm sm:text-base text-rose-100/90 leading-relaxed max-w-3xl">
             {stateInfo.overview}
           </p>
 
           {/* Tips for Mahi Card */}
           <div className="pt-2">
-            <div className="inline-flex items-center gap-2 p-3 sm:px-4 sm:py-2.5 rounded-2xl bg-[#0f0f12]/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm text-red-300">
+            <div className="inline-flex items-center gap-2 p-3 sm:px-4 sm:py-2.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm text-rose-200">
               <Sparkles className="w-4 h-4 text-amber-300 shrink-0" />
               <span><strong>Mahi's Memory Trick:</strong> {stateInfo.tipsForMahi}</span>
             </div>
@@ -146,17 +146,17 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
       {/* Search Input inside the state */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 transform -translate-y-1/2 text-[#76515b]" />
           <input
             type="text"
             placeholder={`Search ${stateInfo.stateName}'s parks, wildlife, or districts...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-[#0f0f12] text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-800 shadow-xs"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#ebd4d9] bg-white text-xs sm:text-sm text-[#2b0c15] placeholder-[#76515b] focus:outline-none focus:ring-2 focus:ring-[#800020]/20 focus:border-[#800020] shadow-2xs"
           />
         </div>
 
-        <span className="text-xs text-slate-500 font-semibold hidden sm:inline">
+        <span className="text-xs text-[#76515b] font-semibold hidden sm:inline">
           Showing {filteredParks.length} of {stateInfo.totalParks} parks
         </span>
       </div>
@@ -166,21 +166,21 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
         {filteredParks.map((park, idx) => (
           <div
             key={idx}
-            className="bg-[#0f0f12] rounded-2xl p-4 sm:p-5 border border-red-950 shadow-card hover:border-red-700 transition-all space-y-3"
+            className="bg-white rounded-2xl p-4 sm:p-5 border border-[#ebd4d9] shadow-soft hover:border-[#800020]/40 transition-all space-y-3"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#ebd4d9]/50 pb-3">
               <div>
-                <span className="text-xs font-bold text-red-900 uppercase tracking-wider">
+                <span className="text-xs font-bold text-[#800020] uppercase tracking-wider">
                   National Park #{idx + 1}
                 </span>
-                <h3 className="text-lg sm:text-2xl font-extrabold text-slate-900 mt-0.5">
+                <h3 className="text-lg sm:text-2xl font-extrabold text-[#2b0c15] mt-0.5">
                   {park.name}
                 </h3>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-[#2b1118] text-slate-700 text-xs font-bold border border-slate-200">
-                  <Calendar className="w-3.5 h-3.5 text-red-800" />
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-[#fff8fa] text-[#76515b] text-xs font-bold border border-[#ebd4d9]">
+                  <Calendar className="w-3.5 h-3.5 text-[#800020]" />
                   Est. {park.year}
                 </span>
                 {park.unescoOrSpecialStatus && (
@@ -194,31 +194,31 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
 
             {/* Geographical Location & River Biome */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs sm:text-sm">
-              <div className="flex items-start gap-2 bg-[#241014] p-3 rounded-2xl border border-slate-100">
-                <MapPin className="w-4 h-4 text-red-800 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 bg-[#fff8fa] p-3 rounded-2xl border border-[#ebd4d9]">
+                <MapPin className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-slate-400 font-semibold block text-xs">District & Location</span>
-                  <strong className="text-slate-800">{park.district}</strong>
+                  <span className="text-[#76515b] font-semibold block text-xs">District & Location</span>
+                  <strong className="text-[#2b0c15]">{park.district}</strong>
                 </div>
               </div>
 
               {park.riverOrBiome && (
-                <div className="flex items-start gap-2 bg-[#241014] p-3 rounded-2xl border border-slate-100">
-                  <Compass className="w-4 h-4 text-red-700 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2 bg-[#fff8fa] p-3 rounded-2xl border border-[#ebd4d9]">
+                  <Compass className="w-4 h-4 text-[#800020] shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-slate-400 font-semibold block text-xs">River / Landscape</span>
-                    <strong className="text-slate-800">{park.riverOrBiome}</strong>
+                    <span className="text-[#76515b] font-semibold block text-xs">River / Landscape</span>
+                    <strong className="text-[#2b0c15]">{park.riverOrBiome}</strong>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Key Feature & Description */}
-            <div className="p-3 rounded-xl bg-[#241014] border border-red-950 text-xs sm:text-sm text-stone-200 leading-relaxed space-y-1">
-              <span className="font-bold text-red-950 block text-xs uppercase tracking-wider">
+            <div className="p-3 rounded-xl bg-[#fff8fa] border border-[#ebd4d9] text-xs sm:text-sm text-[#2b0c15] leading-relaxed space-y-1">
+              <span className="font-bold text-[#800020] block text-xs uppercase tracking-wider">
                 🌟 Significant Features
               </span>
-              <p className="text-slate-700 font-medium">
+              <p className="text-[#2b0c15] font-medium">
                 {park.keyFeature}
               </p>
             </div>
@@ -226,14 +226,14 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
             {/* Famous Wildlife Chips */}
             {park.famousWildlife && park.famousWildlife.length > 0 && (
               <div>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                <span className="text-xs font-bold text-[#76515b] uppercase tracking-wider block mb-2">
                   🐾 Flagship & Endemic Wildlife:
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {park.famousWildlife.map((animal, aIdx) => (
                     <span
                       key={aIdx}
-                      className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-[#2b1118] text-slate-800 border border-slate-200 hover:bg-red-50 hover:border-red-300 transition-colors"
+                      className="px-2.5 py-1 rounded-xl text-xs font-semibold bg-[#fff8fa] text-[#2b0c15] border border-[#ebd4d9] hover:bg-[#fde8ec] hover:border-[#800020]/30 transition-colors"
                     >
                       {animal}
                     </span>
@@ -254,19 +254,19 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
       </div>
 
       {/* Bottom Floating Bar */}
-      <div className="bg-[#0f0f12] rounded-2xl p-5 border border-slate-200 shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-5 border border-[#ebd4d9] shadow-soft flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">
+          <h4 className="font-extrabold text-[#2b0c15] text-sm sm:text-base">
             Ready to test your cumulative knowledge of {stateInfo.stateName}?
           </h4>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#76515b]">
             Take the daily quiz to earn points, build streaks, and share your score on WhatsApp!
           </p>
         </div>
 
         <button
           onClick={() => onStartQuiz(matchingQuiz.id)}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-red-900 hover:bg-red-900 text-white font-extrabold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white font-extrabold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
         >
           <Play className="w-4 h-4 fill-white" />
           <span>Start {matchingQuiz.title} Quiz</span>

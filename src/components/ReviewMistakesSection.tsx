@@ -87,34 +87,34 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
   }
 
   return (
-    <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border-2 border-rose-200 shadow-card space-y-6">
+    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-rose-200 shadow-card space-y-6">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-[#ebd4d9]">
         <div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold mb-1.5">
             <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
             <span>Learning Opportunity</span>
           </div>
 
-          <h3 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+          <h3 className="text-xl sm:text-2xl font-black text-[#2b0c15] flex items-center gap-2">
             <span>Review Mistakes</span>
             <span className="text-xs sm:text-sm font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
               {allMistakes.length} {allMistakes.length === 1 ? 'Question' : 'Questions'}
             </span>
           </h3>
 
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#76515b] mt-0.5">
             Compare your chosen answer against the correct answer and read the factual explanation to solidify your memory!
           </p>
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center bg-[#2b1118] p-1 rounded-xl text-xs font-semibold self-stretch sm:self-auto justify-center">
+        <div className="flex items-center bg-[#fff8fa] p-1 rounded-xl text-xs font-semibold self-stretch sm:self-auto justify-center border border-[#ebd4d9]">
           <button
             onClick={() => setFilterType('all')}
             className={`px-3 py-1 rounded-lg transition-all ${
-              filterType === 'all' ? 'bg-[#0f0f12] text-slate-900 shadow-xs font-bold' : 'text-slate-600'
+              filterType === 'all' ? 'bg-[#800020] text-white shadow-2xs font-bold' : 'text-[#76515b]'
             }`}
           >
             All ({allMistakes.length})
@@ -122,7 +122,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
           <button
             onClick={() => setFilterType('incorrect')}
             className={`px-3 py-1 rounded-lg transition-all ${
-              filterType === 'incorrect' ? 'bg-[#0f0f12] text-slate-900 shadow-xs font-bold' : 'text-slate-600'
+              filterType === 'incorrect' ? 'bg-[#800020] text-white shadow-2xs font-bold' : 'text-[#76515b]'
             }`}
           >
             Incorrect ({attempt.incorrectCount})
@@ -131,7 +131,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
             <button
               onClick={() => setFilterType('unanswered')}
               className={`px-3 py-1 rounded-lg transition-all ${
-                filterType === 'unanswered' ? 'bg-[#0f0f12] text-slate-900 shadow-xs font-bold' : 'text-slate-600'
+                filterType === 'unanswered' ? 'bg-[#800020] text-white shadow-2xs font-bold' : 'text-[#76515b]'
               }`}
             >
               Skipped ({attempt.unansweredCount})
@@ -151,19 +151,19 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
           return (
             <div
               key={question.id}
-              className="p-5 rounded-2xl border border-rose-200/90 bg-rose-50/20 hover:border-rose-300 transition-colors space-y-4"
+              className="p-5 rounded-2xl border border-rose-200 bg-rose-50/20 hover:border-rose-300 transition-colors space-y-4"
             >
               {/* Question Metadata Row */}
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-lg bg-slate-900 text-white font-black text-xs flex items-center justify-center">
+                  <span className="w-7 h-7 rounded-lg bg-[#800020] text-white font-black text-xs flex items-center justify-center">
                     {questionNumber < 10 ? `0${questionNumber}` : questionNumber}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-[#0f0f12] text-slate-700 border border-slate-200">
+                  <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-white text-[#2b0c15] border border-[#ebd4d9]">
                     {question.state}
                   </span>
                   {question.parkName && (
-                    <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+                    <span className="text-xs text-[#76515b] font-medium hidden sm:inline">
                       • {question.parkName}
                     </span>
                   )}
@@ -180,12 +180,12 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
 
                   <button
                     onClick={() => toggleReveal(question.id)}
-                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-[#0f0f12] transition-colors"
+                    className="text-xs font-semibold text-[#76515b] hover:text-[#800020] flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-white transition-colors"
                     title={isTestingHidden ? 'Reveal Answer' : 'Hide Answer to test yourself'}
                   >
                     {isTestingHidden ? (
                       <>
-                        <Eye className="w-3.5 h-3.5 text-red-800" />
+                        <Eye className="w-3.5 h-3.5 text-[#800020]" />
                         <span>Reveal Answer</span>
                       </>
                     ) : (
@@ -199,7 +199,7 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
               </div>
 
               {/* Question Text */}
-              <div className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug">
+              <div className="text-sm sm:text-base font-extrabold text-[#2b0c15] leading-snug">
                 {question.question}
               </div>
 
@@ -231,15 +231,15 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
                   </div>
 
                   {/* Correct Answer */}
-                  <div className="p-3.5 rounded-xl border bg-red-50 border-red-400 text-red-950 flex items-start gap-2.5">
+                  <div className="p-3.5 rounded-xl border bg-emerald-50 border-emerald-300 text-emerald-950 flex items-start gap-2.5">
                     <div className="mt-0.5">
-                      <CheckCircle2 className="w-4 h-4 text-red-800" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                     </div>
                     <div>
-                      <span className="text-[10px] font-black uppercase tracking-wider block text-red-900">
+                      <span className="text-[10px] font-black uppercase tracking-wider block text-emerald-800">
                         Correct Answer
                       </span>
-                      <span className="text-xs sm:text-sm font-black text-red-950">
+                      <span className="text-xs sm:text-sm font-black text-emerald-950">
                         {correctText}
                       </span>
                     </div>
@@ -247,34 +247,34 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
 
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-[#2b1118] text-center text-xs text-slate-600 italic">
+                <div className="p-4 rounded-xl bg-[#fff8fa] border border-[#ebd4d9] text-center text-xs text-[#76515b] italic">
                   Answers hidden for self-testing. Can you recall the correct answer? Click "Reveal Answer" above to check!
                 </div>
               )}
 
               {/* Explanation & Key Fact Box */}
               {!isTestingHidden && (
-                <div className="p-4 rounded-xl bg-[#0f0f12] border border-slate-200 shadow-xs space-y-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-red-900">
-                    <Sparkles className="w-4 h-4 text-red-800" />
+                <div className="p-4 rounded-xl bg-white border border-[#ebd4d9] shadow-2xs space-y-2">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#800020]">
+                    <Sparkles className="w-4 h-4 text-[#800020]" />
                     <span>Why this is correct & Fact Sheet:</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+                  <p className="text-xs sm:text-sm text-[#2b0c15] leading-relaxed font-medium">
                     {question.explanation}
                   </p>
 
                   {/* Quick context pills if available */}
                   {(question.establishedYear || question.district || question.famousWildlife) && (
-                    <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                    <div className="pt-2 border-t border-[#ebd4d9]/50 flex flex-wrap items-center gap-2 text-[11px] text-[#76515b]">
                       {question.district && (
                         <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-slate-400" /> {question.district}
+                          <MapPin className="w-3 h-3 text-[#800020]" /> {question.district}
                         </span>
                       )}
                       {question.establishedYear && (
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-slate-400" /> Estd. {question.establishedYear}
+                          <Calendar className="w-3 h-3 text-[#800020]" /> Estd. {question.establishedYear}
                         </span>
                       )}
                     </div>
@@ -288,13 +288,13 @@ export const ReviewMistakesSection: React.FC<ReviewMistakesSectionProps> = ({
       </div>
 
       {/* Bottom CTA to view full answer sheet */}
-      <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
-        <span className="text-xs text-slate-500">
+      <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#ebd4d9]">
+        <span className="text-xs text-[#76515b]">
           Want to review all 30 questions, including those you got right?
         </span>
         <button
           onClick={onOpenFullAnswerSheet}
-          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2 shadow-2xs"
         >
           <BookOpen className="w-4 h-4" />
           <span>Open Full 30-Question Answer Sheet</span>

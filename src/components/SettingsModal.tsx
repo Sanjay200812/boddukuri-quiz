@@ -58,20 +58,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-[#0f0f12] w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-6 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2b0c15]/60 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#ebd4d9] space-y-6 max-h-[90vh] overflow-y-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-center justify-between border-b border-[#ebd4d9] pb-4">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-red-50 text-red-900">
-              <User className="w-5 h-5 text-red-900" />
+            <span className="p-2 rounded-xl bg-[#fde8ec] text-[#800020]">
+              <User className="w-5 h-5 text-[#800020]" />
             </span>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-[#2b0c15]">
                 Student Profile
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[#76515b]">
                 Manage your profile name and active session
               </p>
             </div>
@@ -79,44 +79,44 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#2b1118] text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-[#fff8fa] border border-[#ebd4d9] text-[#76515b] hover:text-[#2b0c15] flex items-center justify-center transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* 1. Account & Supabase Cloud Sync Section */}
-        <div className="space-y-3 bg-red-50/50 p-4 rounded-2xl border border-red-100">
+        <div className="space-y-3 bg-[#fff8fa] p-4 rounded-2xl border border-[#ebd4d9]">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-red-950 flex items-center gap-1.5">
-              <Cloud className="w-3.5 h-3.5 text-red-900" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#800020] flex items-center gap-1.5">
+              <Cloud className="w-3.5 h-3.5 text-[#800020]" />
               <span>Learning Session</span>
             </h3>
 
-            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0f0f12] border border-red-300">
+            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-white border border-[#ebd4d9]">
               <span className={`w-2 h-2 rounded-full ${
-                syncStatus === 'synced' ? 'bg-red-700' : syncStatus === 'offline' ? 'bg-slate-400' : 'bg-amber-500 animate-pulse'
+                syncStatus === 'synced' ? 'bg-[#800020]' : syncStatus === 'offline' ? 'bg-slate-400' : 'bg-amber-500 animate-pulse'
               }`} />
-              <span className="capitalize text-slate-700">{syncStatus}</span>
+              <span className="capitalize text-[#2b0c15]">{syncStatus}</span>
             </div>
           </div>
 
-          <div className="text-xs text-slate-600 flex flex-col gap-1">
-            <div className="flex items-center gap-1 font-semibold text-slate-700">
-              <ShieldCheck className="w-3.5 h-3.5 text-red-800" />
+          <div className="text-xs text-[#76515b] flex flex-col gap-1">
+            <div className="flex items-center gap-1 font-semibold text-[#2b0c15]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#800020]" />
               <span>Signed in as: <strong>{userEmail || 'Mahi'}</strong></span>
             </div>
-            <p className="text-[11px] text-slate-500">
-              Role: <span className="capitalize font-semibold text-red-900">{userRole}</span> • Progress synced securely with Supabase.
+            <p className="text-[11px] text-[#76515b]">
+              Role: <span className="capitalize font-semibold text-[#800020]">{userRole}</span> • Progress synced securely with Supabase.
             </p>
           </div>
 
           {onSyncNow && (
-            <div className="pt-2 flex justify-end border-t border-red-100/70">
+            <div className="pt-2 flex justify-end border-t border-[#ebd4d9]">
               <button
                 type="button"
                 onClick={onSyncNow}
-                className="px-3 py-1.5 rounded-xl bg-[#0f0f12] border border-red-300 text-red-900 hover:bg-red-50 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-white border border-[#ebd4d9] text-[#800020] hover:bg-[#fde8ec] text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Sync Cloud Now</span>
@@ -128,7 +128,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {/* 2. Change Student Display Name */}
         <form onSubmit={handleSaveName} className="space-y-3">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-[#2b0c15] mb-1">
               Student Display Name
             </label>
             <input
@@ -136,23 +136,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               value={studentNameInput}
               onChange={(e) => setStudentNameInput(e.target.value)}
               placeholder="Mahi"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-[#0f0f12] text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-700/20 focus:border-red-800"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#ebd4d9] bg-white text-sm text-[#2b0c15] focus:outline-none focus:ring-2 focus:ring-[#800020]/20 focus:border-[#800020]"
             />
-            <p className="text-[11px] text-slate-400 mt-1">
+            <p className="text-[11px] text-[#76515b] mt-1">
               Displayed on your dashboard and achievement reports.
             </p>
           </div>
 
           <div className="flex items-center justify-between pt-1">
             {saveSuccess ? (
-              <span className="text-xs font-bold text-red-900 flex items-center gap-1">
+              <span className="text-xs font-bold text-[#800020] flex items-center gap-1">
                 <CheckCircle2 className="w-4 h-4" /> Name updated!
               </span>
             ) : <div />}
 
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-red-900 hover:bg-red-900 text-white font-bold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-colors"
+              className="px-4 py-2 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white font-bold text-xs sm:text-sm shadow-sm flex items-center gap-1.5 transition-colors"
             >
               <Save className="w-4 h-4" />
               <span>Save Name</span>
