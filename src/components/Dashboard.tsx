@@ -275,6 +275,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </section>
 
+      <section className="reference-quiz-section space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-red-900" /> Available Quizzes
+          </h2>
+          <button onClick={() => setFilter('all')} className="text-sm font-bold text-red-900 hover:text-red-700">View All →</button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {DAILY_SCHEDULE.slice(0, 3).map(day => {
+            const quiz = getQuizForDay(day.dayNumber);
+            const status = getQuizStatus(quiz.id);
+            const unlocked = isDayUnlocked(day.dayNumber, completedDayIds);
+            return (
+              <article key={quiz.id} className="reference-quiz-card bg-white rounded-2xl border border-red-100 p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-red-50 text-red-900 flex items-center justify-center"><BookOpen className="w-5 h-5" /></div>
+                  <span className="text-xs font-bold text-slate-500">{quiz.totalQuestions} Questions</span>
+                </div>
+                <h3 className="font-extrabold text-slate-900">{quiz.title}</h3>
+                <p className="text-xs text-slate-500 mt-1">Day {String(day.dayNumber).padStart(2, '0')} · {quiz.statesCovered.length} states</p>
+                <button disabled={!unlocked} onClick={() => onStartQuiz(quiz.id)} className="mt-4 w-full rounded-xl bg-red-900 text-white py-2.5 text-sm font-bold disabled:opacity-40">{status === 'completed' ? 'View Quiz' : 'Start Quiz'} →</button>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Daily Learning Streak Tracker */}
       <StreakTracker
         attempts={allAttempts}

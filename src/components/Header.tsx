@@ -9,7 +9,8 @@ import {
   Award,
   LogOut,
   Menu,
-  Bell
+  Bell,
+  Search
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -84,6 +85,17 @@ export const Header: React.FC<HeaderProps> = ({
                 </p>
               </div>
             </div>
+          </div>
+
+          <div className="hidden lg:flex flex-1 max-w-md mx-6">
+            <label className="reference-search flex items-center gap-2 w-full rounded-2xl px-4 py-2.5 border border-red-100 bg-white shadow-sm">
+              <Search className="w-4 h-4 text-red-900/70" />
+              <input
+                aria-label="Search quizzes and topics"
+                placeholder="Search quizzes, topics..."
+                className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder:text-slate-400"
+              />
+            </label>
           </div>
 
           {/* Navigation Links (Desktop) */}
