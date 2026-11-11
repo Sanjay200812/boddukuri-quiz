@@ -97,9 +97,11 @@ export const App: React.FC = () => {
 
   // Auth Gate: Check active session on mount & determine role
   useEffect(() => {
-    // 1. Check local persistent session (keeps session active across restarts & phones)
+    // 1. Only use the local session when Supabase is unavailable. When cloud
+    // auth is configured, trusting this cache would resurrect the old
+    // local-only fallback and submit without a JWT, causing RLS 401 errors.
     const localSaved = getLocalAuthSession();
-    if (localSaved?.email) {
+    if (!supabase && localSaved?.email) {
       setUserEmail(localSaved.email);
       setUserRole(localSaved.role);
       setUserProfile({
@@ -131,6 +133,10 @@ export const App: React.FC = () => {
           setUserRole(profile.role);
         }
         void performCloudSync(user.id);
+      } else {
+        // Remove any pre-cloud local session so it cannot mask a missing
+        // Supabase session on an existing phone/browser.
+        clearLocalAuthSession();
       }
       setSessionChecked(true);
     }).catch(() => {
