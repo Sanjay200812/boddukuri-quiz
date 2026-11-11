@@ -91,6 +91,7 @@ export const App: React.FC = () => {
     } catch (err) {
       console.warn('Cloud sync advisory:', err);
       setSyncStatus(typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'pending');
+      throw err;
     }
   }, [refreshProgress]);
 
@@ -268,7 +269,12 @@ export const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       setSyncStatus('pending');
-      alert(`Result was kept safely on this device, but cloud upload failed: ${err instanceof Error ? err.message : 'Unknown Supabase error'}`);
+      const detail = err instanceof Error
+        ? err.message
+        : err && typeof err === 'object' && 'message' in err
+          ? String((err as { message?: unknown }).message || JSON.stringify(err))
+          : String(err || 'Unknown Supabase error');
+      alert(`Result was kept safely on this device, but cloud upload failed: ${detail}`);
     }
   };
 
