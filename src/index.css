@@ -122,6 +122,8 @@
   background-image: none !important;
 }
 .portal-light [class*="text-white"],
+.portal-light [class*="text-stone-100"],
+.portal-light [class*="text-stone-200"],
 .portal-light [class*="text-slate-100"],
 .portal-light [class*="text-slate-200"] {
   color: #32151f !important;

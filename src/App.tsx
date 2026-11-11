@@ -495,7 +495,7 @@ export const App: React.FC = () => {
   // STUDENT LEARNING PORTAL (OR ADMIN PREVIEWING STUDENT VIEW)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen flex flex-col bg-[#0b0b0d] text-stone-100 font-sans">
+    <div className="portal-light min-h-screen flex flex-col bg-[#0b0b0d] text-stone-100 font-sans">
 
       {/* Responsive Sidebar for Student */}
       <Sidebar
