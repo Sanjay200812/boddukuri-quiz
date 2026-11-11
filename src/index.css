@@ -103,3 +103,40 @@
     display: block !important;
   }
 }
+
+/* Final portal theme layer: these rules intentionally come last so legacy
+   dark utility classes cannot override the approved white/maroon design. */
+.portal-light,
+.portal-light [class*="bg-slate-950"],
+.portal-light [class*="bg-slate-900"],
+.portal-light [class*="bg-[#050506]"],
+.portal-light [class*="bg-[#0b0b0d]"],
+.portal-light [class*="bg-[#0f0f12]"] {
+  background-color: #fff8fa !important;
+  background-image: none !important;
+}
+.portal-light [class*="bg-[#241014]"],
+.portal-light [class*="bg-[#2b1118]"],
+.portal-light [class*="bg-red-950"] {
+  background-color: #f5dfe4 !important;
+  background-image: none !important;
+}
+.portal-light [class*="text-white"],
+.portal-light [class*="text-slate-100"],
+.portal-light [class*="text-slate-200"] {
+  color: #32151f !important;
+}
+.portal-light [class*="text-slate-300"],
+.portal-light [class*="text-slate-400"],
+.portal-light [class*="text-slate-500"] {
+  color: #76515b !important;
+}
+.portal-light [class*="border-slate-"],
+.portal-light [class*="border-white"] {
+  border-color: #e7b8c2 !important;
+}
+.portal-light button[class*="bg-red-"],
+.portal-light [class*="bg-red-900"] {
+  background-color: #8f1f31 !important;
+  color: #fff8fa !important;
+}
