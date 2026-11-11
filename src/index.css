@@ -34,18 +34,16 @@
 }
 
 /* Blush-and-maroon portal surfaces from the approved reference UI. */
-.portal-light [class*="bg-[#0f0f12]"],
-.portal-light [class*="bg-slate-950"],
-.portal-light [class*="bg-slate-900"] {
-  background-color: #fff7f8 !important;
-}
-.portal-light [class*="bg-[#241014]"],
-.portal-light [class*="bg-[#2b1118"] {
-  background-color: #f7e4e8 !important;
-}
-.portal-light [class*="border-slate-"] {
-  border-color: #e7b8c2 !important;
-}
+.portal-light { background: #fff7f8; color: #32151f; }
+.portal-light .bg-slate-950,
+.portal-light .bg-slate-900 { background-color: #fff7f8 !important; }
+.portal-light .border-slate-800,
+.portal-light .border-slate-700 { border-color: #e7b8c2 !important; }
+.portal-light .text-slate-100,
+.portal-light .text-slate-200 { color: #32151f !important; }
+.portal-light .text-slate-300,
+.portal-light .text-slate-400,
+.portal-light .text-slate-500 { color: #76515b !important; }
 
 /* Black + maroon product theme: keep white utility classes from becoming
    accidental light surfaces while preserving readable status colors. */
