@@ -153,6 +153,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       }
 
       // Valid access code! If backend ticket provided, sign in to Supabase auth session
+      let authenticatedUserId = result.userId;
       if (result.authTicket && supabase) {
         const { error: cloudSignInError } = await supabase.auth.signInWithPassword({
           email: result.email,
@@ -165,6 +166,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         if (!cloudSession.session?.user) {
           throw new Error('Supabase did not create a cloud session. Please try signing in again.');
         }
+        // Always use the real Auth UUID. The access-code table intentionally
+        // returns no user id, and hardcoded placeholder IDs cannot satisfy RLS.
+        authenticatedUserId = cloudSession.session.user.id;
       }
 
       const resolvedRole = result.role || (result.email.toLowerCase().includes('sanju') || result.email.toLowerCase().includes('sanjay') ? 'admin' : 'student');
@@ -172,10 +176,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         email: result.email,
         role: resolvedRole,
         fullName: result.fullName || (resolvedRole === 'admin' ? 'Sanju' : 'Mahi'),
-        userId: result.userId,
+        userId: authenticatedUserId,
         loggedInAt: new Date().toISOString()
       });
-      onLoginSuccess(result.email, resolvedRole, result.userId);
+      onLoginSuccess(result.email, resolvedRole, authenticatedUserId);
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to verify access code.');
     } finally {
