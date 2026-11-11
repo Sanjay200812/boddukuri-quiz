@@ -40,8 +40,9 @@ import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 export const App: React.FC = () => {
   // Opening Motivation state (once per session, replayable from Settings)
   const [hasSeenMotivation, setHasSeenMotivation] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return true;
-    return sessionStorage.getItem('mahi_motivation_seen') === 'true';
+    // The public entry point should land on authentication immediately.
+    // Motivation remains available through Settings → Replay Motivation.
+    return true;
   });
 
   // Supabase Auth session gate
@@ -131,6 +132,10 @@ export const App: React.FC = () => {
         if (profile) {
           setUserProfile(profile);
           setUserRole(profile.role);
+        } else {
+          const resolvedRole = user.email?.toLowerCase().includes('sanju') || user.email?.toLowerCase().includes('sanjay') ? 'admin' : 'student';
+          setUserRole(resolvedRole);
+          setUserProfile({ id: user.id, email: user.email || '', role: resolvedRole, fullName: resolvedRole === 'admin' ? 'Sanju' : 'Mahi' });
         }
         void performCloudSync(user.id);
       } else {
@@ -499,7 +504,6 @@ export const App: React.FC = () => {
         }
         onStudentNavigate={handleStudentNav}
         unreadNotifsCount={getUnreadNotificationCount('student')}
-        streakDays={overallProgress.currentStreak}
         userName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
         userEmail={userEmail}
         onSignOut={handleSignOut}

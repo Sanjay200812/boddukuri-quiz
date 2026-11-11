@@ -3,11 +3,8 @@ import {
   Home,
   Play,
   BarChart3,
-  Award,
-  Flame,
   Bell,
   Settings,
-  HelpCircle,
   LogOut,
   Inbox,
   Users,
@@ -61,7 +58,6 @@ interface SidebarProps {
   unreadInboxCount?: number;
   unreadNotifsCount?: number;
   pendingRetakesCount?: number;
-  streakDays?: number;
   userName?: string;
   userEmail?: string | null;
   onSignOut: () => void;
@@ -79,7 +75,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   unreadInboxCount = 0,
   unreadNotifsCount = 0,
   pendingRetakesCount = 0,
-  streakDays = 0,
   userName,
   userEmail,
   onSignOut,
@@ -98,13 +93,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'progress', label: 'Learning History', icon: BarChart3 },
     { id: 'my-results', label: 'My Results', icon: FileCheck },
     { id: 'review-mistakes', label: 'Review Mistakes', icon: RotateCcw },
-    { id: 'achievements', label: 'Achievements', icon: Award },
-    {
-      id: 'streak',
-      label: 'Learning Streak',
-      icon: Flame,
-      badge: streakDays > 0 ? `${streakDays}d` : undefined
-    },
     {
       id: 'notifications',
       label: 'Notifications',
@@ -112,7 +100,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined
     },
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'help', label: 'Help / About', icon: HelpCircle },
   ];
 
   const adminNavItems: Array<{

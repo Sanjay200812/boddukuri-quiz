@@ -12,7 +12,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onLoginSuccess,
   onReplayMotivation,
 }) => {
-  const [authMethod, setAuthMethod] = useState<'password' | 'code'>('password');
+  const [authMethod, setAuthMethod] = useState<'password' | 'code'>('code');
 
   // Password login state
   const [email, setEmail] = useState('');
@@ -94,7 +94,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           userId: data.user.id,
           loggedInAt: new Date().toISOString()
         });
-        onLoginSuccess(data.user.email, resolvedRole);
+        onLoginSuccess(data.user.email, resolvedRole, data.user.id);
       } else {
         setErrorMessage('Sign in succeeded, but no user email was returned.');
       }

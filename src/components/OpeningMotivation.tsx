@@ -17,27 +17,19 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
   // Diverse motivational pools cycling around core theme
   const phrasePools = useMemo(() => [
     [
-      { text: 'Boddukuri Mahima…', highlight: true, delay: 1100 },
-      { text: 'Wake up.', delay: 900 },
-      { text: 'Keep learning.', delay: 900 },
-      { text: 'Believe in yourself.', highlight: true, delay: 1000 },
-      { text: 'Show your progress through your actions.', highlight: true, delay: 1400 },
-      { text: 'Every quiz brings you closer to mastery.', delay: 1100 }
+      { text: 'Boddukuri Mahima…', highlight: true, delay: 700 },
+      { text: 'Learn with focus.', delay: 700 },
+      { text: 'Let your progress speak.', highlight: true, delay: 800 }
     ],
     [
-      { text: 'Boddukuri Mahima…', highlight: true, delay: 1100 },
-      { text: 'A new day of opportunity is here.', delay: 1000 },
-      { text: 'Wake up and focus your energy.', delay: 900 },
-      { text: 'Learn with complete confidence.', highlight: true, delay: 1100 },
-      { text: 'Prove them right who believe in you.', delay: 1000 },
-      { text: 'Show your greatness through your actions.', highlight: true, delay: 1400 }
+      { text: 'Boddukuri Mahima…', highlight: true, delay: 700 },
+      { text: 'A new day. A clear goal.', delay: 700 },
+      { text: 'Learn. Revise. Achieve.', highlight: true, delay: 800 }
     ],
     [
-      { text: 'Boddukuri Mahima…', highlight: true, delay: 1100 },
-      { text: 'Wake up and stay determined.', delay: 900 },
-      { text: 'Consistent revision builds champions.', delay: 1000 },
-      { text: 'Believe in your preparation.', highlight: true, delay: 1000 },
-      { text: 'Let your scores and progress speak for you.', highlight: true, delay: 1400 }
+      { text: 'Boddukuri Mahima…', highlight: true, delay: 700 },
+      { text: 'Stay consistent.', delay: 700 },
+      { text: 'Your results will follow.', highlight: true, delay: 800 }
     ]
   ], []);
 
