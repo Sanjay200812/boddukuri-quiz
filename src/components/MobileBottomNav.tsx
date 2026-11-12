@@ -2,9 +2,9 @@ import React from 'react';
 import {
   Home,
   Play,
-  FileText,
-  TrendingUp,
-  Menu
+  BarChart3,
+  Bookmark,
+  User
 } from 'lucide-react';
 import type { StudentNavView } from './Sidebar';
 
@@ -19,84 +19,83 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   currentView,
   onNavigate,
   onOpenDrawer,
-  unreadNotifsCount = 0,
+  unreadNotifsCount: _unreadNotifsCount = 0,
 }) => {
   const isDashboard = currentView === 'dashboard';
   const isQuizzes = currentView === 'my-quizzes' || currentView === 'today-quiz';
-  const isAttempts = currentView === 'my-attempts' || currentView === 'my-results';
   const isProgress = currentView === 'progress';
+  const isSaved = currentView === 'study-guide' || currentView === 'study';
+  const isProfile = currentView === 'settings';
 
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#0d0408]/95 backdrop-blur-xl border-t border-[#260c18] py-1.5 px-2 flex items-center justify-around lg:hidden shadow-[0_-8px_25px_rgba(0,0,0,0.7)]"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-[#0c0407]/95 backdrop-blur-2xl border-t border-[#260c18] py-2 px-3 flex items-center justify-around lg:hidden shadow-[0_-8px_25px_rgba(0,0,0,0.8)]"
     >
-      {/* 1: Dashboard */}
+      {/* 1: Home */}
       <button
         onClick={() => onNavigate('dashboard')}
-        className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isDashboard ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
+        className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
+          isDashboard ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
         }`}
       >
-        <div className={`p-1 rounded-lg ${isDashboard ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
+        <div className={`p-1.5 rounded-xl ${isDashboard ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
           <Home className={`w-5 h-5 ${isDashboard ? 'stroke-[2.5]' : ''}`} />
         </div>
-        <span className="text-[10px] mt-0.5">Home</span>
+        <span className="text-[10px] mt-1 font-semibold">Home</span>
       </button>
 
-      {/* 2: My Quizzes */}
+      {/* 2: Quizzes */}
       <button
         onClick={() => onNavigate('my-quizzes')}
-        className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isQuizzes ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
+        className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
+          isQuizzes ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
         }`}
       >
-        <div className={`p-1 rounded-lg ${isQuizzes ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
+        <div className={`p-1.5 rounded-xl ${isQuizzes ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
           <Play className={`w-5 h-5 ${isQuizzes ? 'stroke-[2.5] fill-[#ff3366]' : ''}`} />
         </div>
-        <span className="text-[10px] mt-0.5">Quizzes</span>
+        <span className="text-[10px] mt-1 font-semibold">Quizzes</span>
       </button>
 
-      {/* 3: My Attempts */}
-      <button
-        onClick={() => onNavigate('my-attempts')}
-        className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isAttempts ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
-        }`}
-      >
-        <div className={`p-1 rounded-lg ${isAttempts ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
-          <FileText className={`w-5 h-5 ${isAttempts ? 'stroke-[2.5]' : ''}`} />
-        </div>
-        <span className="text-[10px] mt-0.5">Attempts</span>
-      </button>
-
-      {/* 4: Progress */}
+      {/* 3: Progress */}
       <button
         onClick={() => onNavigate('progress')}
-        className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] ${
-          isProgress ? 'text-[#ff3366] font-black' : 'text-[#a68690] hover:text-white'
+        className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
+          isProgress ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
         }`}
       >
-        <div className={`p-1 rounded-lg ${isProgress ? 'bg-[#280a17] text-[#ff3366] shadow-[0_0_12px_rgba(255,51,102,0.3)]' : ''}`}>
-          <TrendingUp className={`w-5 h-5 ${isProgress ? 'stroke-[2.5]' : ''}`} />
+        <div className={`p-1.5 rounded-xl ${isProgress ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
+          <BarChart3 className={`w-5 h-5 ${isProgress ? 'stroke-[2.5]' : ''}`} />
         </div>
-        <span className="text-[10px] mt-0.5">Progress</span>
+        <span className="text-[10px] mt-1 font-semibold">Progress</span>
       </button>
 
-      {/* 5: Menu / Drawer toggle */}
+      {/* 4: Saved / Study */}
+      <button
+        onClick={() => onNavigate('study-guide')}
+        className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
+          isSaved ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
+        }`}
+      >
+        <div className={`p-1.5 rounded-xl ${isSaved ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
+          <Bookmark className={`w-5 h-5 ${isSaved ? 'stroke-[2.5] fill-[#ff3366]' : ''}`} />
+        </div>
+        <span className="text-[10px] mt-1 font-semibold">Saved</span>
+      </button>
+
+      {/* 5: Profile / Settings */}
       <button
         onClick={onOpenDrawer}
-        className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all min-w-[56px] min-h-[44px] text-[#a68690] hover:text-white relative"
+        className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
+          isProfile ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
+        }`}
       >
-        <div className="p-1 rounded-lg relative">
-          <Menu className="w-5 h-5" />
-          {unreadNotifsCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#e6194b] shadow-[0_0_6px_rgba(230,25,75,0.8)] animate-pulse" />
-          )}
+        <div className="p-1.5 rounded-xl">
+          <User className="w-5 h-5" />
         </div>
-        <span className="text-[10px] mt-0.5">Menu</span>
+        <span className="text-[10px] mt-1 font-semibold">Profile</span>
       </button>
     </nav>
   );
 };
-

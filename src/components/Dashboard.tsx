@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import {
   Play,
   CheckCircle2,
   Clock,
-  Award,
   Flame,
   TrendingUp,
   ChevronRight,
@@ -11,9 +11,14 @@ import {
   ArrowRight,
   Lock,
   Hourglass,
-  GraduationCap,
-  FileText
+  FileText,
+  Bookmark,
+  Layers,
+  Brain,
+  Target,
+  HelpCircle
 } from 'lucide-react';
+import graduationHeroImg from '../assets/graduation-hero.png';
 import type { DailyQuiz, OverallProgress, QuizAttempt } from '../types/quiz';
 import {
   getQuizStatus,
@@ -40,6 +45,15 @@ interface DashboardProps {
   userName?: string;
 }
 
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
+const sectionFade = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-40px" },
+  transition: { duration: 0.5, ease: EASE_OUT }
+};
+
 export const Dashboard: React.FC<DashboardProps> = ({
   quizzes: _quizzes,
   overallProgress,
@@ -50,9 +64,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onNavigateToQuizzes,
   onNavigateToAttempts,
   onNavigateToProgress,
-  userName = 'Mahi',
+  userName = 'Sanju',
 }) => {
   const [, setTick] = useState<number>(Date.now());
+  const [bookmarkedQuizIds, setBookmarkedQuizIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('boddukuri_bookmarked_quizzes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleBookmark = (quizId: string) => {
+    setBookmarkedQuizIds(prev => {
+      const next = prev.includes(quizId) ? prev.filter(id => id !== quizId) : [...prev, quizId];
+      try {
+        localStorage.setItem('boddukuri_bookmarked_quizzes', JSON.stringify(next));
+      } catch (e) {
+        console.warn('Bookmark save error:', e);
+      }
+      return next;
+    });
+  };
 
   // Live 1-second ticker for unlock countdowns
   useEffect(() => {
@@ -70,7 +104,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const targetCountdown = getDayCountdown(recommendedDayNumber, completedDayIds);
   const targetStatus = isTargetUnlocked ? getQuizStatus(targetQuiz.id) : 'pending';
 
-  // Rule: Clean up stale in-progress sessions for locked or completed days
+  // Clean up stale in-progress sessions for locked or completed days
   useEffect(() => {
     DAILY_SCHEDULE.forEach((item) => {
       const dayQuiz = getQuizForDay(item.dayNumber);
@@ -82,7 +116,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     });
   }, [completedDayIds]);
 
-  // Rule: The "Available Quizzes" section should display ONLY quizzes that have NOT yet been completed.
+  // Rule: Available Quizzes displays ONLY quizzes that have NOT yet been completed.
   const availableUncompletedQuizzes = DAILY_SCHEDULE.filter(day => {
     const dayQuiz = getQuizForDay(day.dayNumber);
     const isCompleted = completedDayIds.includes(dayQuiz.id);
@@ -93,129 +127,138 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const recentAttempts = allAttempts.slice(0, 4);
 
   return (
-    <div className="space-y-6 sm:space-y-8 pb-20 animate-fadeIn text-[#e8d5db]">
-      {/* Hero Welcome Banner (Luxury Obsidian & Ruby Design matching Image 2 mockup) */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1c0610] via-[#14050d] to-[#0c0207] text-white p-6 sm:p-10 shadow-[0_12px_40px_rgba(0,0,0,0.7)] border border-[#3d0e20]">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-[#ff3366]/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 -mb-20 w-64 h-64 rounded-full bg-[#9e1030]/15 blur-2xl pointer-events-none" />
+    <div className="space-y-6 sm:space-y-8 pb-20 text-[#f2e6eb]">
+      {/* Hero Welcome Banner Matching Image 1 Mockup */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1c0610] via-[#14050d] to-[#0a0206] text-white p-6 sm:p-8 shadow-[0_12px_40px_rgba(0,0,0,0.7)] border border-[#2b0c18]"
+      >
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-[#9e1030]/20 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/3 -mb-20 w-60 h-60 rounded-full bg-[#ff3366]/10 blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="max-w-2xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2b0c18] border border-[#4a1226] text-[#ff8099] text-xs font-semibold backdrop-blur-sm">
-              <GraduationCap className="w-4 h-4 text-[#ff3366]" />
-              <span>Boddukuri's Quiz Portal • #Mahi</span>
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="max-w-xl space-y-3.5 text-left w-full">
+            <div className="text-sm sm:text-base text-[#cbb5bc] font-normal">
+              Welcome back,
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
-              Welcome back, <span className="text-[#ff8099]">{userName}</span> 👋
+              {userName} <span className="inline-block animate-bounce">👋</span>
             </h1>
 
-            <p className="text-sm sm:text-base text-[#cbb5bc] leading-relaxed font-medium">
-              Practice quizzes, test your knowledge, and track your progress across India's National Parks.
+            <p className="text-xs sm:text-sm text-[#a68690] leading-relaxed max-w-md font-normal">
+              Practice quizzes, test your knowledge, and track your progress.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={onNavigateToQuizzes}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#b31238] via-[#9e1030] to-[#750720] hover:from-[#c91842] hover:to-[#8a0e28] active:scale-95 text-white text-xs sm:text-sm font-bold transition-all shadow-ruby flex items-center gap-2 border border-[#ff3366]/30"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs sm:text-sm font-bold transition-all shadow-ruby flex items-center gap-2 border border-[#ff3366]/30 cursor-pointer"
               >
                 <span>Explore Quizzes</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={onNavigateToProgress}
-                className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 active:scale-95 text-xs sm:text-sm font-bold transition-all flex items-center gap-2"
+                className="px-5 py-2.5 rounded-xl bg-[#14060d] hover:bg-[#1f0913] text-[#f2e6eb] border border-[#2b0c18] text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer"
               >
-                <TrendingUp className="w-4 h-4" />
+                <TrendingUp className="w-4 h-4 text-[#ff8099]" />
                 <span>View Progress</span>
-              </button>
+              </motion.button>
             </div>
           </div>
 
-          {/* 3D Graduation Cap / Book Graphic Element */}
-          <div className="hidden md:flex flex-col items-center justify-center p-6 rounded-3xl bg-[#16060e]/80 border border-[#3b0e1e] backdrop-blur-md shadow-inner text-center shrink-0">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#3a0815] to-[#700820] border border-[#ff3366]/30 flex items-center justify-center shadow-lg mb-3">
-              <GraduationCap className="w-10 h-10 text-white" />
-            </div>
-            <div className="text-sm font-black text-white">Daily Learning Goal</div>
-            <div className="text-xs text-[#ff8099] mt-0.5">109 National Parks</div>
+          {/* 3D Graduation Cap on Stacked Books (Photorealistic Render from Image 1) */}
+          <div className="hidden md:flex relative shrink-0 justify-center items-center">
+            <div className="absolute inset-0 bg-[#ff3366]/15 blur-2xl rounded-full scale-90 pointer-events-none" />
+            <motion.img
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              src={graduationHeroImg}
+              alt="Graduation Cap and Books"
+              className="w-56 lg:w-72 h-auto object-cover rounded-2xl shadow-[0_10px_35px_rgba(0,0,0,0.8)] border border-[#2b0c18] relative z-10"
+            />
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      {/* 4 Summary Metric Cards (Exact layout from Image 2) */}
+      {/* 4 Summary Metric Cards Matching Image 1 */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Card 1: Quizzes Attempted */}
-        <div className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] p-4 sm:p-5 shadow-lg backdrop-blur-md transition-all hover:border-[#471225]">
-          <div className="flex items-center justify-between text-[#a68690] mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Quizzes Attempted</span>
-            <div className="w-8 h-8 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center">
-              <FileText className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {allAttempts.length}
-          </div>
-          <p className="text-[11px] text-[#a68690] mt-1">Total submissions recorded</p>
-        </div>
-
-        {/* Card 2: Quizzes Completed */}
-        <div className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] p-4 sm:p-5 shadow-lg backdrop-blur-md transition-all hover:border-[#471225]">
-          <div className="flex items-center justify-between text-[#a68690] mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Quizzes Completed</span>
-            <div className="w-8 h-8 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-white">
-            {completedDayIds.length} <span className="text-sm font-semibold text-[#a68690]">/ {DAILY_SCHEDULE.length}</span>
-          </div>
-          <p className="text-[11px] text-[#a68690] mt-1">{Math.round((completedDayIds.length / DAILY_SCHEDULE.length) * 100)}% of syllabus</p>
-        </div>
-
-        {/* Card 3: Average Score */}
-        <div className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] p-4 sm:p-5 shadow-lg backdrop-blur-md transition-all hover:border-[#471225]">
-          <div className="flex items-center justify-between text-[#a68690] mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Average Score</span>
-            <div className="w-8 h-8 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center">
-              <Award className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-[#ff8099]">
-            {overallProgress.overallAccuracy}%
-          </div>
-          <p className="text-[11px] text-[#a68690] mt-1">Accuracy across attempts</p>
-        </div>
-
-        {/* Card 4: Day Streak */}
-        <div className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] p-4 sm:p-5 shadow-lg backdrop-blur-md transition-all hover:border-[#471225]">
-          <div className="flex items-center justify-between text-[#a68690] mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Day Streak</span>
-            <div className="w-8 h-8 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center">
-              <Flame className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl sm:text-3xl font-black text-[#ff8099]">
-            {overallProgress.currentStreak} <span className="text-sm font-semibold text-[#a68690]">{overallProgress.currentStreak === 1 ? 'Day' : 'Days'}</span>
-          </div>
-          <p className="text-[11px] text-[#a68690] mt-1">Daily learning habit</p>
-        </div>
+        {[
+          {
+            label: 'Quizzes Attempted',
+            value: allAttempts.length,
+            icon: FileText
+          },
+          {
+            label: 'Quizzes Completed',
+            value: completedDayIds.length,
+            icon: CheckCircle2
+          },
+          {
+            label: 'Average Score',
+            value: `${overallProgress.overallAccuracy}%`,
+            icon: Target
+          },
+          {
+            label: 'Day Streak',
+            value: overallProgress.currentStreak,
+            icon: Flame
+          }
+        ].map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.08, duration: 0.5, ease: EASE_OUT }}
+              whileHover={{ y: -4, transition: { duration: 0.2 } }}
+              className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] hover:border-[#ff3366]/30 p-4 sm:p-5 shadow-lg backdrop-blur-md transition-all flex items-center gap-3.5"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
+                <Icon className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-2xl sm:text-3xl font-black text-white leading-none mb-1">
+                  {item.value}
+                </div>
+                <div className="text-xs font-bold text-[#a68690] uppercase tracking-wider">
+                  {item.label}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
       </section>
 
       {/* Next Target / Spotlight Card */}
       {targetQuiz && !completedDayIds.includes(targetQuiz.id) && (
-        <section className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] p-5 sm:p-6 shadow-lg backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <motion.section
+          {...sectionFade}
+          className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] hover:border-[#ff3366]/30 p-5 sm:p-6 shadow-lg backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors"
+        >
           <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-base shadow-sm shrink-0 ${
-              isTargetUnlocked ? 'bg-gradient-to-tr from-[#9e1030] to-[#e6194b]' : 'bg-[#260c18] text-[#a68690]'
-            }`}>
+            <div
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-base shadow-sm shrink-0 ${
+                isTargetUnlocked ? 'bg-gradient-to-tr from-[#9e1030] to-[#e6194b] shadow-ruby' : 'bg-[#1a0712] text-[#7a5b67] border border-[#2b0c18]'
+              }`}
+            >
               {targetQuiz.dayNumber < 10 ? `0${targetQuiz.dayNumber}` : targetQuiz.dayNumber}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#ff3366]">
-                  {isTargetUnlocked ? "Next Available Quiz" : "Upcoming Scheduled Day"}
+                  {isTargetUnlocked ? 'Next Available Quiz' : 'Upcoming Scheduled Day'}
                 </span>
                 <span className="text-xs text-[#a68690]">• {targetQuiz.displayDate}</span>
               </div>
@@ -223,46 +266,48 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {targetQuiz.title}: {targetQuiz.statesCovered.length} States ({targetQuiz.totalQuestions} Questions)
               </h3>
               <p className="text-xs text-[#a68690]">
-                {targetQuiz.statesCovered.slice(0, 4).join(', ')}{targetQuiz.statesCovered.length > 4 ? '...' : ''}
+                {targetQuiz.statesCovered.slice(0, 4).join(', ')}
+                {targetQuiz.statesCovered.length > 4 ? '...' : ''}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 w-full md:w-auto justify-end">
             {isTargetUnlocked ? (
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => onStartQuiz(targetQuiz.id)}
-                className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#b31238] via-[#9e1030] to-[#750720] hover:from-[#c91842] hover:to-[#8a0e28] text-white text-xs sm:text-sm font-bold transition-all shadow-ruby active:scale-95 flex items-center justify-center gap-2 border border-[#ff3366]/30"
+                className="w-full md:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs sm:text-sm font-bold transition-all shadow-ruby flex items-center justify-center gap-2 border border-[#ff3366]/30 cursor-pointer"
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>{targetStatus === 'in-progress' ? 'Resume Quiz' : 'Start Quiz'}</span>
-              </button>
+              </motion.button>
             ) : (
-              <div className="w-full md:w-auto text-xs font-bold text-[#ff8099] bg-[#220713] border border-[#470f25] px-4 py-2 rounded-xl flex items-center justify-center gap-2">
+              <div className="w-full md:w-auto text-xs font-bold text-[#ff8099] bg-[#1a0712] border border-[#2b0c18] px-4 py-2.5 rounded-xl flex items-center justify-center gap-2">
                 <Hourglass className="w-3.5 h-3.5 text-[#ff3366] animate-pulse" />
                 <span>Unlocks at 8:29 PM IST ({targetCountdown.formattedCountdown})</span>
               </div>
             )}
           </div>
-        </section>
+        </motion.section>
       )}
 
-      {/* Available Quizzes (Uncompleted Quizzes Only) */}
-      <section className="space-y-4">
+      {/* Available Quizzes (Uncompleted Quizzes Only) Matching Image 1 3-Card Grid */}
+      <motion.section {...sectionFade} className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-[#ff3366]" />
               <span>Available Quizzes</span>
             </h2>
             <p className="text-xs text-[#a68690]">
-              Quizzes ready to attempt. Completed quizzes are moved to My Attempts.
+              Quizzes ready to attempt. Completed quizzes automatically move to My Attempts.
             </p>
           </div>
 
           <button
             onClick={onNavigateToQuizzes}
-            className="text-xs font-bold text-[#ff3366] hover:text-[#ff8099] flex items-center gap-1 transition-colors"
+            className="text-xs font-bold text-[#ff3366] hover:text-[#ff8099] flex items-center gap-1 transition-colors cursor-pointer"
           >
             <span>View All</span>
             <ChevronRight className="w-4 h-4" />
@@ -271,7 +316,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {availableUncompletedQuizzes.length === 0 ? (
           <div className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] p-8 text-center space-y-2 shadow-lg backdrop-blur-md">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
+            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
             <h3 className="text-sm font-bold text-white">All Quizzes Completed!</h3>
             <p className="text-xs text-[#a68690]">
               You have completed every available quiz. Review your submitted answer sheets in My Attempts.
@@ -279,94 +324,112 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {availableUncompletedQuizzes.slice(0, 3).map((scheduleItem) => {
+            {availableUncompletedQuizzes.slice(0, 3).map((scheduleItem, idx) => {
               const dayQuiz = getQuizForDay(scheduleItem.dayNumber);
               const isUnlocked = isDayUnlocked(scheduleItem.dayNumber, completedDayIds);
               const status = getQuizStatus(dayQuiz.id);
               const isInProgress = isUnlocked && status === 'in-progress';
               const countdown = getDayCountdown(scheduleItem.dayNumber, completedDayIds);
+              const isBookmarked = bookmarkedQuizIds.includes(scheduleItem.quizId);
+
+              // Distinct card icon per index
+              const CardIcon = idx === 0 ? Layers : idx === 1 ? Brain : BookOpen;
 
               return (
-                <div
+                <motion.div
                   key={scheduleItem.quizId}
-                  className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] hover:border-[#471225] p-5 shadow-lg backdrop-blur-md transition-all flex flex-col justify-between space-y-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1, duration: 0.5, ease: EASE_OUT }}
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] hover:border-[#ff3366]/30 p-5 shadow-lg backdrop-blur-md transition-all flex flex-col justify-between space-y-4"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-3">
+                    {/* Top Row: Icon container + Bookmark */}
                     <div className="flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-gradient-to-r from-[#9e1030] to-[#750720] text-white">
-                        {scheduleItem.isSpecialTest ? scheduleItem.title : `Day 0${scheduleItem.dayNumber}`}
-                      </span>
-                      {isUnlocked ? (
-                        <span className="text-[10px] font-bold text-[#ff8099] bg-[#2b0c18] px-2 py-0.5 rounded-full border border-[#4a1226]">
-                          Available
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-[#a68690] bg-[#18070f] px-2 py-0.5 rounded-full flex items-center gap-1 border border-[#2b0c18]">
-                          <Lock className="w-2.5 h-2.5" /> 8:29 PM
-                        </span>
-                      )}
+                      <div className="w-10 h-10 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center">
+                        <CardIcon className="w-5 h-5" />
+                      </div>
+                      <button
+                        onClick={() => toggleBookmark(scheduleItem.quizId)}
+                        className={`p-2 rounded-xl transition-colors cursor-pointer ${
+                          isBookmarked
+                            ? 'text-[#ff3366] bg-[#220713] border border-[#470f25]'
+                            : 'text-[#7a5b67] hover:text-white hover:bg-white/[0.04]'
+                        }`}
+                        title={isBookmarked ? 'Bookmarked' : 'Add bookmark'}
+                        aria-label="Bookmark quiz"
+                      >
+                        <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-[#ff3366]' : ''}`} />
+                      </button>
                     </div>
 
-                    <h3 className="text-sm font-bold text-white line-clamp-1">
-                      {scheduleItem.title}
-                    </h3>
-                    <p className="text-xs text-[#a68690] line-clamp-1">
-                      {scheduleItem.states.length} States: {scheduleItem.states.slice(0, 3).join(', ')}
-                    </p>
+                    <div>
+                      <h3 className="text-base font-extrabold text-white line-clamp-1">
+                        {scheduleItem.isSpecialTest ? scheduleItem.title : `Day 0${scheduleItem.dayNumber}: ${scheduleItem.title}`}
+                      </h3>
+                      <p className="text-xs text-[#a68690] mt-1 line-clamp-2">
+                        {scheduleItem.states.length} States: {scheduleItem.states.slice(0, 3).join(', ')}. Complete national park recall.
+                      </p>
+                    </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-[#a68690] pt-1 border-t border-[#260c18]">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3 text-[#ff3366]" />
+                    {/* Meta Info: Duration & Question Count matching Image 1 */}
+                    <div className="flex items-center gap-4 text-xs text-[#a68690] pt-1 border-t border-[#1e0813]">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#ff3366]" />
                         <span>15 mins</span>
                       </span>
-                      <span className="font-semibold">{scheduleItem.totalQuestions} Questions</span>
+                      <span className="flex items-center gap-1.5">
+                        <HelpCircle className="w-3.5 h-3.5 text-[#ff3366]" />
+                        <span className="font-semibold text-white">{scheduleItem.totalQuestions} Questions</span>
+                      </span>
                     </div>
                   </div>
 
+                  {/* Action Button: Start Quiz -> in Crimson Gradient */}
                   {isUnlocked ? (
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => onStartQuiz(dayQuiz.id)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#b31238] via-[#9e1030] to-[#750720] hover:from-[#c91842] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby active:scale-95 flex items-center justify-center gap-1.5 border border-[#ff3366]/30"
+                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby flex items-center justify-center gap-1.5 border border-[#ff3366]/30 cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5 fill-white" />
                       <span>{isInProgress ? 'Resume Quiz →' : 'Start Quiz →'}</span>
-                    </button>
+                    </motion.button>
                   ) : (
                     <button
                       disabled
-                      className="w-full py-2.5 px-4 rounded-xl bg-[#18070f] text-[#7a5b67] text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5 border border-[#2b0c18]"
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#160710] text-[#7a5b67] text-xs font-bold cursor-not-allowed flex items-center justify-center gap-1.5 border border-[#2b0c18]"
                     >
                       <Lock className="w-3.5 h-3.5" />
                       <span>Unlocks {countdown.formattedCountdown}</span>
                     </button>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
         )}
-      </section>
+      </motion.section>
 
-      {/* Recent Activity / Attempts (Matching Image 2 bottom section) */}
-      <section className="space-y-4">
+      {/* Recent Activity Section Matching Image 1 */}
+      <motion.section {...sectionFade} className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
               <Clock className="w-5 h-5 text-[#ff3366]" />
               <span>Recent Activity</span>
             </h2>
-            <p className="text-xs text-[#a68690]">
-              Your latest quiz completions, scores, and performance records.
-            </p>
           </div>
 
           {recentAttempts.length > 0 && (
             <button
               onClick={onNavigateToAttempts}
-              className="text-xs font-bold text-[#ff3366] hover:text-[#ff8099] flex items-center gap-1 transition-colors"
+              className="text-xs font-bold text-[#ff3366] hover:text-[#ff8099] flex items-center gap-1 transition-colors cursor-pointer"
             >
-              <span>View All</span>
-              <ChevronRight className="w-4 h-4" />
+              <span>View All →</span>
             </button>
           )}
         </div>
@@ -380,42 +443,46 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </p>
           </div>
         ) : (
-          <div className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] divide-y divide-[#260c18] shadow-lg backdrop-blur-md overflow-hidden">
-            {recentAttempts.map((att) => {
+          <div className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] divide-y divide-[#1e0813] shadow-lg backdrop-blur-md overflow-hidden">
+            {recentAttempts.map((att, idx) => {
               const quiz = getQuizForDay(att.quizId);
               return (
-                <div
+                <motion.div
                   key={att.id}
-                  className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-[#1a0712] transition-colors"
+                  initial={{ opacity: 0, x: -12 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.06, duration: 0.4 }}
+                  className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-white/[0.02] transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
-                      <CheckCircle2 className="w-5 h-5" />
+                    <div className="w-8 h-8 rounded-full bg-[#200813] text-[#ff3366] border border-[#4a0d20] flex items-center justify-center shrink-0">
+                      <Play className="w-3.5 h-3.5 fill-[#ff3366]" />
                     </div>
                     <div>
                       <div className="text-xs sm:text-sm font-bold text-white">
                         Attempted "{quiz.title}"
                       </div>
                       <div className="text-[11px] text-[#a68690]">
-                        {att.formattedDate || new Date(att.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} • {Math.floor(att.timeTakenSeconds / 60)}m {att.timeTakenSeconds % 60}s
+                        {att.formattedDate ||
+                          new Date(att.timestamp).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                    <div className="text-right">
-                      <div className="text-xs font-black text-[#ff8099]">
-                        Score: {att.marksObtained}/{att.maxMarks} ({att.percentage}%)
-                      </div>
-                      <div className="text-[10px] text-emerald-400 font-semibold">
-                        {att.performanceMessage || 'Completed'}
-                      </div>
+                  <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                    <div className="text-xs font-bold text-[#ff8099]">
+                      Score: {att.marksObtained} / {att.maxMarks} ({att.percentage}%)
                     </div>
 
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => onViewResult(att)}
-                        className="px-3 py-1.5 rounded-lg bg-[#220713] hover:bg-[#300a1b] border border-[#470f25] text-[#ff8099] text-xs font-bold transition-all"
+                        className="px-3 py-1.5 rounded-lg bg-[#1a0712] hover:bg-[#25091a] border border-[#2b0c18] text-[#e8d5db] text-xs font-bold transition-all cursor-pointer"
                       >
                         Result
                       </button>
@@ -423,22 +490,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {onInspectAnswers && (
                         <button
                           onClick={() => onInspectAnswers(att)}
-                          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#9e1030] to-[#750720] text-white text-xs font-bold transition-all shadow-ruby"
+                          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby cursor-pointer"
                         >
                           Answers
                         </button>
                       )}
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Study Guide Banner */}
-      <section className="rounded-2xl bg-gradient-to-r from-[#1c0610] via-[#14050d] to-[#1c0610] border border-[#3d0e20] p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md">
+      <motion.section
+        {...sectionFade}
+        className="rounded-2xl bg-gradient-to-r from-[#1c0610] via-[#12050c] to-[#1c0610] border border-[#2b0c18] p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg backdrop-blur-md"
+      >
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-2xl bg-[#220713] border border-[#470f25] text-[#ff3366] flex items-center justify-center shrink-0 shadow-sm">
             <BookOpen className="w-6 h-6" />
@@ -453,14 +523,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={() => onOpenStudyGuide()}
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#c91842] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby flex items-center gap-1.5 shrink-0 border border-[#ff3366]/30"
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onOpenStudyGuide ? onOpenStudyGuide() : onNavigateToQuizzes()}
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby flex items-center gap-1.5 shrink-0 border border-[#ff3366]/30 cursor-pointer"
         >
           <span>Open Guide</span>
           <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </section>
+        </motion.button>
+      </motion.section>
     </div>
   );
 };

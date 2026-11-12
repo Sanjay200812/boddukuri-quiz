@@ -950,65 +950,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Attempts</th>
                           <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Avg. Score</th>
                           <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Status</th>
+                          <th className="pb-2.5 font-bold uppercase tracking-wider text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#1e0813]">
-                        <tr className="hover:bg-[#1a0712] transition-colors">
-                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
-                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
-                            <span>Day 01: Foundational 6 States</span>
-                          </td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">105</td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">{attempts.length || 312}</td>
-                          <td className="py-2.5 text-center text-[#ff8099] font-bold">100%</td>
-                          <td className="py-2.5 text-center">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                              Active
-                            </span>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#1a0712] transition-colors">
-                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
-                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
-                            <span>Day 02: Island & Small States</span>
-                          </td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">141</td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">0</td>
-                          <td className="py-2.5 text-center text-[#a68690]">--</td>
-                          <td className="py-2.5 text-center">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#220713] text-[#ff8099] border border-[#470f25]">
-                              Locked (8:29 PM)
-                            </span>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#1a0712] transition-colors">
-                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
-                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
-                            <span>Day 03: Western Hub & Plateau</span>
-                          </td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">174</td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">0</td>
-                          <td className="py-2.5 text-center text-[#a68690]">--</td>
-                          <td className="py-2.5 text-center">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#18070f] text-[#7a5b67] border border-[#2b0c18]">
-                              Scheduled
-                            </span>
-                          </td>
-                        </tr>
-                        <tr className="hover:bg-[#1a0712] transition-colors">
-                          <td className="py-2.5 font-bold text-white flex items-center gap-2">
-                            <FileText className="w-3.5 h-3.5 text-[#ff3366]" />
-                            <span>Semi-Final & Grand Test</span>
-                          </td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">327</td>
-                          <td className="py-2.5 text-center text-[#cbb5bc]">0</td>
-                          <td className="py-2.5 text-center text-[#a68690]">--</td>
-                          <td className="py-2.5 text-center">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#18070f] text-[#7a5b67] border border-[#2b0c18]">
-                              Draft
-                            </span>
-                          </td>
-                        </tr>
+                        {DAILY_SCHEDULE.slice(0, 4).map((item) => {
+                          const quiz = getQuizForDay(item.dayNumber);
+                          const isUnlocked = isDayUnlocked(item.dayNumber, completedDays);
+                          const dayAttempts = attempts.filter(a => a.quizId === quiz.id);
+                          const avgScore = dayAttempts.length > 0 
+                            ? `${Math.round(dayAttempts.reduce((acc, a) => acc + (a.percentage || 0), 0) / dayAttempts.length)}%`
+                            : '--';
+
+                          return (
+                            <tr key={item.quizId} className="hover:bg-[#1a0712] transition-colors">
+                              <td className="py-2.5 font-bold text-white flex items-center gap-2">
+                                <FileText className="w-3.5 h-3.5 text-[#ff3366] shrink-0" />
+                                <span className="truncate max-w-[180px] sm:max-w-xs">{item.title}</span>
+                              </td>
+                              <td className="py-2.5 text-center text-[#cbb5bc] font-semibold">{item.totalQuestions}</td>
+                              <td className="py-2.5 text-center text-[#cbb5bc]">{dayAttempts.length}</td>
+                              <td className="py-2.5 text-center text-[#ff8099] font-bold">{avgScore}</td>
+                              <td className="py-2.5 text-center">
+                                {isUnlocked ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                                    Active
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#18070f] text-[#7a5b67] border border-[#2b0c18]">
+                                    Locked (8:29 PM)
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-2.5 text-center">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    onClick={() => onPreviewDayQuiz?.(quiz.id)}
+                                    title="Inspect / Preview Quiz"
+                                    className="p-1 rounded-lg text-[#a68690] hover:text-white hover:bg-[#25091a] transition-colors"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleToggleDayLock(quiz.id, isUnlocked)}
+                                    title={isUnlocked ? 'Lock Quiz' : 'Unlock Quiz'}
+                                    className="p-1 rounded-lg text-[#ff8099] hover:text-white hover:bg-[#25091a] transition-colors"
+                                  >
+                                    {isUnlocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

@@ -1,18 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, supabaseConfigured, verifyAccessCodeCloud, getUserProfile, saveLocalAuthSession } from '../utils/supabase';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  supabase,
+  supabaseConfigured,
+  verifyAccessCodeCloud,
+  getUserProfile,
+  saveLocalAuthSession
+} from '../utils/supabase';
 import type { UserRole } from '../types/quiz';
-import { Sparkles, Lock, Mail, Eye, EyeOff, AlertCircle, WifiOff, CheckCircle2, ArrowRight, KeyRound, ShieldAlert, Clock } from 'lucide-react';
+import {
+  Sparkles,
+  Lock,
+  Mail,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  WifiOff,
+  CheckCircle2,
+  ArrowRight,
+  KeyRound,
+  ShieldAlert,
+  Clock,
+  Play
+} from 'lucide-react';
+import { BackgroundCubesGrid } from './ui/background-cubes-grid';
 
 interface LoginScreenProps {
   onLoginSuccess: (userEmail: string, role?: UserRole, userId?: string) => void;
   onReplayMotivation?: () => void;
 }
 
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
+
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onLoginSuccess,
   onReplayMotivation,
 }) => {
-  const [authMethod, setAuthMethod] = useState<'password' | 'code'>('code');
+  const [authMethod, setAuthMethod] = useState<'code' | 'password'>('code');
 
   // Password login state
   const [email, setEmail] = useState('');
@@ -84,9 +108,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       }
 
       if (data.user?.email) {
-        // Fetch profile to verify role
         const profile = await getUserProfile(data.user.id);
-        const resolvedRole = profile?.role || (data.user.email.toLowerCase().includes('sanju') || data.user.email.toLowerCase().includes('sanjay') ? 'admin' : 'student');
+        const resolvedRole =
+          profile?.role ||
+          (data.user.email.toLowerCase().includes('sanju') || data.user.email.toLowerCase().includes('sanjay')
+            ? 'admin'
+            : 'student');
         saveLocalAuthSession({
           email: data.user.email,
           role: resolvedRole,
@@ -152,7 +179,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         return;
       }
 
-      // Valid access code! If backend ticket provided, sign in to Supabase auth session
       let authenticatedUserId = result.userId;
       if (result.authTicket && supabase) {
         const { error: cloudSignInError } = await supabase.auth.signInWithPassword({
@@ -166,12 +192,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         if (!cloudSession.session?.user) {
           throw new Error('Supabase did not create a cloud session. Please try signing in again.');
         }
-        // Always use the real Auth UUID. The access-code table intentionally
-        // returns no user id, and hardcoded placeholder IDs cannot satisfy RLS.
         authenticatedUserId = cloudSession.session.user.id;
       }
 
-      const resolvedRole = result.role || (result.email.toLowerCase().includes('sanju') || result.email.toLowerCase().includes('sanjay') ? 'admin' : 'student');
+      const resolvedRole =
+        result.role ||
+        (result.email.toLowerCase().includes('sanju') || result.email.toLowerCase().includes('sanjay')
+          ? 'admin'
+          : 'student');
       saveLocalAuthSession({
         email: result.email,
         role: resolvedRole,
@@ -188,69 +216,105 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-gradient-to-b from-[#08080a] via-[#120b0e] to-[#240d14] px-4 py-8 sm:py-12 text-stone-100">
+    <div className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#070508] text-neutral-100 selection:bg-[#9e1030] selection:text-white px-4 py-8 sm:py-12">
+      {/* 3D Interactive Background Cubes Grid (Aceternity UI component) */}
+      <div className="absolute inset-0 z-0 opacity-40 pointer-events-auto">
+        <BackgroundCubesGrid
+          variant="isometric"
+          cellSize={48}
+          gap={0.12}
+          topColor="#160811"
+          leftColor="#0a0307"
+          rightColor="#10050d"
+          glowColor="#a31d38"
+          glow={0.8}
+        />
+      </div>
+
+      {/* Subtle radial vignette overlay */}
+      <div className="absolute inset-0 z-0 bg-radial-[ellipse_80%_60%_at_50%_50%] from-transparent via-[#070508]/60 to-[#070508] pointer-events-none" />
 
       {/* Top Brand Banner */}
-      <div className="max-w-md w-full mx-auto text-center space-y-3 pt-4">
-        <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-gradient-to-tr from-red-900 to-red-800 text-white shadow-xl shadow-red-900/20 mb-1">
-          <Sparkles className="w-7 h-7 text-red-300" />
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: EASE_OUT }}
+        className="relative z-10 max-w-md w-full mx-auto text-center space-y-3 pt-2 sm:pt-4"
+      >
+        <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#9e1030] to-[#5a0618] text-white shadow-ruby border border-white/10 mb-1">
+          <Sparkles className="w-7 h-7 text-rose-200" />
         </div>
 
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-stone-100 tracking-tight">
-            Boddukuri's Quiz
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center gap-2">
+            <span>Boddukuri's Quiz</span>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#9e1030]/20 text-[#ff8099] border border-[#ff3366]/30">
+              #Mahi
+            </span>
           </h1>
-          <div className="inline-block px-3 py-0.5 rounded-full text-xs font-black bg-red-100 text-red-900 border border-red-300 mt-1">
-            #Mahi
-          </div>
-          <p className="text-xs sm:text-sm text-stone-400 font-semibold mt-1">
-            Learn. Revise. Remember. Achieve.
+          <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-1">
+            National Parks Master Curriculum • Daily Interactive Assessment
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Login Card */}
-      <div className="max-w-md w-full mx-auto my-auto">
-        <div className="bg-[#0f0f12] rounded-3xl p-6 sm:p-8 border border-red-900/70 shadow-xl shadow-black/50 space-y-5">
-
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1, ease: EASE_OUT }}
+        className="relative z-10 max-w-md w-full mx-auto my-auto"
+      >
+        <div className="rounded-3xl bg-[#0e0a0d]/85 backdrop-blur-2xl p-6 sm:p-8 border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.7)] space-y-5">
           <div className="space-y-1">
-            <h2 className="text-lg sm:text-xl font-bold text-stone-100">
-              Sign in to Your Learning Portal
+            <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+              Sign In to Your Learning Portal
             </h2>
-            <p className="text-xs sm:text-sm text-stone-400">
-              Access daily quizzes, national parks study guide, and learning streaks.
+            <p className="text-xs sm:text-sm text-neutral-400">
+              Access scheduled quizzes, state study guides, and progress sync.
             </p>
           </div>
 
-          {/* Auth Method Tabs */}
-          <div className="grid grid-cols-2 gap-1 p-1 bg-[#241014] rounded-2xl border border-red-900/70">
+          {/* Auth Method Tabs with Smooth Animated Pill */}
+          <div className="grid grid-cols-2 gap-1 p-1 bg-[#150e13] rounded-2xl border border-white/[0.06] relative">
             <button
               type="button"
               onClick={() => {
                 setAuthMethod('code');
                 setErrorMessage(null);
               }}
-              className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
-                authMethod === 'code'
-                  ? 'bg-red-900 text-white shadow-sm'
-                  : 'text-stone-400 hover:text-white'
+              className={`relative z-10 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                authMethod === 'code' ? 'text-white' : 'text-neutral-400 hover:text-white'
               }`}
             >
+              {authMethod === 'code' && (
+                <motion.div
+                  layoutId="authTabIndicator"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] shadow-ruby border border-[#ff3366]/30 -z-10"
+                  transition={{ type: 'spring', bounce: 0.18, duration: 0.4 }}
+                />
+              )}
               <KeyRound className="w-3.5 h-3.5" />
               <span>Access Code</span>
             </button>
+
             <button
               type="button"
               onClick={() => {
                 setAuthMethod('password');
                 setErrorMessage(null);
               }}
-              className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
-                authMethod === 'password'
-                  ? 'bg-red-900 text-white shadow-sm'
-                  : 'text-stone-400 hover:text-white'
+              className={`relative z-10 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                authMethod === 'password' ? 'text-white' : 'text-neutral-400 hover:text-white'
               }`}
             >
+              {authMethod === 'password' && (
+                <motion.div
+                  layoutId="authTabIndicator"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] shadow-ruby border border-[#ff3366]/30 -z-10"
+                  transition={{ type: 'spring', bounce: 0.18, duration: 0.4 }}
+                />
+              )}
               <Mail className="w-3.5 h-3.5" />
               <span>Email & Password</span>
             </button>
@@ -258,54 +322,69 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
           {/* Offline warning if detected */}
           {!isOnline && (
-            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-start gap-2.5">
-              <WifiOff className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-xs font-medium flex items-start gap-2.5"
+            >
+              <WifiOff className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <span>You are currently offline. Please connect to the internet to sign in.</span>
-            </div>
+            </motion.div>
           )}
 
           {/* Lockout Warning */}
           {lockoutSeconds !== null && lockoutSeconds > 0 && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold flex items-start gap-2.5 animate-fadeIn">
-              <Clock className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs font-medium flex items-start gap-2.5"
+            >
+              <Clock className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <div className="font-bold">Rate Limit Protection Active</div>
+                <div className="font-bold text-white">Rate Limit Protection Active</div>
                 <div>
                   Too many incorrect attempts. Please wait{' '}
-                  <span className="font-mono font-bold">
+                  <span className="font-mono font-bold text-rose-300">
                     {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
                   </span>{' '}
                   before retrying.
                 </div>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Error Message Alert */}
-          {errorMessage && (!lockoutSeconds || lockoutSeconds <= 0) && (
-            <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-semibold flex items-start gap-2.5 animate-fadeIn">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <span>{errorMessage}</span>
-                {attemptsRemaining !== null && attemptsRemaining < 5 && (
-                  <div className="mt-1 flex items-center gap-1 text-[11px] text-rose-700">
-                    <ShieldAlert className="w-3 h-3" />
-                    <span>Rate limit: 5 attempts before a 15-minute lockout.</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <AnimatePresence>
+            {errorMessage && (!lockoutSeconds || lockoutSeconds <= 0) && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/30 text-rose-200 text-xs font-medium flex items-start gap-2.5"
+              >
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <span>{errorMessage}</span>
+                  {attemptsRemaining !== null && attemptsRemaining < 5 && (
+                    <div className="mt-1 flex items-center gap-1 text-[11px] text-rose-400">
+                      <ShieldAlert className="w-3 h-3" />
+                      <span>Rate limit: 5 attempts before a 15-minute lockout.</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* FORM 1: EMAIL & PASSWORD */}
           {authMethod === 'password' && (
             <form onSubmit={handleEmailPasswordSignIn} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-stone-200">
+                <label className="block text-xs font-semibold text-neutral-300">
                   Email Address
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
@@ -316,17 +395,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-red-900/80 bg-[#181014] text-white placeholder:text-stone-500 focus:border-red-500 focus:ring-2 focus:ring-red-900 text-sm font-medium transition-all outline-none [color-scheme:dark]"
+                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-white/[0.08] bg-[#120a10] text-white placeholder:text-neutral-500 focus:border-[#9e1030] focus:ring-2 focus:ring-[#9e1030]/30 text-sm font-medium transition-all outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-stone-200">
+                <label className="block text-xs font-semibold text-neutral-300">
                   Password
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -336,12 +415,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-red-900/80 bg-[#181014] text-white placeholder:text-stone-500 focus:border-red-500 focus:ring-2 focus:ring-red-900 text-sm font-medium transition-all outline-none [color-scheme:dark]"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/[0.08] bg-[#120a10] text-white placeholder:text-neutral-500 focus:border-[#9e1030] focus:ring-2 focus:ring-[#9e1030]/30 text-sm font-medium transition-all outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-white transition-colors"
                     title={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -349,10 +428,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 </div>
               </div>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading || !isOnline}
-                className="w-full min-h-[48px] px-5 py-3.5 rounded-xl bg-red-900 hover:bg-red-950 active:scale-98 disabled:opacity-50 text-white font-extrabold text-sm sm:text-base shadow-md shadow-red-950/15 transition-all flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] px-5 py-3.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white font-bold text-sm shadow-ruby border border-[#ff3366]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -365,7 +446,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
-              </button>
+              </motion.button>
             </form>
           )}
 
@@ -373,11 +454,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           {authMethod === 'code' && (
             <form onSubmit={handleAccessCodeSignIn} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-stone-200">
+                <label className="block text-xs font-semibold text-neutral-300">
                   Secret Access Code
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
                     <KeyRound className="w-4 h-4" />
                   </div>
                   <input
@@ -387,26 +468,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={accessCode}
                     onChange={e => setAccessCode(e.target.value)}
                     placeholder="Enter your personal access code"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-red-500 bg-[#181014] text-white placeholder:text-stone-500 focus:border-red-400 focus:ring-2 focus:ring-red-900 text-sm font-bold transition-all outline-none tracking-widest font-mono [color-scheme:dark]"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/[0.08] bg-[#120a10] text-white placeholder:text-neutral-500 focus:border-[#9e1030] focus:ring-2 focus:ring-[#9e1030]/30 text-sm font-bold tracking-widest font-mono transition-all outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowAccessCode(!showAccessCode)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-white transition-colors"
                     title={showAccessCode ? 'Hide code' : 'Show code'}
                   >
                     {showAccessCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  Validated securely on the server with SHA-256 and brute-force protection.
+                <p className="text-[11px] text-neutral-400">
+                  Encrypted with SHA-256 cloud verification and rate limit guard.
                 </p>
               </div>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={loading || !isOnline || (lockoutSeconds !== null && lockoutSeconds > 0)}
-                className="w-full min-h-[48px] px-5 py-3.5 rounded-xl bg-red-900 hover:bg-red-950 active:scale-98 disabled:opacity-50 text-white font-extrabold text-sm sm:text-base shadow-md shadow-red-950/15 transition-all flex items-center justify-center gap-2"
+                className="w-full min-h-[48px] px-5 py-3.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white font-bold text-sm shadow-ruby border border-[#ff3366]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -419,15 +502,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
-              </button>
+              </motion.button>
             </form>
           )}
 
           {/* Session Persistence Note */}
-          <div className="pt-2 border-t border-slate-100 flex items-start gap-2 text-[11px] text-slate-500">
-            <CheckCircle2 className="w-3.5 h-3.5 text-red-800 shrink-0 mt-0.5" />
+          <div className="pt-2 border-t border-white/[0.06] flex items-start gap-2 text-[11px] text-neutral-400">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
             <span>
-              Your session will stay active permanently across browser restarts until you explicitly sign out.
+              Session persists securely across browser restarts until you sign out.
             </span>
           </div>
 
@@ -437,21 +520,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <button
                 type="button"
                 onClick={onReplayMotivation}
-                className="text-xs text-red-900 hover:text-red-900 font-semibold underline"
+                className="text-xs text-neutral-400 hover:text-white font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer"
               >
-                Replay Opening Motivation
+                <Play className="w-3 h-3 text-[#ff8099]" />
+                <span>Replay Opening Motivation</span>
               </button>
             </div>
           )}
-
         </div>
-      </div>
+      </motion.div>
 
       {/* Footer */}
-      <div className="max-w-md w-full mx-auto text-center text-[11px] text-slate-400">
-        Boddukuri's Quiz #Mahi • All learning progress stored locally and synced securely.
-      </div>
-
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="relative z-10 max-w-md w-full mx-auto text-center text-[11px] text-neutral-500 pt-4"
+      >
+        Boddukuri's Quiz #Mahi • All learning progress stored locally and synchronized with Supabase Cloud.
+      </motion.div>
     </div>
   );
 };

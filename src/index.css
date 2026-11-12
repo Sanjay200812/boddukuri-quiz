@@ -3,62 +3,102 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-[#090306] text-[#e8d5db] antialiased font-sans min-h-screen selection:bg-[#9e1030] selection:text-white;
+    @apply bg-[#090306] text-[#f2e6eb] antialiased font-sans min-h-screen selection:bg-[#9e1030] selection:text-white;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    background-color: #090306;
     background-image: 
-      radial-gradient(ellipse 90% 60% at 50% -20%, rgba(158, 16, 48, 0.18), transparent 70%),
-      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(117, 7, 32, 0.14), transparent 70%),
-      radial-gradient(ellipse 50% 40% at 0% 50%, rgba(90, 6, 24, 0.12), transparent 70%);
+      radial-gradient(ellipse 90% 50% at 50% -10%, rgba(158, 16, 48, 0.22), transparent 70%),
+      radial-gradient(ellipse 70% 50% at 100% 100%, rgba(117, 7, 32, 0.16), transparent 70%),
+      radial-gradient(ellipse 60% 40% at 0% 60%, rgba(90, 6, 24, 0.14), transparent 70%);
     background-attachment: fixed;
   }
 }
 
-/* Custom luxury ruby scrollbar */
+/* Custom modern scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0d0408;
+  background: #090306;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3d0c1e;
+  background: #2b0c18;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #800020;
+  background: #5a1024;
 }
 
-/* Glassmorphism surfaces for Luxury Ruby theme */
+/* Luxury obsidian & ruby surfaces */
 .glass-panel {
-  background: rgba(18, 5, 12, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(18, 5, 12, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid #2b0c18;
 }
 
 .glass-card {
-  background: rgba(22, 7, 15, 0.85);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(20, 6, 13, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #2b0c18;
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-hover:hover {
+  background: rgba(28, 8, 19, 0.92);
+  border-color: rgba(255, 51, 102, 0.3);
+  transform: translateY(-2px);
 }
 
 .shadow-ruby {
-  box-shadow: 0 4px 20px -2px rgba(158, 16, 48, 0.4);
+  box-shadow: 0 4px 20px -2px rgba(158, 16, 48, 0.45);
 }
 
 .shadow-ruby-lg {
-  box-shadow: 0 10px 30px -5px rgba(158, 16, 48, 0.5);
+  box-shadow: 0 10px 30px -5px rgba(158, 16, 48, 0.55);
 }
 
-/* Smooth card transitions */
+/* Silk wave ambient ribbons */
+.bg-silk-waves {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.45;
+}
+
+/* Smooth motion easing */
 .transition-smooth {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
 }
 
 @media print {
@@ -73,3 +113,4 @@
     display: block !important;
   }
 }
+

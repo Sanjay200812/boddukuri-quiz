@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import {
   Play,
   RotateCcw,
@@ -39,6 +40,8 @@ interface MyQuizzesProps {
   onNavigateToAttempts: () => void;
   userEmail?: string | null;
 }
+
+const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 export const MyQuizzes: React.FC<MyQuizzesProps> = ({
   quizzes: _quizzes,
@@ -197,26 +200,32 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
 
       {/* Quizzes Grid (2 cards per row on desktop/tablet, 1 per row on mobile) */}
       {activeSchedule.length === 0 ? (
-        <div className="rounded-3xl bg-[#12050c]/90 border border-[#2b0c18] p-12 text-center space-y-4 shadow-lg backdrop-blur-md">
-          <div className="w-16 h-16 rounded-3xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center mx-auto shadow-inner">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-3xl bg-[#0f090e]/85 border border-white/[0.08] p-12 text-center space-y-4 shadow-lg backdrop-blur-md"
+        >
+          <div className="w-16 h-16 rounded-3xl bg-[#1e0d17] text-[#ff3366] border border-white/[0.08] flex items-center justify-center mx-auto shadow-inner">
             <Sparkles className="w-8 h-8" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">All Available Quizzes Completed!</h3>
-            <p className="text-xs sm:text-sm text-[#a68690] max-w-md mx-auto mt-1">
+            <p className="text-xs sm:text-sm text-neutral-400 max-w-md mx-auto mt-1">
               Outstanding work! You have completed all active quizzes. You can inspect your answer sheets, scores, and review your mistakes in My Attempts.
             </p>
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={onNavigateToAttempts}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] text-white text-xs font-bold transition-all shadow-ruby active:scale-95 border border-[#ff3366]/30"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] text-white text-xs font-bold transition-all shadow-ruby border border-[#ff3366]/30 cursor-pointer"
           >
             Go to My Attempts
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-          {activeSchedule.map((scheduleItem) => {
+          {activeSchedule.map((scheduleItem, idx) => {
             const dayQuiz = getQuizForDay(scheduleItem.dayNumber);
             const status = getQuizStatus(dayQuiz.id);
             const bestAttempt = getBestAttempt(dayQuiz.id);
@@ -228,16 +237,21 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
             const retakeStatus = getRetakeStatusForQuiz(dayQuiz.id);
 
             return (
-              <div
+              <motion.div
                 key={scheduleItem.dayNumber}
-                className={`rounded-2xl bg-[#12050c]/90 border p-5 sm:p-6 transition-all duration-200 flex flex-col justify-between shadow-lg backdrop-blur-md ${
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.45, delay: (idx % 4) * 0.08, ease: EASE_OUT }}
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                className={`rounded-2xl border p-5 sm:p-6 transition-colors flex flex-col justify-between shadow-lg backdrop-blur-md ${
                   isCompleted
-                    ? 'border-emerald-500/40 bg-gradient-to-b from-[#12050c] to-emerald-950/20'
+                    ? 'border-emerald-500/30 bg-[#0f090e]/85'
                     : isInProgress
-                    ? 'border-[#ff3366] ring-1 ring-[#ff3366]/40'
+                    ? 'border-[#ff3366]/50 bg-[#0f090e]/85 ring-1 ring-[#ff3366]/30'
                     : isUnlocked
-                    ? 'border-[#2b0c18] hover:border-[#471225]'
-                    : 'border-[#260c18] bg-[#0f040a]/80 opacity-90'
+                    ? 'border-white/[0.08] hover:border-white/[0.16] bg-[#0f090e]/85'
+                    : 'border-white/[0.05] bg-[#0b070a]/80 opacity-90'
                 }`}
               >
                 <div>
@@ -249,7 +263,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                           ? scheduleItem.title
                           : `Day ${scheduleItem.dayNumber < 10 ? '0' + scheduleItem.dayNumber : scheduleItem.dayNumber}`}
                       </span>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#220713] text-[#ff8099] border border-[#470f25]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-[#1a0c15] text-[#ff8099] border border-white/[0.06]">
                         <Calendar className="w-3.5 h-3.5" />
                         {scheduleItem.displayDate}
                       </span>
@@ -257,22 +271,22 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
 
                     {/* Status Pill */}
                     {isCompleted ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#102919] text-emerald-400 border border-[#1b4329]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-950/50 text-emerald-300 border border-emerald-500/30">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                         Completed
                       </span>
                     ) : !isUnlocked ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#18070f] text-[#a68690] border border-[#2b0c18]">
-                        <Lock className="w-3 h-3 text-[#a68690]" />
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#140810] text-neutral-400 border border-white/[0.06]">
+                        <Lock className="w-3 h-3 text-neutral-400" />
                         Locked (8:29 PM)
                       </span>
                     ) : isInProgress ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-950/60 text-amber-300 border border-amber-800 animate-pulse">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-950/50 text-amber-300 border border-amber-500/30 animate-pulse">
                         <Clock className="w-3.5 h-3.5 text-amber-400" />
                         In Progress
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#2b0c18] text-[#ff8099] border border-[#4a1226]">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-[#220d1a] text-[#ff8099] border border-white/[0.08]">
                         Available Now
                       </span>
                     )}
@@ -280,7 +294,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
 
                   {/* Countdown bar if locked */}
                   {!isUnlocked && (
-                    <div className="mb-3 p-2.5 rounded-xl bg-[#220713] border border-[#470f25] text-[#ff8099] text-xs font-bold flex items-center justify-between">
+                    <div className="mb-3 p-2.5 rounded-xl bg-[#1a0c15] border border-white/[0.08] text-[#ff8099] text-xs font-bold flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
                         <Hourglass className="w-3.5 h-3.5 text-[#ff3366] animate-pulse" />
                         <span>Unlocks at 8:29 PM IST</span>
@@ -291,11 +305,11 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
 
                   {/* Title & Theme */}
                   <div className="mb-3">
-                    <h3 className="text-base font-extrabold text-white">
+                    <h3 className="text-base font-bold text-white">
                       {scheduleItem.title}
                     </h3>
                     {scheduleItem.theme && (
-                      <p className="text-xs text-[#a68690] mt-0.5 line-clamp-1">
+                      <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">
                         {scheduleItem.theme}
                       </p>
                     )}
@@ -304,7 +318,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                   {/* States Covered Chips */}
                   <div className="space-y-2 mb-4 text-xs">
                     <div>
-                      <span className="font-bold text-[#a68690] uppercase tracking-wider block text-[10px] mb-1">
+                      <span className="font-semibold text-neutral-400 uppercase tracking-wider block text-[10px] mb-1">
                         States Covered ({scheduleItem.states.length}):
                       </span>
                       <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto pr-1">
@@ -313,10 +327,10 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                           return (
                             <span
                               key={sIdx}
-                              className={`px-2 py-0.5 rounded-md font-semibold text-[11px] ${
+                              className={`px-2 py-0.5 rounded-md text-[11px] font-medium ${
                                 isNew
-                                  ? 'bg-[#2b0c18] text-[#ff8099] border border-[#52142a] font-bold'
-                                  : 'bg-[#18070f] text-[#cbb5bc] border border-[#2b0c18]'
+                                  ? 'bg-[#220d1a] text-[#ff8099] border border-[#ff3366]/20 font-semibold'
+                                  : 'bg-[#140a10] text-neutral-300 border border-white/[0.05]'
                               }`}
                             >
                               {st} {isNew && scheduleItem.dayNumber > 1 && '★'}
@@ -326,7 +340,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-[11px] text-[#a68690] pt-1 flex items-center justify-between">
+                    <div className="text-[11px] text-neutral-400 pt-1 flex items-center justify-between">
                       <span className="font-semibold text-white">
                         {dayQuiz.totalQuestions || scheduleItem.totalQuestions} Questions Pool • {dayQuiz.stateInfoList.reduce((acc, s) => acc + s.parks.length, 0)} National Parks
                       </span>
@@ -339,10 +353,10 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                   </div>
 
                   {/* Study Guide Shortcut */}
-                  <div className="bg-[#16060e] rounded-xl p-2.5 border border-[#2b0c18] mb-4 text-xs flex items-center justify-between">
+                  <div className="bg-[#12080f] rounded-xl p-2.5 border border-white/[0.06] mb-4 text-xs flex items-center justify-between">
                     <button
                       onClick={() => onOpenStudyGuide(scheduleItem.states[0])}
-                      className="text-[#ff8099] hover:text-white font-bold hover:underline inline-flex items-center gap-1.5 text-xs transition-colors"
+                      className="text-[#ff8099] hover:text-white font-medium hover:underline inline-flex items-center gap-1.5 text-xs transition-colors cursor-pointer"
                     >
                       <BookOpen className="w-3.5 h-3.5 text-[#ff3366]" />
                       <span>Review State Study Guide</span>
@@ -352,7 +366,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
 
                   {/* Best Score if completed */}
                   {isCompleted && bestAttempt && (
-                    <div className="p-3 rounded-xl bg-[#102919] border border-[#1b4329] mb-4 text-xs">
+                    <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 mb-4 text-xs">
                       <div className="flex items-center justify-between font-semibold text-emerald-200">
                         <span className="flex items-center gap-1 text-emerald-300">
                           <Award className="w-3.5 h-3.5 text-emerald-400" />
@@ -373,26 +387,28 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                 </div>
 
                 {/* Bottom Actions */}
-                <div className="pt-3 border-t border-[#260c18] space-y-2">
+                <div className="pt-3 border-t border-white/[0.06] space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     {isCompleted ? (
                       <>
                         <button
                           onClick={() => onViewResult(latestAttempt || bestAttempt!)}
-                          className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-[#ff8099] bg-[#220713] hover:bg-[#300a1b] border border-[#470f25] transition-colors flex items-center justify-center gap-1.5"
+                          className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-[#ff8099] bg-[#1e0d17] hover:bg-[#2a1321] border border-white/[0.08] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <span>Review Result</span>
                         </button>
 
                         {/* Retake Button */}
                         {retakeStatus?.status === 'approved' ? (
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                             onClick={() => handleStartApprovedRetake(dayQuiz.id)}
-                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all shadow-md flex items-center justify-center gap-1.5 animate-pulse"
+                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-extrabold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-md flex items-center justify-center gap-1.5 animate-pulse cursor-pointer"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                             <span>Retake Approved!</span>
-                          </button>
+                          </motion.button>
                         ) : retakeStatus?.status === 'pending' || requestSentQuizId === dayQuiz.id ? (
                           <button
                             disabled
@@ -404,7 +420,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                         ) : retakeStatus?.status === 'rejected' ? (
                           <button
                             onClick={() => handleRequestRetake(scheduleItem, dayQuiz.id)}
-                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-300 bg-rose-950/60 border border-rose-800 hover:bg-rose-900/60 transition-colors flex items-center justify-center gap-1.5"
+                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-rose-300 bg-rose-950/60 border border-rose-800 hover:bg-rose-900/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                             <span>Ask Again</span>
@@ -412,7 +428,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                         ) : (
                           <button
                             onClick={() => handleRequestRetake(scheduleItem, dayQuiz.id)}
-                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-[#ff8099] bg-[#220713] border border-[#470f25] hover:bg-[#300a1b] transition-colors flex items-center justify-center gap-1.5"
+                            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-bold text-[#ff8099] bg-[#1e0d17] border border-white/[0.08] hover:bg-[#2a1321] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                             <span>Request Retake</span>
@@ -422,41 +438,45 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                     ) : !isUnlocked ? (
                       <button
                         disabled
-                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-[#7a5b67] bg-[#18070f] border border-[#2b0c18] cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-neutral-500 bg-[#140a10] border border-white/[0.06] cursor-not-allowed flex items-center justify-center gap-2"
                       >
-                        <Lock className="w-3.5 h-3.5 text-[#7a5b67]" />
+                        <Lock className="w-3.5 h-3.5 text-neutral-500" />
                         <span>Unlocks at 8:29 PM IST</span>
                       </button>
                     ) : isInProgress ? (
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => onStartQuiz(dayQuiz.id)}
-                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#b31238] to-[#9e1030] hover:from-[#c91842] active:scale-95 transition-all shadow-ruby flex items-center justify-center gap-2 border border-[#ff3366]/30"
+                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] transition-all shadow-ruby flex items-center justify-center gap-2 border border-[#ff3366]/30 cursor-pointer"
                       >
                         <Play className="w-4 h-4 fill-white" />
                         <span>Resume Quiz</span>
-                      </button>
+                      </motion.button>
                     ) : (
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => onStartQuiz(dayQuiz.id)}
-                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#b31238] via-[#9e1030] to-[#750720] hover:from-[#c91842] active:scale-95 transition-all shadow-ruby flex items-center justify-center gap-2 border border-[#ff3366]/30"
+                        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] transition-all shadow-ruby flex items-center justify-center gap-2 border border-[#ff3366]/30 cursor-pointer"
                       >
                         <Play className="w-4 h-4 fill-white" />
                         <span>Start Quiz ({scheduleItem.totalQuestions} Qs)</span>
-                      </button>
+                      </motion.button>
                     )}
                   </div>
 
                   {/* Notes PDF Download button */}
                   <button
                     onClick={() => generateDayNotesPDF(dayQuiz)}
-                    className="w-full py-2 px-3 rounded-xl bg-[#16060e] hover:bg-[#200814] border border-[#2b0c18] text-[#f497aa] text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
+                    className="w-full py-2 px-3 rounded-xl bg-[#140a10] hover:bg-[#1e0e18] border border-white/[0.06] text-neutral-300 hover:text-white text-xs font-medium transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     title="Download complete notes and questions PDF for this day"
                   >
                     <Download className="w-3.5 h-3.5 text-[#ff8099]" />
                     <span>Download Notes PDF</span>
                   </button>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
