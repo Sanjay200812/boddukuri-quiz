@@ -88,196 +88,103 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
       'Assam',
       'Karnataka'
     ],
-    totalQuestions: 105,
+    totalQuestions: 30,
     isPublished: true, // Only Day 01 is published and accessible
     statusLabel: 'Available'
   },
 
-  // DAY 02: Andaman and Nicobar Islands, Goa, Sikkim, Nagaland (Cumulative)
+  // DAY 02: Andaman and Nicobar Islands, Goa, Sikkim, Nagaland (Locked until 8:29 PM IST)
   {
     dayNumber: 2,
     quizId: 'day-02',
     title: 'Day 02',
-    theme: 'Cumulative Revision: Day 01 Revision (35 Parks) + Island & Small States (12 Parks)',
+    theme: 'Island & Small States (Andaman & Nicobar [9], Goa [1], Sikkim [1], Nagaland [1] — 12 Parks)',
     dateStr: '12-11-2026',
     displayDate: '12 November 2026',
     unlockIsoUTC: '2026-11-12T14:59:00Z', // Sharp 8:29 PM IST
-    states: [
-      'Madhya Pradesh',
-      'Andhra Pradesh',
-      'Telangana',
-      'Kerala',
-      'Assam',
-      'Karnataka',
-      'Andaman and Nicobar Islands',
-      'Goa',
-      'Sikkim',
-      'Nagaland'
-    ],
+    states: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
     newStates: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
-    totalQuestions: 141,
-    isPublished: false, // Locked until Sanju unlocks/publishes
+    totalQuestions: 12,
+    isPublished: false, // Locked until sharp 8:29 PM IST or admin unlock
     statusLabel: 'Scheduled'
   },
 
-  // DAY 03: Maharashtra, Gujarat, Jharkhand (Cumulative)
+  // DAY 03: Maharashtra, Gujarat, Jharkhand
   {
     dayNumber: 3,
     quizId: 'day-03',
     title: 'Day 03',
-    theme: 'Cumulative Revision: Days 01–02 Revision (47 Parks) + Western Hub & Plateau (11 Parks)',
+    theme: 'Western Hub & Plateau (Maharashtra [6], Gujarat [4], Jharkhand [1] — 11 Parks)',
     dateStr: '13-11-2026',
     displayDate: '13 November 2026',
     unlockIsoUTC: '2026-11-13T14:59:00Z',
-    states: [
-      'Madhya Pradesh',
-      'Andhra Pradesh',
-      'Telangana',
-      'Kerala',
-      'Assam',
-      'Karnataka',
-      'Andaman and Nicobar Islands',
-      'Goa',
-      'Sikkim',
-      'Nagaland',
-      'Maharashtra',
-      'Gujarat',
-      'Jharkhand'
-    ],
+    states: ['Maharashtra', 'Gujarat', 'Jharkhand'],
     newStates: ['Maharashtra', 'Gujarat', 'Jharkhand'],
-    totalQuestions: 174,
+    totalQuestions: 11,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 04: West Bengal, Odisha, Tripura, Bihar (Cumulative)
+  // DAY 04: West Bengal, Odisha, Tripura, Bihar
   {
     dayNumber: 4,
     quizId: 'day-04',
     title: 'Day 04',
-    theme: 'Cumulative Revision: Days 01–03 Revision (58 Parks) + Eastern Plains & Delta (11 Parks)',
+    theme: 'Eastern Plains & Delta (West Bengal [6], Odisha [2], Tripura [2], Bihar [1] — 11 Parks)',
     dateStr: '14-11-2026',
     displayDate: '14 November 2026',
     unlockIsoUTC: '2026-11-14T14:59:00Z',
-    states: [
-      'Madhya Pradesh',
-      'Andhra Pradesh',
-      'Telangana',
-      'Kerala',
-      'Assam',
-      'Karnataka',
-      'Andaman and Nicobar Islands',
-      'Goa',
-      'Sikkim',
-      'Nagaland',
-      'Maharashtra',
-      'Gujarat',
-      'Jharkhand',
-      'West Bengal',
-      'Odisha',
-      'Tripura',
-      'Bihar'
-    ],
+    states: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
     newStates: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
-    totalQuestions: 207,
+    totalQuestions: 11,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 05: Uttarakhand, Haryana, Meghalaya, Uttar Pradesh, Ladakh (Cumulative)
+  // DAY 05: Uttarakhand, Haryana, Meghalaya, Uttar Pradesh, Ladakh
   {
     dayNumber: 5,
     quizId: 'day-05',
     title: 'Day 05',
-    theme: 'Cumulative Revision: Days 01–04 Revision (69 Parks) + Northern Highlands & Plains (12 Parks)',
+    theme: 'Northern Highlands & Plains (Uttarakhand [6], Haryana [2], Meghalaya [2], UP [1], Ladakh [1] — 12 Parks)',
     dateStr: '15-11-2026',
     displayDate: '15 November 2026',
     unlockIsoUTC: '2026-11-15T14:59:00Z',
-    states: [
-      'Madhya Pradesh',
-      'Andhra Pradesh',
-      'Telangana',
-      'Kerala',
-      'Assam',
-      'Karnataka',
-      'Andaman and Nicobar Islands',
-      'Goa',
-      'Sikkim',
-      'Nagaland',
-      'Maharashtra',
-      'Gujarat',
-      'Jharkhand',
-      'West Bengal',
-      'Odisha',
-      'Tripura',
-      'Bihar',
-      'Uttarakhand',
-      'Haryana',
-      'Meghalaya',
-      'Uttar Pradesh',
-      'Ladakh'
-    ],
+    states: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
     newStates: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
-    totalQuestions: 243,
+    totalQuestions: 12,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 06: Tamil Nadu, Himachal Pradesh, Manipur, Mizoram (Cumulative)
+  // DAY 06: Tamil Nadu, Himachal Pradesh, Manipur, Mizoram
   {
     dayNumber: 6,
     quizId: 'day-06',
     title: 'Day 06',
-    theme: 'Cumulative Revision: Days 01–05 Revision (81 Parks) + Southern Hills & Mountain Frontiers (14 Parks)',
+    theme: 'Southern Hills & Mountain Frontiers (Tamil Nadu [5], Himachal [5], Manipur [2], Mizoram [2] — 14 Parks)',
     dateStr: '16-11-2026',
     displayDate: '16 November 2026',
     unlockIsoUTC: '2026-11-16T14:59:00Z',
-    states: [
-      'Madhya Pradesh',
-      'Andhra Pradesh',
-      'Telangana',
-      'Kerala',
-      'Assam',
-      'Karnataka',
-      'Andaman and Nicobar Islands',
-      'Goa',
-      'Sikkim',
-      'Nagaland',
-      'Maharashtra',
-      'Gujarat',
-      'Jharkhand',
-      'West Bengal',
-      'Odisha',
-      'Tripura',
-      'Bihar',
-      'Uttarakhand',
-      'Haryana',
-      'Meghalaya',
-      'Uttar Pradesh',
-      'Ladakh',
-      'Tamil Nadu',
-      'Himachal Pradesh',
-      'Manipur',
-      'Mizoram'
-    ],
+    states: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
     newStates: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
-    totalQuestions: 285,
+    totalQuestions: 14,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 07: Rajasthan, Jammu and Kashmir, Chhattisgarh, Arunachal Pradesh (Cumulative)
+  // DAY 07: Rajasthan, Jammu and Kashmir, Chhattisgarh, Arunachal Pradesh
   {
     dayNumber: 7,
     quizId: 'day-07',
     title: 'Day 07',
-    theme: 'Crown Frontiers & Forests: Full Syllabus Cumulative Revision (30 States & UTs — 109 Parks)',
+    theme: 'Crown Frontiers & Forests (Rajasthan [5], Jammu & Kashmir [4], Chhattisgarh [3], Arunachal [2] — 14 Parks)',
     dateStr: '17-11-2026',
     displayDate: '17 November 2026',
     unlockIsoUTC: '2026-11-17T14:59:00Z',
-    states: ALL_28_STATES,
+    states: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
     newStates: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
-    totalQuestions: 327,
+    totalQuestions: 14,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
@@ -285,13 +192,13 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 8,
     quizId: 'semi-final',
     title: 'Semi-Final Test',
-    theme: 'Comprehensive All-India Cumulative Assessment (30 States & UTs — 109 Parks)',
+    theme: 'Comprehensive All-India Assessment (30 States & UTs — 109 Parks)',
     dateStr: '18-11-2026',
     displayDate: '18 November 2026',
     unlockIsoUTC: '2026-11-18T14:59:00Z',
     states: ALL_28_STATES,
     newStates: ALL_28_STATES,
-    totalQuestions: 327,
+    totalQuestions: 40,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true
@@ -306,7 +213,7 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     unlockIsoUTC: '2026-11-19T14:59:00Z',
     states: ALL_28_STATES,
     newStates: ALL_28_STATES,
-    totalQuestions: 327,
+    totalQuestions: 50,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true

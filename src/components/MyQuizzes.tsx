@@ -328,7 +328,7 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
 
                     <div className="text-[11px] text-[#a68690] pt-1 flex items-center justify-between">
                       <span className="font-semibold text-white">
-                        {dayQuiz.totalQuestions || scheduleItem.totalQuestions} Questions • {dayQuiz.stateInfoList.reduce((acc, s) => acc + s.parks.length, 0)} National Parks
+                        {dayQuiz.totalQuestions || scheduleItem.totalQuestions} Questions Pool • {dayQuiz.stateInfoList.reduce((acc, s) => acc + s.parks.length, 0)} National Parks
                       </span>
                       {scheduleItem.newStates.length > 0 && scheduleItem.dayNumber > 1 && (
                         <span className="line-clamp-1 text-right max-w-[50%]">
