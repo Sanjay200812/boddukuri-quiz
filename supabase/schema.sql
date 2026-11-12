@@ -30,12 +30,7 @@ create policy "profiles_select_own"
 -- Admins can view all profiles
 create policy "profiles_admin_select"
   on public.profiles for select
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role = 'admin'
-    )
-  );
+  using (public.is_admin());
 
 -- Users can update only their non-role fields
 create policy "profiles_update_own"
@@ -46,12 +41,7 @@ create policy "profiles_update_own"
 -- Admins have full control over profiles
 create policy "profiles_admin_all"
   on public.profiles for all
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role = 'admin'
-    )
-  );
+  using (public.is_admin());
 
 -- Helper function: Check if current caller is Admin
 create or replace function public.is_admin()

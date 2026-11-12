@@ -635,7 +635,7 @@ export const App: React.FC = () => {
           {currentView === 'result' && activeAttempt && (
             <ResultDashboard
               attempt={activeAttempt}
-              quiz={currentQuiz}
+              quiz={getQuizForDay(activeAttempt.quizId)}
               onReviewAnswers={() => handleReviewAnswers()}
               onReattempt={handleReattempt}
               onGoHome={handleGoHome}
@@ -647,7 +647,7 @@ export const App: React.FC = () => {
           {currentView === 'review' && activeAttempt && (
             <AnswerSheet
               attempt={activeAttempt}
-              quiz={currentQuiz}
+              quiz={getQuizForDay(activeAttempt.quizId)}
               onBackToResult={() => setCurrentView('result')}
               onReattempt={handleReattempt}
               onGoHome={handleGoHome}

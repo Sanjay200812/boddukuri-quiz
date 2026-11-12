@@ -270,7 +270,51 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       currentStreak,
       unlockedBadges
     };
-  }, [attempts, retakeRequests]);
+  }, [attempts, retakeRequests, completedDays]);
+
+  // Dynamic curriculum summary metrics
+  const totalCurriculumQuizzes = DAILY_SCHEDULE.length;
+  const totalCurriculumQuestions = useMemo(() => {
+    return DAILY_SCHEDULE.reduce((sum, item) => sum + item.totalQuestions, 0);
+  }, []);
+  const enrolledStudentsCount = useMemo(() => {
+    const studentNames = new Set(attempts.map(a => a.studentName || 'Mahi'));
+    studentNames.add('Mahi');
+    return studentNames.size;
+  }, [attempts]);
+
+  // Chart data: map 9 scheduled modules to real scores or zero baseline
+  const chartPoints = useMemo(() => {
+    return DAILY_SCHEDULE.map((s, idx) => {
+      const quiz = getQuizForDay(s.dayNumber);
+      const dayAttempts = attempts.filter(a => a.quizId === quiz.id || a.quizId === s.quizId);
+      const bestScore = dayAttempts.length > 0
+        ? Math.max(...dayAttempts.map(a => a.percentage || 0))
+        : 0;
+      const x = 30 + idx * 55; // 30 to 470 across 500 viewBox width
+      const y = 115 - (bestScore / 100) * 95; // 100% -> 20, 0% -> 115
+      return {
+        dayLabel: s.dayNumber <= 7 ? `Day 0${s.dayNumber}` : s.dayNumber === 8 ? 'Semi' : 'Grand',
+        score: bestScore,
+        hasAttempt: dayAttempts.length > 0,
+        x,
+        y
+      };
+    });
+  }, [attempts]);
+
+  const chartSvgPath = useMemo(() => {
+    if (chartPoints.length === 0) return '';
+    return chartPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  }, [chartPoints]);
+
+  const chartAreaPath = useMemo(() => {
+    if (chartPoints.length === 0) return '';
+    const firstX = chartPoints[0].x;
+    const lastX = chartPoints[chartPoints.length - 1].x;
+    const linePart = chartPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    return `${linePart} L ${lastX} 125 L ${firstX} 125 Z`;
+  }, [chartPoints]);
 
   // Selected attempt for Answer Sheet Review
   const currentReviewAttempt = useMemo(() => {
@@ -728,7 +772,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="flex items-center justify-between text-[#a68690] mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Total Students</span>
                     <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                      ↑ +12%
+                      1 Active
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -736,10 +780,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <Users className="w-4 h-4" />
                     </div>
                     <div className="text-2xl sm:text-3xl font-black text-white">
-                      1,248
+                      {enrolledStudentsCount}
                     </div>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">Active learners enrolled</p>
+                  <p className="text-[11px] text-[#a68690] mt-2">Mahi (Enrolled Scholar)</p>
                 </div>
 
                 {/* Metric 2: Total Quizzes */}
@@ -747,7 +791,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="flex items-center justify-between text-[#a68690] mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Total Quizzes</span>
                     <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                      ↑ +8%
+                      {stats.completedCount} / {totalCurriculumQuizzes} Done
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -755,10 +799,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <FileText className="w-4 h-4" />
                     </div>
                     <div className="text-2xl sm:text-3xl font-black text-white">
-                      48
+                      {totalCurriculumQuizzes}
                     </div>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">Curriculum modules available</p>
+                  <p className="text-[11px] text-[#a68690] mt-2">7 Days + Semi-Final + Grand Test</p>
                 </div>
 
                 {/* Metric 3: Total Questions */}
@@ -766,7 +810,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="flex items-center justify-between text-[#a68690] mb-2">
                     <span className="text-xs font-bold uppercase tracking-wider">Total Questions</span>
                     <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                      ↑ +15%
+                      109 Parks
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
@@ -774,10 +818,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <FileCheck className="w-4 h-4" />
                     </div>
                     <div className="text-2xl sm:text-3xl font-black text-white">
-                      3,620
+                      {totalCurriculumQuestions}
                     </div>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">Verified question bank</p>
+                  <p className="text-[11px] text-[#a68690] mt-2">Verified syllabus across 30 States</p>
                 </div>
 
                 {/* Metric 4: Avg. Performance */}
@@ -791,10 +835,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <Award className="w-4 h-4" />
                     </div>
                     <div className="text-2xl sm:text-3xl font-black text-[#ff8099]">
-                      86%
+                      {stats.avgPercentage}%
                     </div>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">Overall cohort accuracy</p>
+                  <p className="text-[11px] text-[#a68690] mt-2">{attempts.length} submission{attempts.length === 1 ? '' : 's'} recorded</p>
                 </div>
 
               </div>
@@ -807,24 +851,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-[#ff3366]" />
-                      <h2 className="text-base font-extrabold text-white">Quiz Activity</h2>
+                      <h2 className="text-base font-extrabold text-white">Curriculum Performance</h2>
                     </div>
                     <div className="px-2.5 py-1 rounded-xl bg-[#1c0610] border border-[#3d0f21] text-xs font-semibold text-[#ff8099] flex items-center gap-1.5">
-                      <span>Attempts</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-[#a68690]" />
+                      <span>9 Modules</span>
                     </div>
                   </div>
 
                   {/* SVG Trend Line Curve */}
                   <div className="relative pt-2">
                     <div className="flex items-center justify-between text-[10px] text-[#7a5b67] font-mono mb-1">
-                      <span>300</span>
-                      <span>250</span>
-                      <span>200</span>
-                      <span>150</span>
-                      <span>100</span>
-                      <span>50</span>
-                      <span>0</span>
+                      <span>100%</span>
+                      <span>80%</span>
+                      <span>60%</span>
+                      <span>40%</span>
+                      <span>20%</span>
+                      <span>0%</span>
                     </div>
 
                     <div className="w-full h-36 relative">
@@ -837,44 +879,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </defs>
                         {/* Horizontal guide lines */}
                         <line x1="0" y1="20" x2="500" y2="20" stroke="#260c18" strokeDasharray="3 3" />
-                        <line x1="0" y1="60" x2="500" y2="60" stroke="#260c18" strokeDasharray="3 3" />
-                        <line x1="0" y1="100" x2="500" y2="100" stroke="#260c18" strokeDasharray="3 3" />
+                        <line x1="0" y1="52" x2="500" y2="52" stroke="#260c18" strokeDasharray="3 3" />
+                        <line x1="0" y1="84" x2="500" y2="84" stroke="#260c18" strokeDasharray="3 3" />
+                        <line x1="0" y1="115" x2="500" y2="115" stroke="#260c18" strokeDasharray="3 3" />
 
                         {/* Area fill */}
-                        <path
-                          d="M 15 110 C 60 100, 100 115, 140 90 C 180 70, 220 95, 260 80 C 300 65, 340 75, 380 50 C 420 30, 460 35, 485 15 L 485 125 L 15 125 Z"
-                          fill="url(#chartRubyGradient)"
-                        />
+                        {chartAreaPath && (
+                          <path
+                            d={chartAreaPath}
+                            fill="url(#chartRubyGradient)"
+                          />
+                        )}
                         {/* Smooth Line Stroke */}
-                        <path
-                          d="M 15 110 C 60 100, 100 115, 140 90 C 180 70, 220 95, 260 80 C 300 65, 340 75, 380 50 C 420 30, 460 35, 485 15"
-                          fill="none"
-                          stroke="#ff3366"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                        />
+                        {chartSvgPath && (
+                          <path
+                            d={chartSvgPath}
+                            fill="none"
+                            stroke="#ff3366"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                        )}
                         {/* Key data point dots */}
-                        <circle cx="15" cy="110" r="3.5" fill="#ff3366" />
-                        <circle cx="140" cy="90" r="3.5" fill="#ff3366" />
-                        <circle cx="260" cy="80" r="3.5" fill="#ff3366" />
-                        <circle cx="380" cy="50" r="3.5" fill="#ff3366" />
-                        <circle cx="485" cy="15" r="4.5" fill="#ffffff" stroke="#ff3366" strokeWidth="2.5" />
+                        {chartPoints.map((pt, pIdx) => (
+                          <circle
+                            key={pIdx}
+                            cx={pt.x}
+                            cy={pt.y}
+                            r={pt.hasAttempt ? 4.5 : 3}
+                            fill={pt.hasAttempt ? '#ffffff' : '#ff3366'}
+                            stroke="#ff3366"
+                            strokeWidth={pt.hasAttempt ? 2 : 1}
+                          />
+                        ))}
                       </svg>
                     </div>
 
-                    {/* X-axis date labels */}
-                    <div className="flex items-center justify-between text-[10px] text-[#a68690] pt-1">
-                      <span>Nov 1</span>
-                      <span>Nov 2</span>
-                      <span>Nov 3</span>
-                      <span>Nov 4</span>
-                      <span>Nov 5</span>
-                      <span>Nov 6</span>
-                      <span>Nov 7</span>
-                      <span>Nov 8</span>
-                      <span>Nov 9</span>
-                      <span>Nov 10</span>
-                      <span>Nov 11</span>
+                    {/* X-axis curriculum day labels */}
+                    <div className="flex items-center justify-between text-[10px] text-[#a68690] pt-1 px-2 font-semibold">
+                      {chartPoints.map((pt, idx) => (
+                        <span key={idx} className={pt.hasAttempt ? 'text-emerald-400 font-bold' : ''}>
+                          {pt.dayLabel}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -1041,7 +1088,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex items-start gap-2.5">
                       <div className="w-2 h-2 rounded-full bg-[#ff8099] mt-1.5 shrink-0" />
                       <div>
-                        <div className="text-white font-semibold">Cumulative syllabus updated to 327 Qs</div>
+                        <div className="text-white font-semibold">Curriculum syllabus set to 300 Questions across 9 Modules</div>
                         <div className="text-[10px] text-[#a68690]">25 minutes ago</div>
                       </div>
                     </div>

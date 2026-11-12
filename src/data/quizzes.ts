@@ -1,19 +1,19 @@
 import type { DailyQuiz, QuizQuestion, StateNationalParkInfo } from '../types/quiz.ts';
 import { STATE_REPOSITORIES } from './stateRepositories.ts';
-import { ALL_28_STATES } from '../utils/schedule.ts';
+import { ALL_30_STATES } from '../utils/schedule.ts';
 
 /**
  * DAILY_CONFIGS: The central configuration for daily quizzes.
  * Preserves the exact 7-day National Parks curriculum:
- * - Day 01: 6 States, 35 Parks -> 30 questions (5 per state)
- * - Day 02: 4 States, 12 Parks -> 12 questions (1 per park)
- * - Day 03: 3 States, 11 Parks -> 11 questions (1 per park)
- * - Day 04: 4 States, 11 Parks -> 11 questions (1 per park)
- * - Day 05: 5 States, 12 Parks -> 12 questions (1 per park)
- * - Day 06: 4 States, 14 Parks -> 14 questions (1 per park)
- * - Day 07: 4 States, 14 Parks -> 14 questions (1 per park)
- * - Day 08: Semi-Final Test (40 questions covering all 109 parks)
- * - Day 09: Grand Test (50 questions covering all 109 parks)
+ * - Day 01: 6 States, 35 Parks -> Exactly 30 questions (5 per state)
+ * - Day 02: 4 States, 13 Parks -> Exactly 30 questions (20 new + 10 cumulative revision)
+ * - Day 03: 4 States, 13 Parks -> Exactly 30 questions (20 new + 10 cumulative revision)
+ * - Day 04: 4 States, 12 Parks -> Exactly 30 questions (20 new + 10 cumulative revision)
+ * - Day 05: 4 States, 11 Parks -> Exactly 30 questions (20 new + 10 cumulative revision)
+ * - Day 06: 4 States, 12 Parks -> Exactly 30 questions (20 new + 10 cumulative revision)
+ * - Day 07: 4 States, 13 Parks -> Exactly 30 questions (20 new + 10 cumulative revision)
+ * - Day 08: Semi-Final Test -> Exactly 30 questions (1 per state across all 30 states)
+ * - Day 09: Grand Test -> Exactly 60 questions (2 per state across all 30 states)
  */
 export interface DayConfig {
   dayNumber: number;
@@ -26,7 +26,7 @@ export interface DayConfig {
 }
 
 export const DAILY_DAY_CONFIGS: DayConfig[] = [
-  // DAY 01: Foundational 6 States (Published & Available)
+  // DAY 01: Foundational 6 States (Published & Available) - 35 Parks
   {
     dayNumber: 1,
     title: 'Day 01',
@@ -43,104 +43,90 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
     ],
     totalQuestions: 30
   },
-  // DAY 02: Island & Small States (12 National Parks)
+  // DAY 02: Islands & Small States (13 Parks)
   {
     dayNumber: 2,
     title: 'Day 02',
-    quizDate: '12-11-2026',
-    displayDate: '12 November 2026',
-    statusLabel: 'Scheduled',
-    newStates: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
-    totalQuestions: 12
-  },
-  // DAY 03: Western Hub & Plateau (11 National Parks)
-  {
-    dayNumber: 3,
-    title: 'Day 03',
     quizDate: '13-11-2026',
     displayDate: '13 November 2026',
     statusLabel: 'Scheduled',
-    newStates: ['Maharashtra', 'Gujarat', 'Jharkhand'],
-    totalQuestions: 11
+    newStates: ['Andaman and Nicobar Islands', 'Arunachal Pradesh', 'Bihar', 'Goa'],
+    totalQuestions: 30
   },
-  // DAY 04: Eastern Plains & Delta (11 National Parks)
+  // DAY 03: Central & Western India (13 Parks)
   {
-    dayNumber: 4,
-    title: 'Day 04',
+    dayNumber: 3,
+    title: 'Day 03',
     quizDate: '14-11-2026',
     displayDate: '14 November 2026',
     statusLabel: 'Scheduled',
-    newStates: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
-    totalQuestions: 11
+    newStates: ['Chhattisgarh', 'Gujarat', 'Haryana', 'Jammu and Kashmir'],
+    totalQuestions: 30
   },
-  // DAY 05: Northern Highlands & Plains (12 National Parks)
+  // DAY 04: Northern Highlands (12 Parks)
   {
-    dayNumber: 5,
-    title: 'Day 05',
+    dayNumber: 4,
+    title: 'Day 04',
     quizDate: '15-11-2026',
     displayDate: '15 November 2026',
     statusLabel: 'Scheduled',
-    newStates: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
-    totalQuestions: 12
+    newStates: ['Himachal Pradesh', 'Jharkhand', 'Ladakh', 'Rajasthan'],
+    totalQuestions: 30
   },
-  // DAY 06: Southern Hills & Mountain Frontiers (14 National Parks)
+  // DAY 05: Western & Northeastern India (11 Parks)
   {
-    dayNumber: 6,
-    title: 'Day 06',
+    dayNumber: 5,
+    title: 'Day 05',
     quizDate: '16-11-2026',
     displayDate: '16 November 2026',
     statusLabel: 'Scheduled',
-    newStates: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
-    totalQuestions: 14
+    newStates: ['Maharashtra', 'Manipur', 'Meghalaya', 'Nagaland'],
+    totalQuestions: 30
   },
-  // DAY 07: Crown Frontiers & Forests (14 National Parks)
+  // DAY 06: Northeast & Southern Highlands (12 Parks)
   {
-    dayNumber: 7,
-    title: 'Day 07',
+    dayNumber: 6,
+    title: 'Day 06',
     quizDate: '17-11-2026',
     displayDate: '17 November 2026',
     statusLabel: 'Scheduled',
-    newStates: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
-    totalQuestions: 14
+    newStates: ['Mizoram', 'Odisha', 'Tripura', 'Uttarakhand'],
+    totalQuestions: 30
+  },
+  // DAY 07: Final States (13 Parks)
+  {
+    dayNumber: 7,
+    title: 'Day 07',
+    quizDate: '18-11-2026',
+    displayDate: '18 November 2026',
+    statusLabel: 'Scheduled',
+    newStates: ['Sikkim', 'Tamil Nadu', 'Uttar Pradesh', 'West Bengal'],
+    totalQuestions: 30
   },
   // DAY 08: Semi-Final Test (Comprehensive All-State Assessment)
   {
     dayNumber: 8,
     title: 'Semi-Final Test',
-    quizDate: '18-11-2026',
-    displayDate: '18 November 2026',
+    quizDate: '19-11-2026',
+    displayDate: '19 November 2026',
     statusLabel: 'Scheduled',
-    newStates: ALL_28_STATES,
-    totalQuestions: 40
+    newStates: ALL_30_STATES,
+    totalQuestions: 30
   },
   // DAY 09: Grand Test (Championship All-State Comprehensive Pool)
   {
     dayNumber: 9,
     title: 'Grand Test',
-    quizDate: '19-11-2026',
-    displayDate: '19 November 2026',
+    quizDate: '20-11-2026',
+    displayDate: '20 November 2026',
     statusLabel: 'Scheduled',
-    newStates: ALL_28_STATES,
-    totalQuestions: 50
+    newStates: ALL_30_STATES,
+    totalQuestions: 60
   }
 ];
 
 export const DAILY_CONFIGS: DayConfig[] = [DAILY_DAY_CONFIGS[0]];
 export const ALL_SCHEDULED_CONFIGS: DayConfig[] = DAILY_DAY_CONFIGS;
-
-/**
- * Distributes questions evenly across states for special tests
- */
-function distributeCounts(total: number, numBuckets: number): number[] {
-  if (numBuckets <= 0) return [];
-  const base = Math.floor(total / numBuckets);
-  const remainder = total % numBuckets;
-  const counts: number[] = [];
-  for (let i = 0; i < numBuckets; i++) {
-    counts.push(base + (i < remainder ? 1 : 0));
-  }
-  return counts;
-}
 
 /**
  * Builds the quizzes from the state repositories matching the exact national parks available.
@@ -152,7 +138,7 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
   for (const config of configs) {
     const dayNumber = config.dayNumber;
     const isSpecialTest = dayNumber >= 8;
-    const previousStates = isSpecialTest ? ALL_28_STATES : [...cumulativeStates];
+    const previousStates = isSpecialTest ? ALL_30_STATES : [...cumulativeStates];
     const newStates = config.newStates;
 
     const questions: QuizQuestion[] = [];
@@ -160,6 +146,7 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
 
     if (dayNumber === 1) {
       // DAY 01: Exactly 30 questions across 6 foundational states (5 questions per state)
+      // Preserving original question IDs and keys for authentic 100% historical accuracy
       const states = [
         'Madhya Pradesh',
         'Andhra Pradesh',
@@ -185,17 +172,15 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
         }
       });
     } else if (dayNumber >= 2 && dayNumber <= 7) {
-      // DAYS 02–07: Questions strictly match the national parks available in that day's states!
-      // Exactly 1 question per park in each state
+      // DAYS 02–07: Exactly 30 questions each
+      // Part A: 20 questions from newly introduced states (4 states * 5 questions each)
       newStates.forEach(stateName => {
-        if (!cumulativeStates.includes(stateName)) cumulativeStates.push(stateName);
         const repo = STATE_REPOSITORIES[stateName];
         if (repo) {
           if (!stateInfoList.some(info => info.stateName === stateName)) {
             stateInfoList.push(repo.stateInfo);
           }
-          const parkCount = repo.stateInfo.parks.length;
-          for (let i = 0; i < parkCount; i++) {
+          for (let i = 0; i < 5; i++) {
             const rawQ = repo.questions[i % repo.questions.length];
             if (rawQ) {
               questions.push({
@@ -207,25 +192,62 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
           }
         }
       });
-    } else {
-      // SPECIAL TESTS: Semi-Final (Day 8: 40 Qs) & Grand Final (Day 9: 50 Qs)
-      const targetTotal = config.totalQuestions || (dayNumber === 8 ? 40 : 50);
-      const allStates = ALL_28_STATES;
-      const counts = distributeCounts(targetTotal, allStates.length);
 
-      allStates.forEach((stateName, sIdx) => {
+      // Part B: 10 cumulative revision questions from all previously completed states
+      if (previousStates.length > 0) {
+        for (let r = 0; r < 10; r++) {
+          const prevState = previousStates[r % previousStates.length];
+          const prevRepo = STATE_REPOSITORIES[prevState];
+          if (prevRepo && prevRepo.questions.length > 0) {
+            if (!stateInfoList.some(info => info.stateName === prevState)) {
+              stateInfoList.push(prevRepo.stateInfo);
+            }
+            const qIdx = (Math.floor(r / previousStates.length) + dayNumber) % prevRepo.questions.length;
+            const rawQ = prevRepo.questions[qIdx];
+            questions.push({
+              ...rawQ,
+              id: `d${dayNumber}-rev-${prevState.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q${r + 1}`,
+              section: 'previous'
+            });
+          }
+        }
+      }
+
+      // Record newly introduced states for subsequent revision pools
+      newStates.forEach(s => {
+        if (!cumulativeStates.includes(s)) cumulativeStates.push(s);
+      });
+    } else if (dayNumber === 8) {
+      // DAY 08: Semi-Final Test — Exactly 30 questions across all 30 states (1 per state)
+      // First 15 states = previous, Next 15 states = new
+      ALL_30_STATES.forEach((stateName, sIdx) => {
         const repo = STATE_REPOSITORIES[stateName];
         if (repo) {
           if (!stateInfoList.some(info => info.stateName === stateName)) {
             stateInfoList.push(repo.stateInfo);
           }
-          const countNeeded = counts[sIdx];
-          for (let i = 0; i < countNeeded; i++) {
+          const rawQ = repo.questions[0];
+          questions.push({
+            ...rawQ,
+            id: `semi-final-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q1`,
+            section: sIdx < 15 ? 'previous' : 'new'
+          });
+        }
+      });
+    } else if (dayNumber === 9) {
+      // DAY 09: Grand Test — Exactly 60 questions across all 30 states (2 per state)
+      ALL_30_STATES.forEach((stateName, sIdx) => {
+        const repo = STATE_REPOSITORIES[stateName];
+        if (repo) {
+          if (!stateInfoList.some(info => info.stateName === stateName)) {
+            stateInfoList.push(repo.stateInfo);
+          }
+          for (let i = 0; i < 2; i++) {
             const rawQ = repo.questions[i % repo.questions.length];
             questions.push({
               ...rawQ,
-              id: `d${dayNumber}-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q${i + 1}`,
-              section: 'previous'
+              id: `grand-final-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q${i + 1}`,
+              section: sIdx < 15 ? 'previous' : 'new'
             });
           }
         }
@@ -239,7 +261,7 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
         ? 'grand-final'
         : `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`;
 
-    const statesCovered = isSpecialTest ? ALL_28_STATES : config.newStates;
+    const statesCovered = isSpecialTest ? ALL_30_STATES : [...newStates, ...previousStates];
 
     quizzes.push({
       id: quizId,

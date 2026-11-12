@@ -2034,6 +2034,78 @@ export const STATE_REPOSITORIES: Record<string, StateData> = {
         establishedYear: 1981,
         district: 'Leh',
         keyFeature: 'Largest national park in India; global snow leopard capital.'
+      },
+      {
+        id: 'ladakh-q2',
+        state: 'Ladakh',
+        parkName: 'Hemis National Park',
+        question: 'Which is the largest national park in India by area, spanning approximately 4,400 sq km?',
+        options: [
+          'Hemis National Park',
+          'Desert National Park',
+          'Gangotri National Park',
+          'Namdapha National Park'
+        ],
+        correctAnswer: 0,
+        difficulty: 'medium',
+        explanation: 'Hemis National Park in Ladakh is India\'s largest national park, spanning around 4,400 square kilometers.',
+        establishedYear: 1981,
+        district: 'Leh',
+        keyFeature: 'Largest national park in India; global snow leopard capital.'
+      },
+      {
+        id: 'ladakh-q3',
+        state: 'Ladakh',
+        parkName: 'Hemis National Park',
+        question: 'Hemis National Park is internationally famous as the global capital for which endangered predator?',
+        options: [
+          'Snow Leopard',
+          'Royal Bengal Tiger',
+          'Asiatic Lion',
+          'Clouded Leopard'
+        ],
+        correctAnswer: 0,
+        difficulty: 'easy',
+        explanation: 'Hemis National Park has the highest density of snow leopards in any protected area in the world.',
+        establishedYear: 1981,
+        district: 'Leh',
+        keyFeature: 'Largest national park in India; global snow leopard capital.'
+      },
+      {
+        id: 'ladakh-q4',
+        state: 'Ladakh',
+        parkName: 'Hemis National Park',
+        question: 'Which river flows along the northern boundary of Hemis National Park in Ladakh?',
+        options: [
+          'Indus River',
+          'Zanskar River',
+          'Jhelum River',
+          'Shyok River'
+        ],
+        correctAnswer: 0,
+        difficulty: 'medium',
+        explanation: 'The Indus River bounds Hemis National Park to the north, while the Zanskar River passes through parts of it.',
+        establishedYear: 1981,
+        district: 'Leh',
+        keyFeature: 'Largest national park in India; global snow leopard capital.'
+      },
+      {
+        id: 'ladakh-q5',
+        state: 'Ladakh',
+        parkName: 'Hemis National Park',
+        question: 'In which year was Hemis National Park officially established in the Leh district of Ladakh?',
+        options: [
+          '1981',
+          '1975',
+          '1986',
+          '1992'
+        ],
+        correctAnswer: 0,
+        difficulty: 'hard',
+        explanation: 'Hemis National Park was established in 1981 in Ladakh to protect its fragile trans-Himalayan ecosystem.',
+        establishedYear: 1981,
+        district: 'Leh',
+        keyFeature: 'Largest national park in India; global snow leopard capital.'
       }
     ]
   },
@@ -2147,6 +2219,24 @@ export const STATE_REPOSITORIES: Record<string, StateData> = {
         establishedYear: 2007,
         district: 'Baramulla',
         keyFeature: 'Crucial refuge for the Markhor (wild goat).'
+      },
+      {
+        id: 'jammu-and-kashmir-q5',
+        state: 'Jammu and Kashmir',
+        parkName: 'Dachigam National Park',
+        question: 'Dachigam National Park near Srinagar is world-famous as the last viable natural sanctuary for which critically endangered species?',
+        options: [
+          'Hangul (Kashmir Stag)',
+          'Sangai (Brow-antlered Deer)',
+          'Barasingha (Swamp Deer)',
+          'Himalayan Musk Deer'
+        ],
+        correctAnswer: 0,
+        difficulty: 'medium',
+        explanation: 'Dachigam National Park is renowned as the primary natural habitat and sanctuary of the Hangul, or Kashmir Stag.',
+        establishedYear: 1981,
+        district: 'Srinagar',
+        keyFeature: 'Only natural home of the Hangul (Kashmir Stag).'
       }
     ]
   },
@@ -2258,6 +2348,24 @@ export const STATE_REPOSITORIES: Record<string, StateData> = {
         establishedYear: 2007,
         district: 'Baramulla',
         keyFeature: 'Crucial refuge for the Markhor (wild goat).'
+      },
+      {
+        id: 'jammu-kashmir-q5',
+        state: 'Jammu and Kashmir',
+        parkName: 'Dachigam National Park',
+        question: 'Dachigam National Park near Srinagar is world-famous as the last viable natural sanctuary for which critically endangered species?',
+        options: [
+          'Hangul (Kashmir Stag)',
+          'Sangai (Brow-antlered Deer)',
+          'Barasingha (Swamp Deer)',
+          'Himalayan Musk Deer'
+        ],
+        correctAnswer: 0,
+        difficulty: 'medium',
+        explanation: 'Dachigam National Park is renowned as the primary natural habitat and sanctuary of the Hangul, or Kashmir Stag.',
+        establishedYear: 1981,
+        district: 'Srinagar',
+        keyFeature: 'Only natural home of the Hangul (Kashmir Stag).'
       }
     ]
   },

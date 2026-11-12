@@ -29,38 +29,47 @@ export interface DaySchedule {
   isSpecialTest?: boolean;
 }
 
-export const ALL_28_STATES: string[] = [
+export const ALL_30_STATES: string[] = [
+  // Day 01: Foundational 6 States (35 parks)
   'Madhya Pradesh',
   'Andhra Pradesh',
   'Telangana',
   'Kerala',
   'Assam',
   'Karnataka',
+  // Day 02: Islands & Small States (13 parks)
   'Andaman and Nicobar Islands',
+  'Arunachal Pradesh',
+  'Bihar',
   'Goa',
-  'Sikkim',
-  'Nagaland',
-  'Maharashtra',
+  // Day 03: Central & Western India (13 parks)
+  'Chhattisgarh',
   'Gujarat',
+  'Haryana',
+  'Jammu and Kashmir',
+  // Day 04: Northern Highlands (12 parks)
+  'Himachal Pradesh',
   'Jharkhand',
-  'West Bengal',
+  'Ladakh',
+  'Rajasthan',
+  // Day 05: Western & Northeastern India (11 parks)
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Nagaland',
+  // Day 06: Northeast & Southern Highlands (12 parks)
+  'Mizoram',
   'Odisha',
   'Tripura',
-  'Bihar',
   'Uttarakhand',
-  'Haryana',
-  'Meghalaya',
-  'Uttar Pradesh',
-  'Ladakh',
+  // Day 07: Final States (13 parks)
+  'Sikkim',
   'Tamil Nadu',
-  'Himachal Pradesh',
-  'Manipur',
-  'Mizoram',
-  'Rajasthan',
-  'Jammu and Kashmir',
-  'Chhattisgarh',
-  'Arunachal Pradesh'
+  'Uttar Pradesh',
+  'West Bengal'
 ];
+
+export const ALL_28_STATES: string[] = ALL_30_STATES;
 
 export const DAILY_SCHEDULE: DaySchedule[] = [
   // DAY 01: Foundational 6 States (Published & Available Today: 09 November 2026)
@@ -68,7 +77,7 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 1,
     quizId: 'day-01',
     title: 'Day 01',
-    theme: 'Foundational 6 States (MP, AP, TS, Kerala, Assam & Karnataka — 35 Parks)',
+    theme: 'Foundational 6 States (Madhya Pradesh, Andhra Pradesh, Telangana, Kerala, Assam, Karnataka — 35 Parks)',
     dateStr: '09-11-2026',
     displayDate: '09 November 2026',
     unlockIsoUTC: '2026-11-09T14:59:00Z', // 8:29 PM IST
@@ -93,98 +102,98 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     statusLabel: 'Available'
   },
 
-  // DAY 02: Andaman and Nicobar Islands, Goa, Sikkim, Nagaland (Locked until 8:29 PM IST)
+  // DAY 02: Islands & Small States (13 Parks)
   {
     dayNumber: 2,
     quizId: 'day-02',
     title: 'Day 02',
-    theme: 'Island & Small States (Andaman & Nicobar [9], Goa [1], Sikkim [1], Nagaland [1] — 12 Parks)',
-    dateStr: '12-11-2026',
-    displayDate: '12 November 2026',
-    unlockIsoUTC: '2026-11-12T14:59:00Z', // Sharp 8:29 PM IST
-    states: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
-    newStates: ['Andaman and Nicobar Islands', 'Goa', 'Sikkim', 'Nagaland'],
-    totalQuestions: 12,
+    theme: 'Islands & Small States (Andaman & Nicobar [9], Arunachal Pradesh [2], Bihar [1], Goa [1] — 13 Parks)',
+    dateStr: '13-11-2026',
+    displayDate: '13 November 2026',
+    unlockIsoUTC: '2026-11-13T14:59:00Z', // Sharp 8:29 PM IST
+    states: ['Andaman and Nicobar Islands', 'Arunachal Pradesh', 'Bihar', 'Goa'],
+    newStates: ['Andaman and Nicobar Islands', 'Arunachal Pradesh', 'Bihar', 'Goa'],
+    totalQuestions: 30,
     isPublished: false, // Locked until sharp 8:29 PM IST or admin unlock
     statusLabel: 'Scheduled'
   },
 
-  // DAY 03: Maharashtra, Gujarat, Jharkhand
+  // DAY 03: Central & Western India (13 Parks)
   {
     dayNumber: 3,
     quizId: 'day-03',
     title: 'Day 03',
-    theme: 'Western Hub & Plateau (Maharashtra [6], Gujarat [4], Jharkhand [1] — 11 Parks)',
-    dateStr: '13-11-2026',
-    displayDate: '13 November 2026',
-    unlockIsoUTC: '2026-11-13T14:59:00Z',
-    states: ['Maharashtra', 'Gujarat', 'Jharkhand'],
-    newStates: ['Maharashtra', 'Gujarat', 'Jharkhand'],
-    totalQuestions: 11,
+    theme: 'Central & Western India (Chhattisgarh [3], Gujarat [4], Haryana [2], Jammu & Kashmir [4] — 13 Parks)',
+    dateStr: '14-11-2026',
+    displayDate: '14 November 2026',
+    unlockIsoUTC: '2026-11-14T14:59:00Z',
+    states: ['Chhattisgarh', 'Gujarat', 'Haryana', 'Jammu and Kashmir'],
+    newStates: ['Chhattisgarh', 'Gujarat', 'Haryana', 'Jammu and Kashmir'],
+    totalQuestions: 30,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 04: West Bengal, Odisha, Tripura, Bihar
+  // DAY 04: Northern Highlands (12 Parks)
   {
     dayNumber: 4,
     quizId: 'day-04',
     title: 'Day 04',
-    theme: 'Eastern Plains & Delta (West Bengal [6], Odisha [2], Tripura [2], Bihar [1] — 11 Parks)',
-    dateStr: '14-11-2026',
-    displayDate: '14 November 2026',
-    unlockIsoUTC: '2026-11-14T14:59:00Z',
-    states: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
-    newStates: ['West Bengal', 'Odisha', 'Tripura', 'Bihar'],
-    totalQuestions: 11,
+    theme: 'Northern Highlands (Himachal Pradesh [5], Jharkhand [1], Ladakh [1], Rajasthan [5] — 12 Parks)',
+    dateStr: '15-11-2026',
+    displayDate: '15 November 2026',
+    unlockIsoUTC: '2026-11-15T14:59:00Z',
+    states: ['Himachal Pradesh', 'Jharkhand', 'Ladakh', 'Rajasthan'],
+    newStates: ['Himachal Pradesh', 'Jharkhand', 'Ladakh', 'Rajasthan'],
+    totalQuestions: 30,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 05: Uttarakhand, Haryana, Meghalaya, Uttar Pradesh, Ladakh
+  // DAY 05: Western & Northeastern India (11 Parks)
   {
     dayNumber: 5,
     quizId: 'day-05',
     title: 'Day 05',
-    theme: 'Northern Highlands & Plains (Uttarakhand [6], Haryana [2], Meghalaya [2], UP [1], Ladakh [1] — 12 Parks)',
-    dateStr: '15-11-2026',
-    displayDate: '15 November 2026',
-    unlockIsoUTC: '2026-11-15T14:59:00Z',
-    states: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
-    newStates: ['Uttarakhand', 'Haryana', 'Meghalaya', 'Uttar Pradesh', 'Ladakh'],
-    totalQuestions: 12,
+    theme: 'Western & Northeastern India (Maharashtra [6], Manipur [1], Meghalaya [2], Nagaland [1] — 11 Parks)',
+    dateStr: '16-11-2026',
+    displayDate: '16 November 2026',
+    unlockIsoUTC: '2026-11-16T14:59:00Z',
+    states: ['Maharashtra', 'Manipur', 'Meghalaya', 'Nagaland'],
+    newStates: ['Maharashtra', 'Manipur', 'Meghalaya', 'Nagaland'],
+    totalQuestions: 30,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 06: Tamil Nadu, Himachal Pradesh, Manipur, Mizoram
+  // DAY 06: Northeast & Southern Highlands (12 Parks)
   {
     dayNumber: 6,
     quizId: 'day-06',
     title: 'Day 06',
-    theme: 'Southern Hills & Mountain Frontiers (Tamil Nadu [5], Himachal [5], Manipur [2], Mizoram [2] — 14 Parks)',
-    dateStr: '16-11-2026',
-    displayDate: '16 November 2026',
-    unlockIsoUTC: '2026-11-16T14:59:00Z',
-    states: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
-    newStates: ['Tamil Nadu', 'Himachal Pradesh', 'Manipur', 'Mizoram'],
-    totalQuestions: 14,
+    theme: 'Northeast & Southern Highlands (Mizoram [2], Odisha [2], Tripura [2], Uttarakhand [6] — 12 Parks)',
+    dateStr: '17-11-2026',
+    displayDate: '17 November 2026',
+    unlockIsoUTC: '2026-11-17T14:59:00Z',
+    states: ['Mizoram', 'Odisha', 'Tripura', 'Uttarakhand'],
+    newStates: ['Mizoram', 'Odisha', 'Tripura', 'Uttarakhand'],
+    totalQuestions: 30,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
 
-  // DAY 07: Rajasthan, Jammu and Kashmir, Chhattisgarh, Arunachal Pradesh
+  // DAY 07: Final States (13 Parks)
   {
     dayNumber: 7,
     quizId: 'day-07',
     title: 'Day 07',
-    theme: 'Crown Frontiers & Forests (Rajasthan [5], Jammu & Kashmir [4], Chhattisgarh [3], Arunachal [2] — 14 Parks)',
-    dateStr: '17-11-2026',
-    displayDate: '17 November 2026',
-    unlockIsoUTC: '2026-11-17T14:59:00Z',
-    states: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
-    newStates: ['Rajasthan', 'Jammu and Kashmir', 'Chhattisgarh', 'Arunachal Pradesh'],
-    totalQuestions: 14,
+    theme: 'Final States (Sikkim [1], Tamil Nadu [5], Uttar Pradesh [1], West Bengal [6] — 13 Parks)',
+    dateStr: '18-11-2026',
+    displayDate: '18 November 2026',
+    unlockIsoUTC: '2026-11-18T14:59:00Z',
+    states: ['Sikkim', 'Tamil Nadu', 'Uttar Pradesh', 'West Bengal'],
+    newStates: ['Sikkim', 'Tamil Nadu', 'Uttar Pradesh', 'West Bengal'],
+    totalQuestions: 30,
     isPublished: false,
     statusLabel: 'Scheduled'
   },
@@ -192,13 +201,13 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 8,
     quizId: 'semi-final',
     title: 'Semi-Final Test',
-    theme: 'Comprehensive All-India Assessment (30 States & UTs — 109 Parks)',
-    dateStr: '18-11-2026',
-    displayDate: '18 November 2026',
-    unlockIsoUTC: '2026-11-18T14:59:00Z',
-    states: ALL_28_STATES,
-    newStates: ALL_28_STATES,
-    totalQuestions: 40,
+    theme: 'Comprehensive All-State Assessment (30 States — 1 Question per State)',
+    dateStr: '19-11-2026',
+    displayDate: '19 November 2026',
+    unlockIsoUTC: '2026-11-19T14:59:00Z',
+    states: ALL_30_STATES,
+    newStates: ALL_30_STATES,
+    totalQuestions: 30,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true
@@ -207,13 +216,13 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 9,
     quizId: 'grand-final',
     title: 'Grand Test',
-    theme: 'Final All-India Championship Assessment (Complete 30 States & UTs — 109 Parks)',
-    dateStr: '19-11-2026',
-    displayDate: '19 November 2026',
-    unlockIsoUTC: '2026-11-19T14:59:00Z',
-    states: ALL_28_STATES,
-    newStates: ALL_28_STATES,
-    totalQuestions: 50,
+    theme: 'Championship Grand Final Test (30 States — 2 Questions per State)',
+    dateStr: '20-11-2026',
+    displayDate: '20 November 2026',
+    unlockIsoUTC: '2026-11-20T14:59:00Z',
+    states: ALL_30_STATES,
+    newStates: ALL_30_STATES,
+    totalQuestions: 60,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true

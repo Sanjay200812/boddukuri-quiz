@@ -133,7 +133,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
               className={`px-3 py-1.5 rounded-xl transition-all ${
                 statusFilter === 'all'
                   ? 'bg-slate-900 text-white shadow-sm'
-                  : 'bg-[#2b1118] text-slate-600 hover:bg-[#3a1822]'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               All ({questions.length})
@@ -165,7 +165,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
               className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 ${
                 statusFilter === 'unanswered'
                   ? 'bg-slate-700 text-white shadow-sm'
-                  : 'bg-[#2b1118] text-slate-600 hover:bg-[#3a1822]'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               <MinusCircle className="w-3.5 h-3.5" />
