@@ -53,10 +53,150 @@ export const MyAttempts: React.FC<MyAttemptsProps> = ({
       ? Math.round(attempts.reduce((sum, a) => sum + a.percentage, 0) / attempts.length)
       : 0;
 
-  const filteredGroups = dayGroups.filter(group => {
-    if (selectedDayFilter === 'all') return true;
-    return group.scheduleItem.quizId === selectedDayFilter;
-  });
+  // Filtered day groups
+  const dailyGroups = dayGroups.filter(g => !g.scheduleItem.isSpecialTest);
+  const specialGroups = dayGroups.filter(g => g.scheduleItem.isSpecialTest);
+
+  const renderGroupCard = (group: typeof dayGroups[0]) => {
+    const hasAttempts = group.attempts.length > 0;
+    if (!hasAttempts && (selectedDayFilter === 'all' || selectedDayFilter === 'daily-only' || selectedDayFilter === 'special-only')) return null;
+
+    return (
+      <motion.div
+        key={group.scheduleItem.quizId}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        transition={{ duration: 0.5, ease: EASE_OUT }}
+        className="rounded-3xl bg-[#0f090e]/85 border border-white/[0.08] p-5 sm:p-6 shadow-lg backdrop-blur-md space-y-4"
+      >
+        {/* Section Group Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 rounded-xl text-xs font-black tracking-wide bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby">
+              {group.scheduleItem.isSpecialTest
+                ? group.scheduleItem.title
+                : `Day ${group.scheduleItem.dayNumber < 10 ? '0' + group.scheduleItem.dayNumber : group.scheduleItem.dayNumber}`}
+            </span>
+            <div>
+              <h3 className="text-base font-bold text-white">
+                {group.scheduleItem.title} Attempts ({group.attempts.length})
+              </h3>
+              <p className="text-xs text-neutral-400">
+                {group.scheduleItem.displayDate} • {group.scheduleItem.states.length} States • {group.scheduleItem.totalQuestions} Questions
+              </p>
+            </div>
+          </div>
+
+          <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#1e0d17] text-[#ff8099] border border-white/[0.06]">
+            {group.attempts.length} {group.attempts.length === 1 ? 'Submission' : 'Submissions'}
+          </span>
+        </div>
+
+        {/* Attempt Cards in chronological descending order */}
+        <div className="space-y-3">
+          {group.attempts.map((att, idx) => {
+            const attemptNumber = group.attempts.length - idx;
+            const mins = Math.floor(att.timeTakenSeconds / 60);
+            const secs = att.timeTakenSeconds % 60;
+            const timeFormatted = `${mins}m ${secs}s`;
+            const isPerfect = att.percentage === 100;
+
+            return (
+              <motion.div
+                key={att.id}
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05, duration: 0.4 }}
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                className="rounded-2xl bg-[#140b12]/80 border border-white/[0.06] hover:border-white/[0.14] p-4 sm:p-5 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="space-y-2 flex-1">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-[#200d18] text-[#ff8099] border border-white/[0.06] text-xs font-bold">
+                      Attempt #{attemptNumber}{' '}
+                      {idx === 0 && (
+                        <span className="ml-1 text-[10px] font-black uppercase text-[#ff3366]">
+                          (Latest)
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-xs font-semibold text-white">
+                      Student: <strong>{att.studentName || 'Mahi'}</strong>
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
+                      <Calendar className="w-3 h-3 text-[#ff3366]" />
+                      {att.formattedDate ||
+                        new Date(att.timestamp).toLocaleString('en-IN', {
+                          dateStyle: 'medium',
+                          timeStyle: 'short'
+                        })}
+                    </span>
+                  </div>
+
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 max-w-xl text-center">
+                    <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
+                      <div className="text-[10px] uppercase font-bold text-neutral-400">Score</div>
+                      <div className="text-sm font-black text-white">
+                        {att.marksObtained} / {att.maxMarks}
+                      </div>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
+                      <div className="text-[10px] uppercase font-bold text-neutral-400">Percentage</div>
+                      <div className={`text-sm font-black ${isPerfect ? 'text-emerald-400' : 'text-[#ff8099]'}`}>
+                        {att.percentage}%
+                      </div>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
+                      <div className="text-[10px] uppercase font-bold text-neutral-400">Time Taken</div>
+                      <div className="text-xs font-bold text-white mt-0.5 flex items-center justify-center gap-1">
+                        <Clock className="w-3 h-3 text-[#ff3366]" />
+                        <span>{timeFormatted}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
+                      <div className="text-[10px] uppercase font-bold text-neutral-400">Result</div>
+                      <div className="text-xs font-bold text-emerald-400 mt-0.5">
+                        {att.performanceMessage || (isPerfect ? 'Outstanding' : 'Completed')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-white/[0.06]">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => onViewResult(att)}
+                    className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-neutral-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <FileCheck className="w-4 h-4" />
+                    <span>View Result</span>
+                  </motion.button>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => onInspectAnswers(att)}
+                    className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-ruby border border-[#ff3366]/30 cursor-pointer"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>Inspect Answers</span>
+                  </motion.button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="space-y-6 pb-20 text-neutral-100">
@@ -161,6 +301,26 @@ export const MyAttempts: React.FC<MyAttemptsProps> = ({
             >
               All Days
             </button>
+            <button
+              onClick={() => setSelectedDayFilter('daily-only')}
+              className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                selectedDayFilter === 'daily-only'
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby font-bold border border-[#ff3366]/30'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              Daily (Days 01–07)
+            </button>
+            <button
+              onClick={() => setSelectedDayFilter('special-only')}
+              className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-all cursor-pointer ${
+                selectedDayFilter === 'special-only'
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby font-bold border border-[#ff3366]/30'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              Special Tests
+            </button>
             {DAILY_SCHEDULE.map(day => (
               <button
                 key={day.quizId}
@@ -205,157 +365,55 @@ export const MyAttempts: React.FC<MyAttemptsProps> = ({
           </motion.button>
         </motion.div>
       ) : (
-        <div className="space-y-6">
-          {filteredGroups.map(group => {
-            const hasAttempts = group.attempts.length > 0;
-            if (selectedDayFilter !== 'all' && !hasAttempts) {
-              return (
-                <div
-                  key={group.scheduleItem.quizId}
-                  className="p-8 rounded-2xl bg-[#0f090e]/85 border border-white/[0.08] text-center text-xs text-neutral-400"
-                >
-                  No attempts recorded yet for {group.scheduleItem.title}.
-                </div>
-              );
-            }
-            if (!hasAttempts && selectedDayFilter === 'all') return null;
+        <div className="space-y-8">
+          {/* Section 1: Daily Curriculum Attempts */}
+          {(selectedDayFilter === 'all' || selectedDayFilter === 'daily-only' || !['semi-final', 'grand-final', 'special-only'].includes(selectedDayFilter)) && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-[#ff8099] uppercase tracking-wider flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#ff3366]" />
+                  <span>Daily Curriculum Attempts (Days 01 – 07)</span>
+                </h3>
+              </div>
+              <div className="space-y-4">
+                {dailyGroups
+                  .filter(g => selectedDayFilter === 'all' || selectedDayFilter === 'daily-only' || g.scheduleItem.quizId === selectedDayFilter)
+                  .map(group => renderGroupCard(group))}
+              </div>
+            </div>
+          )}
 
-            return (
-              <motion.div
-                key={group.scheduleItem.quizId}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, ease: EASE_OUT }}
-                className="rounded-3xl bg-[#0f090e]/85 border border-white/[0.08] p-5 sm:p-6 shadow-lg backdrop-blur-md space-y-4"
-              >
-                {/* Section Group Header */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 rounded-xl text-xs font-black tracking-wide bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby">
-                      {group.scheduleItem.isSpecialTest
-                        ? group.scheduleItem.title
-                        : `Day ${group.scheduleItem.dayNumber < 10 ? '0' + group.scheduleItem.dayNumber : group.scheduleItem.dayNumber}`}
-                    </span>
-                    <div>
-                      <h3 className="text-base font-bold text-white">
-                        {group.scheduleItem.title} Attempts ({group.attempts.length})
-                      </h3>
-                      <p className="text-xs text-neutral-400">
-                        {group.scheduleItem.displayDate} • {group.scheduleItem.states.length} States • {group.scheduleItem.totalQuestions} Questions
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#1e0d17] text-[#ff8099] border border-white/[0.06]">
-                    {group.attempts.length} {group.attempts.length === 1 ? 'Submission' : 'Submissions'}
-                  </span>
-                </div>
-
-                {/* Attempt Cards in chronological descending order */}
-                <div className="space-y-3">
-                  {group.attempts.map((att, idx) => {
-                    const attemptNumber = group.attempts.length - idx;
-                    const mins = Math.floor(att.timeTakenSeconds / 60);
-                    const secs = att.timeTakenSeconds % 60;
-                    const timeFormatted = `${mins}m ${secs}s`;
-                    const isPerfect = att.percentage === 100;
-
-                    return (
-                      <motion.div
-                        key={att.id}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: idx * 0.05, duration: 0.4 }}
-                        whileHover={{ y: -2, transition: { duration: 0.2 } }}
-                        className="rounded-2xl bg-[#140b12]/80 border border-white/[0.06] hover:border-white/[0.14] p-4 sm:p-5 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
-                      >
-                        <div className="space-y-2 flex-1">
-                          <div className="flex flex-wrap items-center gap-2.5">
-                            <span className="px-2.5 py-0.5 rounded-lg bg-[#200d18] text-[#ff8099] border border-white/[0.06] text-xs font-bold">
-                              Attempt #{attemptNumber}{' '}
-                              {idx === 0 && (
-                                <span className="ml-1 text-[10px] font-black uppercase text-[#ff3366]">
-                                  (Latest)
-                                </span>
-                              )}
-                            </span>
-                            <span className="text-xs font-semibold text-white">
-                              Student: <strong>{att.studentName || 'Mahi'}</strong>
-                            </span>
-                            <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
-                              <Calendar className="w-3 h-3 text-[#ff3366]" />
-                              {att.formattedDate ||
-                                new Date(att.timestamp).toLocaleString('en-IN', {
-                                  dateStyle: 'medium',
-                                  timeStyle: 'short'
-                                })}
-                            </span>
-                          </div>
-
-                          {/* Stats Row */}
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 max-w-xl text-center">
-                            <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
-                              <div className="text-[10px] uppercase font-bold text-neutral-400">Score</div>
-                              <div className="text-sm font-black text-white">
-                                {att.marksObtained} / {att.maxMarks}
-                              </div>
-                            </div>
-
-                            <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
-                              <div className="text-[10px] uppercase font-bold text-neutral-400">Percentage</div>
-                              <div className={`text-sm font-black ${isPerfect ? 'text-emerald-400' : 'text-[#ff8099]'}`}>
-                                {att.percentage}%
-                              </div>
-                            </div>
-
-                            <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
-                              <div className="text-[10px] uppercase font-bold text-neutral-400">Time Taken</div>
-                              <div className="text-xs font-bold text-white mt-0.5 flex items-center justify-center gap-1">
-                                <Clock className="w-3 h-3 text-[#ff3366]" />
-                                <span>{timeFormatted}</span>
-                              </div>
-                            </div>
-
-                            <div className="p-2 rounded-xl bg-[#0c070a] border border-white/[0.04]">
-                              <div className="text-[10px] uppercase font-bold text-neutral-400">Result</div>
-                              <div className="text-xs font-bold text-emerald-400 mt-0.5">
-                                {att.performanceMessage || (isPerfect ? 'Outstanding' : 'Completed')}
-                              </div>
-                            </div>
-                          </div>
+          {/* Section 2: Championship Assessments (Kept Distinct & Separate) */}
+          {(selectedDayFilter === 'all' || selectedDayFilter === 'special-only' || ['semi-final', 'grand-final'].includes(selectedDayFilter)) && (
+            <div className="space-y-4 pt-4 border-t border-white/[0.08]">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-2">
+                  <Award className="w-4 h-4 text-amber-400" />
+                  <span>Championship Special Assessment Attempts</span>
+                </h3>
+                <span className="text-[11px] text-neutral-400">Semi-Final & Grand Test</span>
+              </div>
+              <div className="space-y-4">
+                {specialGroups
+                  .filter(g => selectedDayFilter === 'all' || selectedDayFilter === 'special-only' || g.scheduleItem.quizId === selectedDayFilter)
+                  .map(group => {
+                    const card = renderGroupCard(group);
+                    if (card) return card;
+                    if (selectedDayFilter === group.scheduleItem.quizId || selectedDayFilter === 'special-only') {
+                      return (
+                        <div
+                          key={group.scheduleItem.quizId}
+                          className="p-8 rounded-2xl bg-[#0f090e]/85 border border-white/[0.08] text-center text-xs text-neutral-400"
+                        >
+                          No attempts recorded yet for {group.scheduleItem.title}. Unlocks after Day 07 completion.
                         </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex items-center gap-2 pt-3 md:pt-0 border-t md:border-t-0 border-white/[0.06]">
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => onViewResult(att)}
-                            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-neutral-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                          >
-                            <FileCheck className="w-4 h-4" />
-                            <span>View Result</span>
-                          </motion.button>
-
-                          <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => onInspectAnswers(att)}
-                            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-ruby border border-[#ff3366]/30 cursor-pointer"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span>Inspect Answers</span>
-                          </motion.button>
-                        </div>
-                      </motion.div>
-                    );
+                      );
+                    }
+                    return null;
                   })}
-                </div>
-              </motion.div>
-            );
-          })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

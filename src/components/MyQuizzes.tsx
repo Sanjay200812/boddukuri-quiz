@@ -26,7 +26,7 @@ import {
   getInProgressQuiz,
   clearInProgressQuiz
 } from '../utils/storage';
-import { DAILY_SCHEDULE, isDayUnlocked, getDayCountdown, type DaySchedule } from '../utils/schedule';
+import { DAILY_SCHEDULE, isDayUnlocked, getDayCountdown, getRecommendedTargetDay, type DaySchedule } from '../utils/schedule';
 import { getQuizForDay } from '../data/quizzes';
 import { generateDayNotesPDF } from '../utils/pdfGenerator';
 import { submitRetakeRequestCloud } from '../utils/supabase';
@@ -235,6 +235,8 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
             const isInProgress = isUnlocked && !isCompleted && status === 'in-progress';
             const countdown = getDayCountdown(scheduleItem.dayNumber, completedDayIds);
             const retakeStatus = getRetakeStatusForQuiz(dayQuiz.id);
+            const nextTargetDay = getRecommendedTargetDay(completedDayIds);
+            const isNextTarget = scheduleItem.dayNumber === nextTargetDay && !isCompleted;
 
             return (
               <motion.div
@@ -244,9 +246,11 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.45, delay: (idx % 4) * 0.08, ease: EASE_OUT }}
                 whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                className={`rounded-2xl border p-5 sm:p-6 transition-colors flex flex-col justify-between shadow-lg backdrop-blur-md ${
+                className={`rounded-2xl border p-5 sm:p-6 transition-colors flex flex-col justify-between shadow-lg backdrop-blur-md relative ${
                   isCompleted
                     ? 'border-emerald-500/30 bg-[#0f090e]/85'
+                    : isNextTarget
+                    ? 'border-[#ff3366] bg-[#14060e] ring-2 ring-[#ff3366]/40 shadow-[0_0_25px_rgba(255,51,102,0.25)]'
                     : isInProgress
                     ? 'border-[#ff3366]/50 bg-[#0f090e]/85 ring-1 ring-[#ff3366]/30'
                     : isUnlocked
@@ -267,6 +271,12 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                         <Calendar className="w-3.5 h-3.5" />
                         {scheduleItem.displayDate}
                       </span>
+                      {isNextTarget && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-[#ff3366] to-[#9e1030] text-white shadow-ruby animate-pulse">
+                          <Sparkles className="w-3 h-3" />
+                          Up Next
+                        </span>
+                      )}
                     </div>
 
                     {/* Status Pill */}
@@ -291,6 +301,16 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                       </span>
                     )}
                   </div>
+
+                  {/* Auto-Highlight Next Day Banner */}
+                  {isNextTarget && (
+                    <div className="mb-3 px-3 py-2 rounded-xl bg-gradient-to-r from-[#2b0c18] to-[#1a0712] border border-[#ff3366]/40 text-[#ff8099] text-xs font-bold flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-[#ff3366] animate-bounce" />
+                        <span>Up Next: Ready to conquer Day 0{scheduleItem.dayNumber}!</span>
+                      </span>
+                    </div>
+                  )}
 
                   {/* Countdown bar if locked */}
                   {!isUnlocked && (

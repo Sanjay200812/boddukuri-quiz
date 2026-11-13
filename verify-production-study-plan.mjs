@@ -58,15 +58,15 @@ async function runTestSuite() {
     }
   });
 
-  // TEST 3: Special Test Quotas (Semi-Final = 30, Grand Test = 60)
-  test('Semi-Final must have exactly 30 questions and Grand Test must have 60 questions', () => {
+  // TEST 3: Special Test Quotas (Semi-Final = 55, Grand Test = 54)
+  test('Semi-Final must have exactly 55 questions and Grand Test must have 54 questions (Total 109 Park Questions)', () => {
     const semi = getQuizForDay(8);
-    assert.strictEqual(semi.totalQuestions, 30, `Semi-Final totalQuestions must be 30, found ${semi.totalQuestions}`);
-    assert.strictEqual(semi.questions.length, 30, `Semi-Final questions array length must be 30`);
+    assert.strictEqual(semi.totalQuestions, 55, `Semi-Final totalQuestions must be 55, found ${semi.totalQuestions}`);
+    assert.strictEqual(semi.questions.length, 55, `Semi-Final questions array length must be 55`);
 
     const grand = getQuizForDay(9);
-    assert.strictEqual(grand.totalQuestions, 60, `Grand Test totalQuestions must be 60, found ${grand.totalQuestions}`);
-    assert.strictEqual(grand.questions.length, 60, `Grand Test questions array length must be 60`);
+    assert.strictEqual(grand.totalQuestions, 54, `Grand Test totalQuestions must be 54, found ${grand.totalQuestions}`);
+    assert.strictEqual(grand.questions.length, 54, `Grand Test questions array length must be 54`);
   });
 
   // TEST 4: Cumulative Revision Split
@@ -96,9 +96,9 @@ async function runTestSuite() {
   });
 
   // TEST 6: Total System Curriculum Questions
-  test('Total curriculum question bank across 9 modules must equal exactly 300', () => {
+  test('Total curriculum question bank across 9 modules must equal exactly 319 (210 daily + 109 special)', () => {
     const totalQCount = DAILY_SCHEDULE.reduce((acc, s) => acc + s.totalQuestions, 0);
-    assert.strictEqual(totalQCount, 300, `Total questions must be 300, found ${totalQCount}`);
+    assert.strictEqual(totalQCount, 319, `Total questions must be 319, found ${totalQCount}`);
   });
 
   // TEST 7: Day 01 Question IDs backward compatibility

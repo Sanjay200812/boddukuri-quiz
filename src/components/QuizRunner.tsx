@@ -50,6 +50,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
   const [secondsElapsed, setSecondsElapsed] = useState<number>(savedState ? savedState.timeElapsedSeconds : 0);
   const [showPaletteModal, setShowPaletteModal] = useState<boolean>(false);
   const [showSubmitModal, setShowSubmitModal] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // 60-Second Per-Question Timer (mobile-friendly with refresh preservation)
   const [questionSecondsLeft, setQuestionSecondsLeft] = useState<number>(() => {
@@ -92,7 +93,14 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
       setQuestionSecondsLeft(prev => {
         if (prev <= 1) {
-          // Timer hit 0s -> auto advance to next question
+          // Timer hit 0s -> mark current question as unanswered (-1) if untouched and auto-advance
+          const currentQ = questions[currentIndex];
+          if (currentQ && answers[currentQ.id] === undefined) {
+            setAnswers(prevAns => ({
+              ...prevAns,
+              [currentQ.id]: -1
+            }));
+          }
           if (currentIndex < questions.length - 1) {
             setCurrentIndex(curr => curr + 1);
             setQuestionExpiresAt(Date.now() + QUESTION_LIMIT_SECONDS * 1000);
@@ -184,6 +192,9 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
 
   // Submission handler with accurate score evaluation
   const handleSubmitQuiz = useCallback(() => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
     let correctCount = 0;
     let incorrectCount = 0;
     let unanswered = 0;
@@ -763,13 +774,24 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                 Go Back & Review
               </button>
               <button
+                disabled={isSubmitting}
                 onClick={() => {
-                  setShowSubmitModal(false);
                   handleSubmitQuiz();
                 }}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95"
+                className={`flex-1 px-4 py-2.5 rounded-xl text-white text-xs sm:text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 ${
+                  isSubmitting
+                    ? 'bg-neutral-600 cursor-not-allowed'
+                    : 'bg-[#800020] hover:bg-[#68001a] active:scale-95'
+                }`}
               >
-                Confirm & Submit
+                {isSubmitting ? (
+                  <>
+                    <Hourglass className="w-4 h-4 animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <span>Confirm & Submit</span>
+                )}
               </button>
             </div>
 

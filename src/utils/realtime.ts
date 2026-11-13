@@ -25,6 +25,7 @@ export interface ScheduleUpdatePayload {
 
 export interface ResetProgressPayload {
   by: string;
+  quizId?: string;
   timestamp: string;
 }
 
@@ -36,7 +37,7 @@ export interface RealtimeEventHandlers {
   onStatusChange?: (status: 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR') => void;
 }
 
-const REALTIME_CHANNEL_NAME = 'mahi_quiz_realtime_v2';
+const REALTIME_CHANNEL_NAME = 'boddukuri-quiz-sync';
 
 let globalBroadcastChannel: RealtimeChannel | null = null;
 
@@ -166,8 +167,24 @@ export function subscribeToQuizRealtime(handlers: RealtimeEventHandlers): () => 
     }
   }
 
+  // 15-second fallback poll for cross-device sync robustness
+  let fallbackPollTimer: NodeJS.Timeout | null = null;
+  if (typeof window !== 'undefined') {
+    fallbackPollTimer = setInterval(() => {
+      // Trigger schedule check
+      handlers.onScheduleUpdated?.({
+        quizId: '__poll__',
+        unlocked: true,
+        timestamp: new Date().toISOString()
+      });
+    }, 15000);
+  }
+
   // Unsubscribe cleanup
   return () => {
+    if (fallbackPollTimer) {
+      clearInterval(fallbackPollTimer);
+    }
     if (typeof window !== 'undefined') {
       window.removeEventListener('mahi_quiz_realtime_local', localListener);
     }

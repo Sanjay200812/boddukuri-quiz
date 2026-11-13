@@ -201,13 +201,13 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 8,
     quizId: 'semi-final',
     title: 'Semi-Final Test',
-    theme: 'Comprehensive All-State Assessment (30 States — 1 Question per State)',
+    theme: 'Championship Semi-Final (First Half of 109 National Parks — 55 Questions)',
     dateStr: '16-11-2026',
     displayDate: '16 November 2026',
     unlockIsoUTC: '2026-11-16T14:59:00Z',
     states: ALL_30_STATES,
     newStates: ALL_30_STATES,
-    totalQuestions: 40,
+    totalQuestions: 55,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true
@@ -216,13 +216,13 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 9,
     quizId: 'grand-final',
     title: 'Grand Test',
-    theme: 'Championship Grand Final Test (30 States — 2 Questions per State)',
+    theme: 'Championship Grand Final (Remaining Half of 109 National Parks — 54 Questions)',
     dateStr: '17-11-2026',
     displayDate: '17 November 2026',
     unlockIsoUTC: '2026-11-17T14:59:00Z',
     states: ALL_30_STATES,
     newStates: ALL_30_STATES,
-    totalQuestions: 50,
+    totalQuestions: 54,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true
@@ -347,6 +347,16 @@ export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: s
   // Explicitly published in schedule
   if (schedule.isPublished === true) {
     return true;
+  }
+
+  // Sequential progression: A future day requires the previous day to be completed
+  // unless explicitly published or overridden by Admin.
+  const previousDayNumber = schedule.dayNumber - 1;
+  const previousSchedule = DAILY_SCHEDULE.find(s => s.dayNumber === previousDayNumber);
+  const previousCompleted = previousSchedule ? completedDayIds.includes(previousSchedule.quizId) : false;
+
+  if (!previousCompleted) {
+    return false;
   }
 
   // Check if current time has reached sharp 8:29 PM IST

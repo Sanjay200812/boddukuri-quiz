@@ -9,8 +9,10 @@ import {
   Sparkles,
   Play,
   Search,
-  ShieldCheck
+  ShieldCheck,
+  Download
 } from 'lucide-react';
+import { generateDayNotesPDF } from '../utils/pdfGenerator';
 
 interface StudyGuideProps {
   quizzes: DailyQuiz[];
@@ -260,17 +262,27 @@ export const StudyGuide: React.FC<StudyGuideProps> = ({
             Ready to test your cumulative knowledge of {stateInfo.stateName}?
           </h4>
           <p className="text-xs text-[#76515b]">
-            Take the daily quiz to earn points, build streaks, and share your score on WhatsApp!
+            Download comprehensive revision notes with memory tricks or take the quiz directly!
           </p>
         </div>
 
-        <button
-          onClick={() => onStartQuiz(matchingQuiz.id)}
-          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white font-extrabold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <Play className="w-4 h-4 fill-white" />
-          <span>Start {matchingQuiz.title} Quiz</span>
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+          <button
+            onClick={() => generateDayNotesPDF(matchingQuiz)}
+            className="w-full sm:w-auto px-4 py-3 rounded-xl bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9] text-[#800020] font-extrabold text-xs sm:text-sm shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Download className="w-4 h-4 text-[#800020]" />
+            <span>Download Notes PDF</span>
+          </button>
+
+          <button
+            onClick={() => onStartQuiz(matchingQuiz.id)}
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#800020] hover:bg-[#68001a] text-white font-extrabold text-xs sm:text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Play className="w-4 h-4 fill-white" />
+            <span>Start {matchingQuiz.title} Quiz</span>
+          </button>
+        </div>
       </div>
 
     </div>

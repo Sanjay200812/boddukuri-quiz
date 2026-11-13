@@ -14,6 +14,8 @@ import {
   getCompletedDayIds,
   getProgressSnapshot,
   mergeProgressSnapshot,
+  resetDayProgress,
+  resetAllMahiProgress,
   STORAGE_CHANGE_EVENT
 } from './utils/storage';
 import { isDayUnlocked, hydrateScheduleOverridesCloud } from './utils/schedule';
@@ -237,7 +239,12 @@ export const App: React.FC = () => {
       onScheduleUpdated: () => {
         refreshProgress();
       },
-      onProgressReset: () => {
+      onProgressReset: (payload) => {
+        if (payload?.quizId) {
+          resetDayProgress(payload.quizId);
+        } else {
+          resetAllMahiProgress();
+        }
         refreshProgress();
         setActiveAttempt(null);
         setCurrentView('dashboard');

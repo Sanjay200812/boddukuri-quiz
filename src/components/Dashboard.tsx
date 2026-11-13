@@ -16,7 +16,8 @@ import {
   Layers,
   Brain,
   Target,
-  HelpCircle
+  HelpCircle,
+  Sparkles
 } from 'lucide-react';
 import graduationHeroImg from '../assets/graduation-hero.png';
 import type { DailyQuiz, OverallProgress, QuizAttempt } from '../types/quiz';
@@ -241,24 +242,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
         })}
       </section>
 
-      {/* Next Target / Spotlight Card */}
+      {/* Next Target / Spotlight Card (Prominently Highlighted) */}
       {targetQuiz && !completedDayIds.includes(targetQuiz.id) && (
         <motion.section
           {...sectionFade}
-          className="rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] hover:border-[#ff3366]/30 p-5 sm:p-6 shadow-lg backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors"
+          className="rounded-2xl bg-gradient-to-r from-[#190610] to-[#12050c] border border-[#ff3366]/50 p-5 sm:p-6 shadow-[0_0_30px_rgba(255,51,102,0.2)] ring-1 ring-[#ff3366]/30 backdrop-blur-md flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-colors relative overflow-hidden"
         >
-          <div className="flex items-start gap-4">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-[#ff3366]/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex items-start gap-4 relative z-10">
             <div
               className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-base shadow-sm shrink-0 ${
-                isTargetUnlocked ? 'bg-gradient-to-tr from-[#9e1030] to-[#e6194b] shadow-ruby' : 'bg-[#1a0712] text-[#7a5b67] border border-[#2b0c18]'
+                isTargetUnlocked ? 'bg-gradient-to-tr from-[#9e1030] to-[#e6194b] shadow-ruby animate-pulse' : 'bg-[#1a0712] text-[#7a5b67] border border-[#2b0c18]'
               }`}
             >
               {targetQuiz.dayNumber < 10 ? `0${targetQuiz.dayNumber}` : targetQuiz.dayNumber}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#ff3366]">
-                  {isTargetUnlocked ? 'Next Available Quiz' : 'Upcoming Scheduled Day'}
+                <span className="inline-flex items-center gap-1 text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#3d0f21] text-[#ff8099] border border-[#6b1535]">
+                  <Sparkles className="w-3 h-3 text-[#ff3366]" />
+                  {isTargetUnlocked ? 'Up Next: Available Now' : 'Up Next: Scheduled'}
                 </span>
                 <span className="text-xs text-[#a68690]">• {targetQuiz.displayDate}</span>
               </div>
