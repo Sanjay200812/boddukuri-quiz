@@ -78,9 +78,9 @@ export const App: React.FC = () => {
   useEffect(() => {
     // Production clean-start marker: reset to fresh launch state
     // Discard stale offline attempts, reset streak to 0, clear badges and notifications
-    if (typeof localStorage !== 'undefined' && localStorage.getItem('mahi_launch_reset_v4') !== 'true') {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('mahi_launch_reset_v5') !== 'true') {
       resetAllData();
-      localStorage.setItem('mahi_launch_reset_v4', 'true');
+      localStorage.setItem('mahi_launch_reset_v5', 'true');
     }
   }, []);
 

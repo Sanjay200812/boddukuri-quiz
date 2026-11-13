@@ -108,7 +108,9 @@ export function subscribeToQuizRealtime(handlers: RealtimeEventHandlers): () => 
   // Subscribe to Supabase Realtime channel
   let subChannel: RealtimeChannel | null = null;
   if (supabase) {
-    subChannel = supabase.channel(`sub_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`, {
+    // Subscribers must use the same channel as the broadcaster. Random
+    // subscriber channel names silently prevented Admin from seeing events.
+    subChannel = supabase.channel(REALTIME_CHANNEL_NAME, {
       config: {
         broadcast: { ack: true }
       }

@@ -1,17 +1,17 @@
 import assert from 'node:assert';
-import { DAILY_QUIZZES, DAILY_CONFIGS, buildCumulativeQuizzes } from './src/data/quizzes.ts';
+import { DAILY_QUIZZES, DAILY_CONFIGS, ALL_SCHEDULED_QUIZZES, buildCumulativeQuizzes } from './src/data/quizzes.ts';
 import { DEFAULT_SANJU_WHATSAPP_NUMBER, formatWhatsAppMessage, getWhatsAppShareUrl } from './src/utils/whatsapp.ts';
 import { STATE_REPOSITORIES } from './src/data/stateRepositories.ts';
 
 console.log('--- RUNNING FINAL CORRECTION VERIFICATIONS FOR DAY 01 ---');
 
-// 1. Only Day 01 exists
-assert.strictEqual(DAILY_QUIZZES.length, 1, 'DAILY_QUIZZES must contain ONLY Day 01');
-assert.strictEqual(DAILY_CONFIGS.length, 1, 'DAILY_CONFIGS must contain ONLY Day 01');
-console.log('✓ Requirement 1 PASSED: Only Day 01 is active and generated.');
+// 1. Day 01 remains present inside the full scheduled curriculum
+const scheduledDay01 = ALL_SCHEDULED_QUIZZES.find(q => q.id === 'day-01');
+assert.ok(scheduledDay01, 'Scheduled quizzes must include Day 01');
+console.log('✓ Requirement 1 PASSED: Day 01 remains present in the scheduled curriculum.');
 
 // 2. Day 01 details
-const day01 = DAILY_QUIZZES[0];
+const day01 = scheduledDay01;
 assert.strictEqual(day01.dayNumber, 1, 'Day number must be 1');
 assert.strictEqual(day01.title, 'Day 01', 'Title must be "Day 01"');
 assert.strictEqual(day01.quizDate, '09-11-2026', 'Quiz Date must be 09-11-2026');

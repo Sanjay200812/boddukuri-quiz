@@ -989,6 +989,7 @@ export function resetAllData(): void {
     localStorage.removeItem(STORAGE_KEYS.NOTIFICATIONS);
     localStorage.removeItem('mahi_quiz_sync_meta_v1');
     localStorage.removeItem('mahi_quiz_whatsapp_logs_v1');
+    localStorage.removeItem('mahi_admin_schedule_overrides_v1');
     localStorage.setItem('mahi_quiz_explicitly_reset_v1', 'true');
   }
   if (typeof sessionStorage !== 'undefined') {

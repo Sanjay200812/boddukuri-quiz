@@ -47,8 +47,8 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 2,
     title: 'Day 02',
-    quizDate: '13-11-2026',
-    displayDate: '13 November 2026',
+    quizDate: '10-11-2026',
+    displayDate: '10 November 2026',
     statusLabel: 'Scheduled',
     newStates: ['Andaman and Nicobar Islands', 'Arunachal Pradesh', 'Bihar', 'Goa'],
     totalQuestions: 30
@@ -57,8 +57,8 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 3,
     title: 'Day 03',
-    quizDate: '14-11-2026',
-    displayDate: '14 November 2026',
+    quizDate: '11-11-2026',
+    displayDate: '11 November 2026',
     statusLabel: 'Scheduled',
     newStates: ['Chhattisgarh', 'Gujarat', 'Haryana', 'Jammu and Kashmir'],
     totalQuestions: 30
@@ -67,8 +67,8 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 4,
     title: 'Day 04',
-    quizDate: '15-11-2026',
-    displayDate: '15 November 2026',
+    quizDate: '12-11-2026',
+    displayDate: '12 November 2026',
     statusLabel: 'Scheduled',
     newStates: ['Himachal Pradesh', 'Jharkhand', 'Ladakh', 'Rajasthan'],
     totalQuestions: 30
@@ -77,8 +77,8 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 5,
     title: 'Day 05',
-    quizDate: '16-11-2026',
-    displayDate: '16 November 2026',
+    quizDate: '13-11-2026',
+    displayDate: '13 November 2026',
     statusLabel: 'Scheduled',
     newStates: ['Maharashtra', 'Manipur', 'Meghalaya', 'Nagaland'],
     totalQuestions: 30
@@ -87,8 +87,8 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 6,
     title: 'Day 06',
-    quizDate: '17-11-2026',
-    displayDate: '17 November 2026',
+    quizDate: '14-11-2026',
+    displayDate: '14 November 2026',
     statusLabel: 'Scheduled',
     newStates: ['Mizoram', 'Odisha', 'Tripura', 'Uttarakhand'],
     totalQuestions: 30
@@ -97,8 +97,8 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 7,
     title: 'Day 07',
-    quizDate: '18-11-2026',
-    displayDate: '18 November 2026',
+    quizDate: '15-11-2026',
+    displayDate: '15 November 2026',
     statusLabel: 'Scheduled',
     newStates: ['Sikkim', 'Tamil Nadu', 'Uttar Pradesh', 'West Bengal'],
     totalQuestions: 30
@@ -107,26 +107,32 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
   {
     dayNumber: 8,
     title: 'Semi-Final Test',
-    quizDate: '19-11-2026',
-    displayDate: '19 November 2026',
+    quizDate: '16-11-2026',
+    displayDate: '16 November 2026',
     statusLabel: 'Scheduled',
     newStates: ALL_30_STATES,
-    totalQuestions: 30
+    totalQuestions: 40
   },
   // DAY 09: Grand Test (Championship All-State Comprehensive Pool)
   {
     dayNumber: 9,
     title: 'Grand Test',
-    quizDate: '20-11-2026',
-    displayDate: '20 November 2026',
+    quizDate: '17-11-2026',
+    displayDate: '17 November 2026',
     statusLabel: 'Scheduled',
     newStates: ALL_30_STATES,
-    totalQuestions: 60
+    totalQuestions: 50
   }
 ];
 
 export const DAILY_CONFIGS: DayConfig[] = [DAILY_DAY_CONFIGS[0]];
 export const ALL_SCHEDULED_CONFIGS: DayConfig[] = DAILY_DAY_CONFIGS;
+
+function distributeQuestions(total: number, buckets: number): number[] {
+  const base = Math.floor(total / buckets);
+  const remainder = total % buckets;
+  return Array.from({ length: buckets }, (_, index) => base + (index < remainder ? 1 : 0));
+}
 
 /**
  * Builds the quizzes from the state repositories matching the exact national parks available.
@@ -218,31 +224,30 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
         if (!cumulativeStates.includes(s)) cumulativeStates.push(s);
       });
     } else if (dayNumber === 8) {
-      // DAY 08: Semi-Final Test — Exactly 30 questions across all 30 states (1 per state)
-      // First 15 states = previous, Next 15 states = new
+      // DAY 08: Semi-Final Test — exactly the configured 40 questions.
+      const counts = distributeQuestions(config.totalQuestions || 40, ALL_30_STATES.length);
       ALL_30_STATES.forEach((stateName, sIdx) => {
         const repo = STATE_REPOSITORIES[stateName];
         if (repo) {
           if (!stateInfoList.some(info => info.stateName === stateName)) {
             stateInfoList.push(repo.stateInfo);
           }
-          const rawQ = repo.questions[0];
-          questions.push({
-            ...rawQ,
-            id: `semi-final-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q1`,
-            section: sIdx < 15 ? 'previous' : 'new'
-          });
+          for (let i = 0; i < counts[sIdx]; i++) {
+            const rawQ = repo.questions[i % repo.questions.length];
+            questions.push({ ...rawQ, id: `semi-final-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q${i + 1}`, section: sIdx < 15 ? 'previous' : 'new' });
+          }
         }
       });
     } else if (dayNumber === 9) {
-      // DAY 09: Grand Test — Exactly 60 questions across all 30 states (2 per state)
+      // DAY 09: Grand Test — exactly the configured 50 questions.
+      const counts = distributeQuestions(config.totalQuestions || 50, ALL_30_STATES.length);
       ALL_30_STATES.forEach((stateName, sIdx) => {
         const repo = STATE_REPOSITORIES[stateName];
         if (repo) {
           if (!stateInfoList.some(info => info.stateName === stateName)) {
             stateInfoList.push(repo.stateInfo);
           }
-          for (let i = 0; i < 2; i++) {
+          for (let i = 0; i < counts[sIdx]; i++) {
             const rawQ = repo.questions[i % repo.questions.length];
             questions.push({
               ...rawQ,

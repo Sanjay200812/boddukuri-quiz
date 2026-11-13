@@ -59,7 +59,8 @@ import {
   calculateCurrentStreak
 } from '../utils/storage';
 import { evaluateBadges } from '../utils/achievements';
-import { subscribeToQuizRealtime } from '../utils/realtime';
+import { broadcastQuizEvent, subscribeToQuizRealtime } from '../utils/realtime';
+import { deleteCloudProgress, MAHI_STUDENT_ID, saveCloudProgress } from '../utils/supabase';
 import {
   DAILY_SCHEDULE,
   setDayAdminOverride,
@@ -472,6 +473,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handle single day reset
   const handleExecuteDayReset = async (quizId: string) => {
     resetDayProgress(quizId);
+    // Persist the reset to Mahi's cloud snapshot; LocalStorage alone would
+    // reappear on the next sync.
+    const cloudStudents = await loadAllStudentsProgressCloud();
+    const mahi = cloudStudents.find(student => student.userId === MAHI_STUDENT_ID);
+    if (mahi) {
+      const payload = { ...mahi.payload, attempts: (mahi.payload.attempts || []).filter(a => a.quizId !== quizId), completedDays: (mahi.payload.completedDays || []).filter(id => id !== quizId), inProgress: Object.fromEntries(Object.entries(mahi.payload.inProgress || {}).filter(([id]) => id !== quizId)), updatedAt: new Date().toISOString() };
+      await deleteCloudProgress(MAHI_STUDENT_ID);
+      await saveCloudProgress(MAHI_STUDENT_ID, payload);
+    }
+    await broadcastQuizEvent('progress_reset', { by: 'admin', quizId, timestamp: new Date().toISOString() });
     await logAdminActionCloud('RESET_DAY_PROGRESS', quizId);
     setResetConfirmQuizId(null);
     setStatusMessage(`All progress for ${quizId.toUpperCase()} has been reset.`);
@@ -483,6 +494,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleExecuteFullReset = async () => {
     if (fullResetConfirmText.trim().toUpperCase() !== 'RESET MAHI PROGRESS') return;
     resetAllMahiProgress();
+    await deleteCloudProgress(MAHI_STUDENT_ID);
+    await broadcastQuizEvent('progress_reset', { by: 'admin', timestamp: new Date().toISOString() });
     await logAdminActionCloud('RESET_ALL_MAHI_PROGRESS', 'all', { by: adminProfile.displayName || adminProfile.fullName });
     setShowFullResetModal(false);
     setFullResetConfirmText('');

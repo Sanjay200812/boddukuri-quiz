@@ -46,8 +46,11 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 // ACCESS CODE VERIFICATION & RATE-LIMITING
 // -------------------------------------------------------------
 
-export const MAHI_STUDENT_ID = '00000000-0000-0000-0000-000000002002';
-export const SANJU_ADMIN_ID = '00000000-0000-0000-0000-000000002718';
+// These are the real Supabase auth user IDs for the two controlled accounts.
+// Keep them in one place so access-code mode and email/password mode target
+// the same cloud rows.
+export const MAHI_STUDENT_ID = '61758bc8-51bd-4cf9-b276-a7d6a796b6da';
+export const SANJU_ADMIN_ID = '81545df0-2a05-4257-a0f0-2c3342eb9e34';
 
 export interface AccessCodeVerifyResult {
   success: boolean;
@@ -315,6 +318,12 @@ export async function saveCloudProgress(userId: string, payload: ProgressSnapsho
     console.warn('saveCloudProgress failed:', err);
     throw err;
   }
+}
+
+export async function deleteCloudProgress(userId: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase is not configured in this deployment.');
+  const { error } = await supabase.from('quiz_progress').delete().eq('user_id', normalizeUserId(userId));
+  if (error) throw error;
 }
 
 // -------------------------------------------------------------
