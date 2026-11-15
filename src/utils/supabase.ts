@@ -1,6 +1,6 @@
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
 import type { ProgressSnapshot } from './storage';
-import type { UserProfile, UserRole, RetakeRequest, DailyQuiz, QuizQuestion } from '../types/quiz';
+import type { UserProfile, UserRole, RetakeRequest, DailyQuiz, QuizQuestion, QuizAttempt, InboxNotification } from '../types/quiz';
 import { ALL_SCHEDULED_QUIZZES, getQuizForDay, validateQuizForPublishing } from '../data/quizzes.ts';
 
 const globalProcess = (globalThis as unknown as { process?: { env?: Record<string, string | undefined> } }).process;
@@ -353,6 +353,211 @@ export async function deleteCloudProgress(userId: string): Promise<void> {
   if (!supabase) throw new Error('Supabase is not configured in this deployment.');
   const { error } = await supabase.from('quiz_progress').delete().eq('user_id', normalizeUserId(userId));
   if (error) throw error;
+}
+
+/**
+ * Authoritatively resets a student's progress directly in Supabase.
+ * Admin has UPDATE permission on quiz_progress, ensuring safe atomic updates without RLS insertion blocks.
+ */
+export async function adminResetStudentProgressCloud(
+  studentId: string = MAHI_STUDENT_ID,
+  quizId?: string
+): Promise<{ success: boolean; resetVersion: number; resetAt: string; message: string }> {
+  if (!supabase) throw new Error('Supabase is not configured in this deployment.');
+  const cleanId = normalizeUserId(studentId);
+  const now = new Date().toISOString();
+  const resetVersion = Date.now();
+
+  // 1. Fetch current row
+  const { data: currentData, error: fetchErr } = await supabase
+    .from('quiz_progress')
+    .select('payload')
+    .eq('user_id', cleanId)
+    .maybeSingle();
+
+  if (fetchErr) {
+    throw new Error(`Failed to load student progress for reset: ${fetchErr.message}`);
+  }
+
+  const existingPayload = (currentData?.payload || {}) as ProgressSnapshot;
+  const currentSettings = existingPayload.settings || {
+    studentName: 'Mahi',
+    sanjuWhatsAppNumber: '917075920852'
+  };
+
+  let cleanPayload: ProgressSnapshot;
+
+  if (quizId) {
+    // Single-day reset: remove attempts and completed status for this specific quizId
+    const remainingAttempts = (existingPayload.attempts || []).filter(a => a.quizId !== quizId);
+    const remainingCompleted = (existingPayload.completedDays || []).filter(id => id !== quizId);
+    const remainingInProgress = Object.fromEntries(
+      Object.entries(existingPayload.inProgress || {}).filter(([id]) => id !== quizId)
+    );
+    const remainingRetakes = (existingPayload.retakeRequests || []).filter(r => r.quizId !== quizId);
+
+    cleanPayload = {
+      ...existingPayload,
+      version: 1,
+      resetVersion,
+      resetAt: now,
+      updatedAt: now,
+      settings: currentSettings,
+      attempts: remainingAttempts,
+      completedDays: remainingCompleted,
+      inProgress: remainingInProgress,
+      retakeRequests: remainingRetakes
+    };
+  } else {
+    // Full student progress reset: clear all attempts, completions, in-progress, notifications, streaks
+    cleanPayload = {
+      version: 1,
+      resetVersion,
+      resetAt: now,
+      updatedAt: now,
+      settingsUpdatedAt: existingPayload.settingsUpdatedAt || now,
+      settings: currentSettings,
+      attempts: [],
+      completedDays: [],
+      inProgress: {},
+      bookmarks: existingPayload.bookmarks || [],
+      retakeRequests: [],
+      notifications: []
+    };
+  }
+
+  // 2. Perform UPDATE on student row in quiz_progress
+  const { data: updateRes, error: updateErr } = await supabase
+    .from('quiz_progress')
+    .update({
+      payload: cleanPayload,
+      updated_at: now
+    })
+    .eq('user_id', cleanId)
+    .select();
+
+  if (updateErr) {
+    throw new Error(`Database reset transaction failed: ${updateErr.message}`);
+  }
+
+  if (!updateRes || updateRes.length === 0) {
+    // If no row was updated (row didn't exist yet), insert a fresh baseline row
+    const { error: insertErr } = await supabase
+      .from('quiz_progress')
+      .insert({
+        user_id: cleanId,
+        payload: cleanPayload,
+        updated_at: now
+      });
+    if (insertErr) {
+      throw new Error(`Failed to create reset row: ${insertErr.message}`);
+    }
+  }
+
+  // 3. Log to admin audit logs
+  await logAdminActionCloud(
+    quizId ? 'RESET_DAY_PROGRESS' : 'RESET_ALL_MAHI_PROGRESS',
+    quizId || cleanId,
+    { resetVersion, resetAt: now, targetStudent: 'Mahi' }
+  );
+
+  return {
+    success: true,
+    resetVersion,
+    resetAt: now,
+    message: quizId
+      ? `Progress for ${quizId.toUpperCase()} has been reset in Supabase.`
+      : 'All progress for Mahi has been reset in Supabase.'
+  };
+}
+
+/**
+ * Authoritatively saves student quiz attempt directly to Supabase.
+ * Validates scores and updates quiz_progress atomically.
+ */
+export async function submitStudentQuizAttemptCloud(
+  userId: string,
+  attempt: QuizAttempt
+): Promise<{ success: boolean; attempt: QuizAttempt; message: string }> {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const cleanId = normalizeUserId(userId);
+  const now = new Date().toISOString();
+
+  if (!attempt.quizId || typeof attempt.marksObtained !== 'number' || typeof attempt.maxMarks !== 'number') {
+    throw new Error('Invalid attempt payload: missing quizId or marks.');
+  }
+
+  // 1. Fetch current cloud state
+  const { data: currentData, error: fetchErr } = await supabase
+    .from('quiz_progress')
+    .select('payload')
+    .eq('user_id', cleanId)
+    .maybeSingle();
+
+  if (fetchErr) {
+    throw new Error(`Failed to read current progress from database: ${fetchErr.message}`);
+  }
+
+  const existingPayload = (currentData?.payload || {}) as ProgressSnapshot;
+  const attempts = existingPayload.attempts || [];
+
+  // Deduplicate
+  const isDuplicate = attempts.some(a => a.id === attempt.id || (a.submissionId && a.submissionId === attempt.submissionId));
+  const updatedAttempts = isDuplicate
+    ? attempts.map(a => a.id === attempt.id ? attempt : a)
+    : [attempt, ...attempts];
+
+  const completedDays = Array.from(new Set([...(existingPayload.completedDays || []), attempt.quizId]));
+  const inProgress = { ...(existingPayload.inProgress || {}) };
+  delete inProgress[attempt.quizId];
+
+  const studentNotification: InboxNotification = {
+    id: `notif-student-${attempt.id}`,
+    targetRole: 'student',
+    type: 'submission',
+    title: `Quiz Completed!`,
+    message: `You scored ${attempt.marksObtained}/${attempt.maxMarks} (${attempt.percentage}%) in ${Math.floor(attempt.timeTakenSeconds / 60)}m ${attempt.timeTakenSeconds % 60}s.`,
+    quizId: attempt.quizId,
+    attemptId: attempt.id,
+    dayNumber: attempt.dayNumber,
+    scoreText: `${attempt.marksObtained}/${attempt.maxMarks}`,
+    percentage: attempt.percentage,
+    read: false,
+    createdAt: now
+  };
+
+  const existingNotifs = existingPayload.notifications || [];
+  const updatedNotifs = [studentNotification, ...existingNotifs.filter(n => n.id !== studentNotification.id)];
+
+  const updatedPayload: ProgressSnapshot = {
+    ...existingPayload,
+    version: 1,
+    updatedAt: now,
+    settings: existingPayload.settings || { studentName: 'Mahi', sanjuWhatsAppNumber: '917075920852' },
+    attempts: updatedAttempts,
+    completedDays,
+    inProgress,
+    notifications: updatedNotifs
+  };
+
+  // 2. Persist to Supabase
+  const { error: upsertErr } = await supabase
+    .from('quiz_progress')
+    .upsert({
+      user_id: cleanId,
+      payload: updatedPayload,
+      updated_at: now
+    });
+
+  if (upsertErr) {
+    throw new Error(`Failed to save attempt in database: ${upsertErr.message}`);
+  }
+
+  return {
+    success: true,
+    attempt,
+    message: 'Quiz attempt saved and synchronized successfully to Supabase.'
+  };
 }
 
 // -------------------------------------------------------------

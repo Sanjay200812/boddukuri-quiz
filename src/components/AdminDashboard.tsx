@@ -47,9 +47,6 @@ import { DEFAULT_SANJU_WHATSAPP_NUMBER, formatWhatsAppMessage, getWhatsAppShareU
 import { generateAnswerSheetPDF } from '../utils/pdfGenerator';
 import type { QuizAttempt, RetakeRequest, UserProfile, InboxNotification, QuizQuestion } from '../types/quiz';
 import {
-  getAllAttempts,
-  getCompletedDayIds,
-  getRetakeRequests,
   updateRetakeRequestStatus,
   deleteAttemptById,
   resetDayProgress,
@@ -64,7 +61,7 @@ import {
 } from '../utils/storage';
 import { evaluateBadges } from '../utils/achievements';
 import { broadcastQuizEvent, subscribeToQuizRealtime } from '../utils/realtime';
-import { deleteCloudProgress, MAHI_STUDENT_ID, saveCloudProgress } from '../utils/supabase';
+import { MAHI_STUDENT_ID } from '../utils/supabase';
 import {
   DAILY_SCHEDULE,
   setDayAdminOverride,
@@ -82,6 +79,8 @@ import {
   loadAdminAuditLogsCloud,
   publishQuizCloud,
   saveQuizDraftCloud,
+  adminResetStudentProgressCloud,
+  loadRetakeRequestsCloud,
   type AdminAuditLogEntry
 } from '../utils/supabase';
 import { Sidebar, type AdminNavTab } from './Sidebar';
@@ -102,12 +101,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<AdminNavTab>('overview');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [attempts, setAttempts] = useState<QuizAttempt[]>(() => getAllAttempts());
-  const [completedDays, setCompletedDays] = useState<string[]>(() => getCompletedDayIds());
-  const [retakeRequests, setRetakeRequests] = useState<RetakeRequest[]>(() => getRetakeRequests());
+  const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
+  const [completedDays, setCompletedDays] = useState<string[]>([]);
+  const [retakeRequests, setRetakeRequests] = useState<RetakeRequest[]>([]);
   const [notifications, setNotifications] = useState<InboxNotification[]>(() => getInboxNotifications('admin'));
   const [_auditLogs, setAuditLogs] = useState<AdminAuditLogEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [cloudError, setCloudError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Inspector modal state
@@ -262,49 +263,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Reload local & cloud data safely
+  // Reload cloud data authoritatively from Supabase (Single Source of Truth)
   const refreshAllData = async () => {
     setLoading(true);
+    setCloudError(null);
     try {
-      const localAttempts = getAllAttempts();
-      const localCompleted = getCompletedDayIds();
-      const localRetakes = getRetakeRequests();
-      const localNotifs = getInboxNotifications('admin');
+      const [cloudStudents, logs, retakes] = await Promise.all([
+        loadAllStudentsProgressCloud(),
+        loadAdminAuditLogsCloud(),
+        loadRetakeRequestsCloud()
+      ]);
 
-      setAttempts(localAttempts);
-      setCompletedDays(localCompleted);
-      setRetakeRequests(localRetakes);
-      setNotifications(localNotifs);
-
-      const logs = await loadAdminAuditLogsCloud();
       setAuditLogs(logs);
+      setRetakeRequests(retakes);
 
-      // Try to load cloud records without overwriting local data with empty arrays
-      const cloudStudents = await loadAllStudentsProgressCloud();
-      if (cloudStudents.length > 0) {
-        const cloudPayloads = cloudStudents.map(s => s.payload).filter(Boolean);
-        const cloudAttempts = cloudPayloads.flatMap(p => p.attempts || []);
-        const cloudCompleted = cloudPayloads.flatMap(p => p.completedDays || []);
-        const cloudRetakes = cloudPayloads.flatMap(p => p.retakeRequests || []);
-        if (cloudAttempts.length > 0) {
-          // Merge attempts by id deduplication
-          const mergedMap = new Map<string, QuizAttempt>();
-          cloudAttempts.forEach(a => mergedMap.set(a.id, a));
-          localAttempts.forEach(a => {
-            if (!mergedMap.has(a.id)) mergedMap.set(a.id, a);
-          });
-          setAttempts(Array.from(mergedMap.values()));
-        }
-        if (cloudCompleted.length > 0) {
-          const mergedDays = Array.from(new Set([...localCompleted, ...cloudCompleted]));
-          setCompletedDays(mergedDays);
-        }
-        if (cloudRetakes.length > 0) {
-          setRetakeRequests(cloudRetakes);
-        }
+      const mahiRecord = cloudStudents.find(s => s.userId === MAHI_STUDENT_ID);
+      if (mahiRecord && mahiRecord.payload) {
+        setAttempts(mahiRecord.payload.attempts || []);
+        setCompletedDays(mahiRecord.payload.completedDays || []);
+      } else {
+        setAttempts([]);
+        setCompletedDays([]);
       }
-    } catch (err) {
-      console.warn('Admin refresh error:', err);
+      setNotifications(getInboxNotifications('admin'));
+      setLastSyncedAt(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn('Admin refresh error:', msg);
+      setCloudError(`Unable to load data: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -594,36 +580,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Handle single day reset
   const handleExecuteDayReset = async (quizId: string) => {
-    resetDayProgress(quizId);
-    // Persist the reset to Mahi's cloud snapshot; LocalStorage alone would
-    // reappear on the next sync.
-    const cloudStudents = await loadAllStudentsProgressCloud();
-    const mahi = cloudStudents.find(student => student.userId === MAHI_STUDENT_ID);
-    if (mahi) {
-      const payload = { ...mahi.payload, attempts: (mahi.payload.attempts || []).filter(a => a.quizId !== quizId), completedDays: (mahi.payload.completedDays || []).filter(id => id !== quizId), inProgress: Object.fromEntries(Object.entries(mahi.payload.inProgress || {}).filter(([id]) => id !== quizId)), updatedAt: new Date().toISOString() };
-      await deleteCloudProgress(MAHI_STUDENT_ID);
-      await saveCloudProgress(MAHI_STUDENT_ID, payload);
+    setLoading(true);
+    try {
+      // 1. Authoritatively reset in Supabase
+      const res = await adminResetStudentProgressCloud(MAHI_STUDENT_ID, quizId);
+      // 2. Clear local storage for this day
+      resetDayProgress(quizId);
+      // 3. Broadcast Realtime event to student devices
+      await broadcastQuizEvent('progress_reset', {
+        by: 'admin',
+        studentId: MAHI_STUDENT_ID,
+        quizId,
+        resetVersion: res.resetVersion,
+        resetAt: res.resetAt,
+        timestamp: new Date().toISOString()
+      });
+      setResetConfirmQuizId(null);
+      setStatusMessage(`Progress for ${quizId.toUpperCase()} has been reset in Supabase.`);
+      setTimeout(() => setStatusMessage(null), 3000);
+      await refreshAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Day reset failed in Supabase: ${msg}`);
+      setStatusMessage(`Day reset failed: ${msg}`);
+    } finally {
+      setLoading(false);
     }
-    await broadcastQuizEvent('progress_reset', { by: 'admin', quizId, timestamp: new Date().toISOString() });
-    await logAdminActionCloud('RESET_DAY_PROGRESS', quizId);
-    setResetConfirmQuizId(null);
-    setStatusMessage(`All progress for ${quizId.toUpperCase()} has been reset.`);
-    setTimeout(() => setStatusMessage(null), 3000);
-    void refreshAllData();
   };
 
   // Handle full reset of Mahi's data
   const handleExecuteFullReset = async () => {
     if (fullResetConfirmText.trim().toUpperCase() !== 'RESET MAHI PROGRESS') return;
-    resetAllMahiProgress();
-    await deleteCloudProgress(MAHI_STUDENT_ID);
-    await broadcastQuizEvent('progress_reset', { by: 'admin', timestamp: new Date().toISOString() });
-    await logAdminActionCloud('RESET_ALL_MAHI_PROGRESS', 'all', { by: adminProfile.displayName || adminProfile.fullName });
-    setShowFullResetModal(false);
-    setFullResetConfirmText('');
-    setStatusMessage('All progress for Mahi has been reset.');
-    setTimeout(() => setStatusMessage(null), 4000);
-    void refreshAllData();
+    setLoading(true);
+    try {
+      // 1. Authoritatively reset in Supabase
+      const res = await adminResetStudentProgressCloud(MAHI_STUDENT_ID);
+      // 2. Clear local storage
+      resetAllMahiProgress();
+      setAttempts([]);
+      setCompletedDays([]);
+      // 3. Broadcast Realtime event to student devices
+      await broadcastQuizEvent('progress_reset', {
+        by: 'admin',
+        studentId: MAHI_STUDENT_ID,
+        resetVersion: res.resetVersion,
+        resetAt: res.resetAt,
+        timestamp: new Date().toISOString()
+      });
+      setShowFullResetModal(false);
+      setFullResetConfirmText('');
+      setStatusMessage('Reset confirmed: All progress for Mahi has been reset in Supabase.');
+      setTimeout(() => setStatusMessage(null), 4000);
+      await refreshAllData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Full reset failed in Supabase: ${msg}`);
+      setStatusMessage(`Reset failed: ${msg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle Inbox notification mark as read
@@ -762,7 +777,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Date Range Selector Pill matching Image 3 */}
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#14060d] border border-[#2b0c18] text-[#cbb5bc] text-xs font-semibold">
                 <Calendar className="w-3.5 h-3.5 text-[#ff3366]" />
-                <span>Nov 1, 2026 – Nov 11, 2026</span>
+                <span>Nov 9, 2026 – Nov 17, 2026</span>
+                {lastSyncedAt && (
+                  <span className="ml-1 px-1.5 py-0.5 rounded bg-[#2b0c18] text-[#ff8099] text-[10px] font-mono">
+                    Synced {lastSyncedAt}
+                  </span>
+                )}
                 <ChevronDown className="w-3.5 h-3.5 text-[#7a5b67]" />
               </div>
 
@@ -835,6 +855,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="mt-2 py-1.5 px-3 rounded-lg bg-[#2b0c18] border border-[#ff3366]/40 text-[#ff8099] text-xs font-semibold flex items-center justify-between animate-fadeIn">
               <span>{statusMessage}</span>
               <button onClick={() => setStatusMessage(null)} className="text-[#ff3366] hover:text-white">✕</button>
+            </div>
+          )}
+
+          {/* Cloud Error banner */}
+          {cloudError && (
+            <div className="mt-2 py-1.5 px-3 rounded-lg bg-red-950/80 border border-red-500/50 text-red-300 text-xs font-semibold flex items-center justify-between animate-fadeIn">
+              <span className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                {cloudError}
+              </span>
+              <button onClick={() => setCloudError(null)} className="text-red-400 hover:text-white">✕</button>
             </div>
           )}
         </header>
@@ -977,10 +1008,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <Award className="w-4 h-4 drop-shadow" />
                       </div>
                       <div className="text-2xl sm:text-3xl font-black text-[#ff8099] tracking-tight">
-                        {stats.avgPercentage}%
+                        {attempts.length > 0 ? `${stats.avgPercentage}%` : 'N/A'}
                       </div>
                     </div>
-                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">{attempts.length} submission{attempts.length === 1 ? '' : 's'} recorded</p>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">
+                      {attempts.length > 0 ? `${attempts.length} submission${attempts.length === 1 ? '' : 's'} recorded` : 'No attempts recorded yet'}
+                    </p>
                   </div>
                 </Card3D>
 
@@ -3278,13 +3311,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Average Score</div>
-                  <div className="text-2xl sm:text-3xl font-black text-white">{stats.avgPercentage}%</div>
-                  <p className="text-[11px] text-red-500 font-semibold mt-1">{attempts.length > 0 ? 'Mean accuracy' : '0% (No attempts)'}</p>
+                  <div className="text-2xl sm:text-3xl font-black text-white">
+                    {attempts.length > 0 ? `${stats.avgPercentage}%` : 'N/A'}
+                  </div>
+                  <p className="text-[11px] text-red-500 font-semibold mt-1">
+                    {attempts.length > 0 ? 'Mean accuracy' : 'No attempts recorded yet'}
+                  </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Highest Score</div>
-                  <div className="text-2xl sm:text-3xl font-black text-white">{stats.bestPercentage}%</div>
-                  <p className="text-[11px] text-amber-300 font-semibold mt-1">{attempts.length > 0 ? 'Peak performance' : '0% (No attempts)'}</p>
+                  <div className="text-2xl sm:text-3xl font-black text-white">
+                    {attempts.length > 0 ? `${stats.bestPercentage}%` : 'N/A'}
+                  </div>
+                  <p className="text-[11px] text-amber-300 font-semibold mt-1">
+                    {attempts.length > 0 ? 'Peak performance' : 'No attempts recorded yet'}
+                  </p>
                 </div>
               </div>
 

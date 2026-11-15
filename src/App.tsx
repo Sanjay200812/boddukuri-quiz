@@ -14,6 +14,7 @@ import {
   getCompletedDayIds,
   getProgressSnapshot,
   mergeProgressSnapshot,
+  saveQuizAttempt,
   resetDayProgress,
   resetAllMahiProgress,
   STORAGE_CHANGE_EVENT
@@ -39,7 +40,7 @@ import { Sidebar, type StudentNavView } from './components/Sidebar';
 import { StudentNotifications } from './components/StudentNotifications';
 import { getUnreadNotificationCount, resetAllData } from './utils/storage';
 import { subscribeToQuizRealtime } from './utils/realtime';
-import { supabase, loadCloudProgress, saveCloudProgress, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID, SANJU_ADMIN_ID } from './utils/supabase';
+import { supabase, loadCloudProgress, saveCloudProgress, submitStudentQuizAttemptCloud, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID, SANJU_ADMIN_ID } from './utils/supabase';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -90,7 +91,7 @@ export const App: React.FC = () => {
     void hydrateScheduleOverridesCloud().then(refreshProgress);
   }, [refreshProgress]);
 
-  // Cloud Sync Handler
+  // Cloud Sync Handler (Authoritative Pull from Supabase)
   const performCloudSync = useCallback(async (uid: string) => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       setSyncStatus('offline');
@@ -99,14 +100,14 @@ export const App: React.FC = () => {
     try {
       setSyncStatus('pending');
       const cloudData = await loadCloudProgress(uid);
-      const merged = cloudData ? mergeProgressSnapshot(cloudData) : getProgressSnapshot();
-      await saveCloudProgress(uid, merged);
+      if (cloudData) {
+        mergeProgressSnapshot(cloudData);
+      }
       setSyncStatus('synced');
       refreshProgress();
     } catch (err) {
       console.warn('Cloud sync advisory:', err);
       setSyncStatus(typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'pending');
-      throw err;
     }
   }, [refreshProgress]);
 
@@ -240,14 +241,18 @@ export const App: React.FC = () => {
         refreshProgress();
       },
       onProgressReset: (payload) => {
+        console.log('Realtime progress_reset event received in Client UI:', payload);
         if (payload?.quizId) {
           resetDayProgress(payload.quizId);
         } else {
           resetAllMahiProgress();
         }
-        refreshProgress();
         setActiveAttempt(null);
         setCurrentView('dashboard');
+        if (userId) {
+          void performCloudSync(userId);
+        }
+        refreshProgress();
       },
     });
 
@@ -283,15 +288,15 @@ export const App: React.FC = () => {
   const handleFinishQuiz = async (attempt: QuizAttempt) => {
     const currentUid = userId || MAHI_STUDENT_ID;
     try {
-      // Supabase is the source of truth. Local storage is only the offline
-      // recovery copy; do not show a completed result until cloud persistence succeeds.
+      // Supabase is the single source of truth.
       if (!supabase || !userId) {
         throw new Error('Cloud session is not active. Please sign in again before submitting.');
       }
       setSyncStatus('pending');
-      const snap = getProgressSnapshot();
-      await saveCloudProgress(currentUid, snap);
-      await performCloudSync(currentUid);
+      // 1. Authoritatively save attempt to Supabase
+      await submitStudentQuizAttemptCloud(currentUid, attempt);
+      // 2. Save locally for instant offline UI responsiveness
+      saveQuizAttempt(attempt);
       setActiveAttempt(attempt);
       refreshProgress();
       setSyncStatus('synced');
@@ -304,7 +309,7 @@ export const App: React.FC = () => {
         : err && typeof err === 'object' && 'message' in err
           ? String((err as { message?: unknown }).message || JSON.stringify(err))
           : String(err || 'Unknown Supabase error');
-      alert(`Result was kept safely on this device, but cloud upload failed: ${detail}`);
+      alert(`Result submission failed in Supabase: ${detail}. Please check your connection and retry.`);
     }
   };
 

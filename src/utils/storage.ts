@@ -39,6 +39,8 @@ function safeSet<T>(key: string, value: T): void {
 
 export interface ProgressSnapshot {
   version: 1;
+  resetVersion?: number;
+  resetAt?: string;
   updatedAt: string;
   settingsUpdatedAt: string;
   settings: UserSettings;
@@ -180,80 +182,71 @@ export function getProgressSnapshot(): ProgressSnapshot {
 
 function saveSyncMeta(updatedAt: string, settingsUpdatedAt: string): void { safeSet('mahi_quiz_sync_meta_v1', { updatedAt, settingsUpdatedAt }); }
 
-export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnapshot {
-  const local = getProgressSnapshot();
+/**
+ * Adopts server-authoritative progress snapshot from Supabase,
+ * completely replacing stale local cache.
+ */
+export function applyServerProgressSnapshot(serverData: ProgressSnapshot): void {
+  safeSet(STORAGE_KEYS.ATTEMPTS, serverData.attempts || []);
+  safeSet(STORAGE_KEYS.COMPLETED_DAYS, serverData.completedDays || []);
+  safeSet(STORAGE_KEYS.IN_PROGRESS, serverData.inProgress || {});
+  if (serverData.settings) safeSet(STORAGE_KEYS.SETTINGS, serverData.settings);
+  if (serverData.bookmarks) safeSet(STORAGE_KEYS.BOOKMARKS, serverData.bookmarks);
+  if (serverData.retakeRequests) safeSet(STORAGE_KEYS.RETAKE_REQUESTS, serverData.retakeRequests);
+  if (serverData.notifications) safeSet(STORAGE_KEYS.NOTIFICATIONS, serverData.notifications || []);
+  if (serverData.resetVersion) safeSet('mahi_last_reset_version', serverData.resetVersion);
+  if (serverData.resetAt) safeSet('mahi_last_reset_at', serverData.resetAt);
+  saveSyncMeta(serverData.updatedAt || new Date().toISOString(), serverData.settingsUpdatedAt || serverData.updatedAt || new Date().toISOString());
+  notifyStorageChanged();
+}
 
-  // If cloud data was explicitly reset (attempts is empty with valid recent timestamp),
-  // purge local stale attempts to synchronize cleanly with the fresh launch state.
+export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnapshot {
+  const localResetAt = safeGet<string | null>('mahi_last_reset_at', null);
+  const localResetVersion = safeGet<number | null>('mahi_last_reset_version', null);
+
+  const serverResetAtTime = incoming.resetAt ? new Date(incoming.resetAt).getTime() : 0;
+  const serverResetVersion = incoming.resetVersion || 0;
+
+  // 1. If server was reset (or incoming attempts are empty), adopt server data authoritatively
   if (
-    Array.isArray(incoming.attempts) &&
-    incoming.attempts.length === 0 &&
-    new Date(incoming.updatedAt || 0).getTime() >= new Date(local.updatedAt || 0).getTime()
+    serverResetVersion > (localResetVersion || 0) ||
+    serverResetAtTime > (localResetAt ? new Date(localResetAt).getTime() : 0) ||
+    (Array.isArray(incoming.attempts) && incoming.attempts.length === 0)
   ) {
-    local.attempts = [];
-    local.completedDays = [];
-    local.inProgress = {};
-    local.notifications = [];
-    local.retakeRequests = [];
-    local.bookmarks = [];
+    applyServerProgressSnapshot(incoming);
+    return incoming;
   }
 
-  const attempts = new Map<string, QuizAttempt>();
-  [...local.attempts, ...(incoming.attempts || [])].forEach(attempt => {
-    const old = attempts.get(attempt.id);
-    if (!old || new Date(attempt.timestamp).getTime() > new Date(old.timestamp).getTime()) attempts.set(attempt.id, attempt);
+  // 2. Otherwise adopt server snapshot as primary source of truth
+  const serverAttemptIds = new Set((incoming.attempts || []).map(a => a.id));
+  const local = getProgressSnapshot();
+  const validLocalAttempts = (local.attempts || []).filter(a => {
+    if (serverAttemptIds.has(a.id)) return false;
+    const aTime = new Date(a.timestamp).getTime();
+    if (serverResetAtTime > 0 && aTime < serverResetAtTime) return false;
+    return true;
   });
 
-  const inProgress = { ...local.inProgress };
-  Object.entries(incoming.inProgress || {}).forEach(([id, value]) => {
-    if (!inProgress[id] || new Date(value.lastUpdated).getTime() > new Date(inProgress[id].lastUpdated).getTime()) inProgress[id] = value;
-  });
+  const mergedAttempts = [...(incoming.attempts || []), ...validLocalAttempts].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
 
-  const mergedBookmarks = Array.from(new Set([...(local.bookmarks || []), ...(incoming.bookmarks || [])]));
-  const incomingSettings = new Date(incoming.settingsUpdatedAt || 0).getTime() > new Date(local.settingsUpdatedAt || 0).getTime();
-
-  // Merge retake requests
-  const retakeMap = new Map<string, RetakeRequest>();
-  [...(local.retakeRequests || []), ...(incoming.retakeRequests || [])].forEach(req => {
-    const existing = retakeMap.get(req.id);
-    if (!existing || new Date(req.requestedAt).getTime() > new Date(existing.requestedAt).getTime()) {
-      retakeMap.set(req.id, req);
-    }
-  });
-
-  // Merge notifications
-  const notifMap = new Map<string, InboxNotification>();
-  [...(local.notifications || []), ...(incoming.notifications || [])].forEach(n => {
-    const existing = notifMap.get(n.id);
-    if (!existing || n.read || new Date(n.createdAt).getTime() > new Date(existing.createdAt).getTime()) {
-      notifMap.set(n.id, n);
-    }
-  });
-
-  const mergedNotifications = Array.from(notifMap.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const mergedCompleted = Array.from(new Set([
+    ...(incoming.completedDays || []),
+    ...validLocalAttempts.map(a => a.quizId)
+  ]));
 
   const merged: ProgressSnapshot = {
+    ...incoming,
     version: 1,
-    updatedAt: new Date(Math.max(new Date(local.updatedAt).getTime(), new Date(incoming.updatedAt || 0).getTime(), Date.now())).toISOString(),
-    settingsUpdatedAt: incomingSettings ? incoming.settingsUpdatedAt : local.settingsUpdatedAt,
-    settings: incomingSettings ? incoming.settings : local.settings,
-    attempts: Array.from(attempts.values()).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
-    completedDays: Array.from(new Set([...(local.completedDays || []), ...(incoming.completedDays || [])])),
-    inProgress,
-    bookmarks: mergedBookmarks,
-    retakeRequests: Array.from(retakeMap.values()),
-    notifications: mergedNotifications
+    attempts: mergedAttempts,
+    completedDays: mergedCompleted,
+    settings: incoming.settings || local.settings,
+    resetVersion: incoming.resetVersion,
+    resetAt: incoming.resetAt
   };
 
-  safeSet(STORAGE_KEYS.ATTEMPTS, merged.attempts);
-  safeSet(STORAGE_KEYS.COMPLETED_DAYS, merged.completedDays);
-  safeSet(STORAGE_KEYS.IN_PROGRESS, merged.inProgress);
-  safeSet(STORAGE_KEYS.SETTINGS, merged.settings);
-  safeSet(STORAGE_KEYS.BOOKMARKS, merged.bookmarks);
-  safeSet(STORAGE_KEYS.RETAKE_REQUESTS, merged.retakeRequests);
-  safeSet(STORAGE_KEYS.NOTIFICATIONS, mergedNotifications);
-  saveSyncMeta(merged.updatedAt, merged.settingsUpdatedAt);
-  notifyStorageChanged();
+  applyServerProgressSnapshot(merged);
   return merged;
 }
 
