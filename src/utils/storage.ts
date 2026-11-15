@@ -406,7 +406,7 @@ export function getOrRecoverBaselineAttempts(autoInject = false): QuizAttempt[] 
 /**
  * Ensures Mahi's Day 01 baseline attempt exists with full answer mappings.
  */
-export function ensureMahiBaselineAttempt(): QuizAttempt {
+export function ensureMahiBaselineAttempt(): QuizAttempt | null {
   const attempts = safeGet<QuizAttempt[]>(STORAGE_KEYS.ATTEMPTS, []);
   const baselineId = 'attempt-mahi-day01-100';
   const existingBaseline = attempts.find(a => a.id === baselineId);
@@ -442,9 +442,7 @@ export function ensureMahiBaselineAttempt(): QuizAttempt {
     return existingBaseline;
   }
 
-  const baseline = getOrRecoverBaselineAttempts(false)[0]!;
-  saveQuizAttempt(baseline);
-  return baseline;
+  return existingBaseline || null;
 }
 
 export function saveQuizAttempt(attempt: QuizAttempt): void {

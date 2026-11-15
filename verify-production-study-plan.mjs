@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import { createClient } from '@supabase/supabase-js';
-import { DAILY_SCHEDULE, isDayUnlocked, setDayAdminOverride, getScheduleOverrides, ALL_30_STATES } from './src/utils/schedule.ts';
+import { DAILY_SCHEDULE, isDayUnlocked, setDayAdminOverride, getScheduleOverrides } from './src/utils/schedule.ts';
+import { ALL_30_STATES } from './src/data/states.ts';
 import { ALL_SCHEDULED_QUIZZES, getQuizForDay, validateQuizForPublishing } from './src/data/quizzes.ts';
 import { STATE_REPOSITORIES } from './src/data/stateRepositories.ts';
 
@@ -154,8 +155,8 @@ async function runTestSuite() {
     });
   });
 
-  // TEST 11: Supabase Cloud Data Verification - Mahi's Authentic Historical 30/30 Attempt
-  await asyncTest("Supabase quiz_progress must store Mahi's authentic Day 01 attempt (30/30, 100%, 86s)", async () => {
+  // TEST 11: Supabase Cloud Fresh-Start State Verification (Phase 6)
+  await asyncTest("Supabase quiz_progress must be in a clean fresh-start state for Mahi (0 attempts, 0 completed days)", async () => {
     const MAHI_UUID = '61758bc8-51bd-4cf9-b276-a7d6a796b6da';
     const { data, error } = await mahiClient
       .from('quiz_progress')
@@ -166,29 +167,17 @@ async function runTestSuite() {
     assert.ifError(error);
     assert.ok(data && data.payload, 'Mahi progress payload must exist');
     const attempts = data.payload.attempts || [];
-    assert.ok(attempts.length >= 1, `Must have at least 1 attempt, found ${attempts.length}`);
-
-    const mahiAttempt = attempts.find(a => a.id === 'attempt-mahi-day01-100');
-    assert.ok(mahiAttempt, 'Must contain authentic attempt-mahi-day01-100');
-    assert.strictEqual(mahiAttempt.marksObtained, 30, 'Must have 30 marks');
-    assert.strictEqual(mahiAttempt.maxMarks, 30, 'Must have 30 max marks');
-    assert.strictEqual(mahiAttempt.totalQuestions, 30, 'Must have 30 total questions');
-    assert.strictEqual(mahiAttempt.percentage, 100, 'Must have 100%');
-    assert.strictEqual(mahiAttempt.timeTakenSeconds, 86, 'Must be 86 seconds (1m 26s)');
-    assert.strictEqual(mahiAttempt.formattedDate, '09 November 2026', 'Must be 09 November 2026');
-
-    // Verify all 30 question answers are present and match 100%
-    const answers = mahiAttempt.answers || {};
-    const answerKeys = Object.keys(answers);
-    assert.strictEqual(answerKeys.length, 30, `Must have all 30 answers recorded, found ${answerKeys.length}`);
-    const day1Quiz = getQuizForDay(1);
-    day1Quiz.questions.forEach(q => {
-      assert.strictEqual(answers[q.id], q.correctAnswer, `Question ${q.id} must be answered with correct answer`);
-    });
+    assert.strictEqual(attempts.length, 0, `Mahi must have 0 attempts on fresh start, found ${attempts.length}`);
+    const completedDays = data.payload.completedDays || [];
+    assert.strictEqual(completedDays.length, 0, `Mahi must have 0 completed days on fresh start, found ${completedDays.length}`);
+    const notifications = data.payload.notifications || [];
+    assert.strictEqual(notifications.length, 0, `Mahi must have 0 notifications on fresh start, found ${notifications.length}`);
+    assert.ok(data.payload.settings, 'Mahi settings must be preserved');
+    assert.strictEqual(data.payload.settings.studentName, 'Mahi', 'Student name must be Mahi');
   });
 
   // TEST 12: Supabase Cloud Data Verification - Sanju Admin Access to Student Progress
-  await asyncTest("Supabase quiz_progress must synchronize with Sanju Admin account", async () => {
+  await asyncTest("Supabase quiz_progress must synchronize with Sanju Admin account in clean state", async () => {
     const MAHI_UUID = '61758bc8-51bd-4cf9-b276-a7d6a796b6da';
     const { data, error } = await sanjuClient
       .from('quiz_progress')
@@ -199,7 +188,7 @@ async function runTestSuite() {
     const mahiRecord = data.find(r => r.user_id === MAHI_UUID);
     assert.ok(mahiRecord, 'Sanju must be able to view Mahi student progress');
     const mahiAttempts = mahiRecord.payload.attempts || [];
-    assert.ok(mahiAttempts.length >= 1, `Sanju must see Mahi's attempts, found ${mahiAttempts.length}`);
+    assert.strictEqual(mahiAttempts.length, 0, `Mahi must have 0 attempts, found ${mahiAttempts.length}`);
   });
 
   // TEST 13: Question Validation Engine (Phase 5)
@@ -245,6 +234,103 @@ async function runTestSuite() {
 
     // Clean up test key
     await sanjuClient.from('admin_schedule_config').delete().eq('key', testSnapshotKey);
+  });
+
+  // TEST 15: Full Admin -> Supabase -> Student End-to-End Workflow & Isolated Test
+  await asyncTest('Full Admin -> Supabase -> Student Workflow (Publish -> Retrieve -> Submit -> Score -> Inspect -> Cleanup)', async () => {
+    const MAHI_UUID = '61758bc8-51bd-4cf9-b276-a7d6a796b6da';
+    const day1 = getQuizForDay(1);
+
+    // 1. Admin publishes test quiz version
+    const testQuizKey = 'quiz:test-e2e-workflow';
+    const { error: pubErr } = await sanjuClient
+      .from('admin_schedule_config')
+      .upsert({
+        key: testQuizKey,
+        payload: {
+          quiz: { ...day1, id: 'test-e2e-workflow', title: 'Test E2E Workflow' },
+          questions: day1.questions,
+          version: 1,
+          status: 'published',
+          publishedAt: new Date().toISOString()
+        },
+        updated_at: new Date().toISOString()
+      });
+    assert.ifError(pubErr, 'Admin publishing must succeed');
+
+    // 2. Student retrieves published quiz from Supabase
+    const { data: studentQuizData, error: fetchErr } = await mahiClient
+      .from('admin_schedule_config')
+      .select('payload')
+      .eq('key', testQuizKey)
+      .single();
+    assert.ifError(fetchErr, 'Student must retrieve published quiz');
+    assert.strictEqual(studentQuizData.payload.status, 'published');
+    assert.strictEqual(studentQuizData.payload.questions.length, 30);
+
+    // 3. Student submits test attempt with answers and snapshot
+    const testAnswers = {};
+    day1.questions.forEach((q, idx) => {
+      testAnswers[q.id] = idx % 2 === 0 ? q.correctAnswer : (q.correctAnswer + 1) % 4; // 15 correct, 15 wrong
+    });
+
+    const testAttempt = {
+      id: 'attempt-isolated-test-01',
+      quizId: 'test-e2e-workflow',
+      quizVersion: 1,
+      dayNumber: 1,
+      studentId: MAHI_UUID,
+      studentName: 'Mahi',
+      statesCovered: day1.statesCovered,
+      timestamp: new Date().toISOString(),
+      formattedDate: '15 November 2026, 05:25 pm',
+      answers: testAnswers,
+      questionsSnapshot: day1.questions,
+      totalQuestions: 30,
+      correctCount: 15,
+      incorrectCount: 15,
+      unansweredCount: 0,
+      marksObtained: 15,
+      maxMarks: 30,
+      percentage: 50,
+      timeTakenSeconds: 120,
+      status: 'completed'
+    };
+
+    // Save attempt in Mahi's progress
+    const { data: mahiCurrent } = await mahiClient.from('quiz_progress').select('payload').eq('user_id', MAHI_UUID).single();
+    const updatedPayload = {
+      ...mahiCurrent.payload,
+      attempts: [testAttempt],
+      completedDays: ['test-e2e-workflow']
+    };
+
+    const { error: submitErr } = await mahiClient
+      .from('quiz_progress')
+      .upsert({ user_id: MAHI_UUID, payload: updatedPayload, updated_at: new Date().toISOString() });
+    assert.ifError(submitErr, 'Student submission must succeed');
+
+    // 4. Admin inspects the student attempt
+    const { data: adminInspectData } = await sanjuClient.from('quiz_progress').select('payload').eq('user_id', MAHI_UUID).single();
+    const adminSeenAttempt = adminInspectData.payload.attempts.find(a => a.id === 'attempt-isolated-test-01');
+    assert.ok(adminSeenAttempt, 'Admin must see student attempt');
+    assert.strictEqual(adminSeenAttempt.marksObtained, 15);
+    assert.strictEqual(adminSeenAttempt.percentage, 50);
+    assert.strictEqual(adminSeenAttempt.questionsSnapshot.length, 30);
+
+    // 5. Cleanup test records: restore Mahi progress back to 100% clean fresh-start state
+    const cleanPayload = {
+      ...mahiCurrent.payload,
+      attempts: [],
+      completedDays: []
+    };
+    await mahiClient.from('quiz_progress').upsert({ user_id: MAHI_UUID, payload: cleanPayload, updated_at: new Date().toISOString() });
+    await sanjuClient.from('admin_schedule_config').delete().eq('key', testQuizKey);
+
+    // Verify cleanup
+    const { data: verifyClean } = await mahiClient.from('quiz_progress').select('payload').eq('user_id', MAHI_UUID).single();
+    assert.strictEqual(verifyClean.payload.attempts.length, 0, 'Must be 0 attempts after cleanup');
+    assert.strictEqual(verifyClean.payload.completedDays.length, 0, 'Must be 0 completed days after cleanup');
   });
 
   console.log('\n===============================================================');

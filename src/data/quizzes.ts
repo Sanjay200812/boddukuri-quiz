@@ -1,7 +1,6 @@
 import type { DailyQuiz, QuizQuestion, StateNationalParkInfo, QuizValidationResult } from '../types/quiz.ts';
 import { STATE_REPOSITORIES } from './stateRepositories.ts';
 import { ALL_30_STATES } from './states.ts';
-import { DAY_01_AUTHENTIC_QUESTIONS } from './day01Questions.ts';
 
 /**
  * DAILY_CONFIGS: The central configuration for daily quizzes.
@@ -167,9 +166,17 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
         const repo = getRepositoryForState(stateName);
         if (repo) {
           stateInfoList.push(repo.stateInfo);
+          const stateQuestions = repo.questions;
+          for (let i = 0; i < 5; i++) {
+            const rawQ = stateQuestions[i % stateQuestions.length];
+            questions.push({
+              ...rawQ,
+              id: `d1-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q${i + 1}`,
+              section: 'new'
+            });
+          }
         }
       });
-      questions.push(...DAY_01_AUTHENTIC_QUESTIONS);
     } else if (dayNumber >= 2 && dayNumber <= 7) {
       // DAYS 02–07: Exactly 30 questions each
       // Part A: 20 questions from newly introduced states (4 states * 5 questions each)
@@ -290,8 +297,8 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
       dayNumber === 8
         ? 'semi-final'
         : dayNumber === 9
-        ? 'grand-final'
-        : `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`;
+          ? 'grand-final'
+          : `day-${dayNumber < 10 ? '0' + dayNumber : dayNumber}`;
 
     const statesCovered = isSpecialTest ? ALL_30_STATES : [...newStates, ...previousStates];
 
@@ -381,11 +388,7 @@ export function validateQuizForPublishing(
     const normalizedText = (q.question || '').trim().toLowerCase();
     if (normalizedText.length > 0) {
       if (seenQuestionTexts.has(normalizedText)) {
-        if (dayNumber > 1) {
-          errors.push(`Question #${qNum} has duplicate question text: "${q.question.substring(0, 45)}...".`);
-        } else {
-          warnings.push(`Day 01 historical question #${qNum} has duplicate question text: "${q.question.substring(0, 45)}...".`);
-        }
+        errors.push(`Question #${qNum} has duplicate question text: "${q.question.substring(0, 45)}...".`);
       } else {
         seenQuestionTexts.add(normalizedText);
       }
