@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import type {
   DailyQuiz,
   QuizAttempt,
@@ -465,172 +466,197 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
         </div>
       </div>
 
-      {/* Question Card */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#ebd4d9] shadow-soft space-y-6 relative overflow-hidden">
-
-        {/* 60-Second Mini Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#fde8ec]">
-          <div
-            className={`h-full transition-all duration-1000 ${
-              questionSecondsLeft <= 10
-                ? 'bg-rose-500 animate-pulse'
-                : questionSecondsLeft <= 20
-                ? 'bg-amber-400'
-                : 'bg-[#800020]'
-            }`}
-            style={{ width: `${(questionSecondsLeft / QUESTION_LIMIT_SECONDS) * 100}%` }}
-          />
-        </div>
-
-        {/* Question Header & 60-Second Timer Badge */}
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="text-xs font-bold uppercase tracking-wider text-[#800020]">
-            Question #{currentIndex + 1}
+      {/* Question Card with Smooth AnimatePresence Transitions & High-Contrast Typography */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentQuestion.id}
+          initial={{ opacity: 0, y: 16, scale: 0.99 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -16, scale: 0.99 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-white rounded-3xl p-6 sm:p-8 border border-[#ebd4d9] shadow-soft space-y-6 relative overflow-hidden"
+        >
+          {/* 60-Second Mini Progress Bar */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-[#fde8ec]">
+            <div
+              className={`h-full transition-all duration-1000 ${
+                questionSecondsLeft <= 10
+                  ? 'bg-rose-500 animate-pulse'
+                  : questionSecondsLeft <= 20
+                  ? 'bg-amber-400'
+                  : 'bg-[#800020]'
+              }`}
+              style={{ width: `${(questionSecondsLeft / QUESTION_LIMIT_SECONDS) * 100}%` }}
+            />
           </div>
 
-          {/* 60s Countdown Timer Badge */}
-          <div
-            title="60 seconds limit per question. Advances automatically at 0s."
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border transition-all ${
-              questionSecondsLeft <= 10
-                ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse'
-                : questionSecondsLeft <= 20
-                ? 'bg-amber-50 text-amber-900 border-amber-300'
-                : 'bg-[#fde8ec] text-[#800020] border-[#ebd4d9]'
-            }`}
-          >
-            <Hourglass className={`w-3.5 h-3.5 ${questionSecondsLeft <= 10 ? 'text-rose-600 animate-spin' : 'text-[#800020]'}`} />
-            <span>{questionSecondsLeft}s Left</span>
+          {/* Question Header & 60-Second Timer Badge */}
+          <div className="flex items-center justify-between gap-3 pt-1">
+            <div className="text-xs font-black uppercase tracking-wider text-[#800020]">
+              Question #{currentIndex + 1}
+            </div>
+
+            {/* 60s Countdown Timer Badge */}
+            <div
+              title="60 seconds limit per question. Advances automatically at 0s."
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border transition-all ${
+                questionSecondsLeft <= 10
+                  ? 'bg-rose-50 text-rose-700 border-rose-300 animate-pulse shadow-xs'
+                  : questionSecondsLeft <= 20
+                  ? 'bg-amber-50 text-amber-900 border-amber-300'
+                  : 'bg-[#fde8ec] text-[#800020] border-[#ebd4d9]'
+              }`}
+            >
+              <Hourglass className={`w-3.5 h-3.5 ${questionSecondsLeft <= 10 ? 'text-rose-600 animate-spin' : 'text-[#800020]'}`} />
+              <span>{questionSecondsLeft}s Left</span>
+            </div>
           </div>
-        </div>
 
-        {/* Question Text */}
-        <h3 className="text-lg sm:text-2xl font-bold text-[#2b0c15] leading-snug">
-          {currentQuestion.question}
-        </h3>
+          {/* Question Text in Crystal-Clear High-Contrast */}
+          <h3 className="text-lg sm:text-2xl font-black text-[#1b050f] leading-snug tracking-tight">
+            {currentQuestion.question}
+          </h3>
 
-        {/* 4 Options Grid */}
-        <div className="space-y-3 pt-2">
-          {currentQuestion.options.map((option, idx) => {
-            const isSelected = answers[currentQuestion.id] === idx;
-            const letters = ['A', 'B', 'C', 'D'];
+          {/* 4 Options Grid with Smooth Tactile Interactions */}
+          <div className="space-y-3 pt-2">
+            {currentQuestion.options.map((option, idx) => {
+              const isSelected = answers[currentQuestion.id] === idx;
+              const letters = ['A', 'B', 'C', 'D'];
 
-            return (
+              return (
+                <motion.button
+                  key={idx}
+                  type="button"
+                  whileHover={{ scale: 1.012, x: 3 }}
+                  whileTap={{ scale: 0.985 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => handleSelectOption(idx)}
+                  className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-start sm:items-center gap-3.5 group cursor-pointer ${
+                    isSelected
+                      ? 'border-[#800020] bg-[#fde8ec] shadow-md ring-2 ring-[#800020]/25 text-[#1b050f]'
+                      : 'border-[#ebd4d9] bg-white hover:border-[#800020]/50 hover:bg-[#fff8fa] text-[#1b050f]'
+                  }`}
+                >
+                  {/* Option Letter Circle */}
+                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0 transition-colors ${
+                    isSelected
+                      ? 'bg-[#800020] text-white shadow-xs'
+                      : 'bg-[#fff8fa] text-[#76515b] border border-[#ebd4d9] group-hover:bg-[#fde8ec] group-hover:text-[#800020]'
+                  }`}>
+                    {letters[idx]}
+                  </span>
+
+                  {/* Option Text */}
+                  <span className={`text-sm sm:text-base leading-relaxed flex-1 ${
+                    isSelected ? 'text-[#800020] font-black' : 'text-[#1b050f] font-bold'
+                  }`}>
+                    {option}
+                  </span>
+
+                  {/* Spring Pop Checkmark */}
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0, rotate: -20 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                      className="shrink-0 ml-auto"
+                    >
+                      <CheckCircle2 className="w-5 h-5 text-[#800020]" />
+                    </motion.div>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Bottom helper tip, Bookmark & Flag */}
+          <div className="pt-2 text-xs text-[#522533] font-semibold flex flex-wrap items-center justify-between gap-2 border-t border-[#ebd4d9]">
+            <span className="hidden sm:inline">Tip: You can use keys 1-4 on your keyboard</span>
+            <div className="flex items-center gap-2 ml-auto">
+              {/* Bookmark button */}
               <button
-                key={idx}
                 type="button"
-                onClick={() => handleSelectOption(idx)}
-                className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all flex items-start sm:items-center gap-3.5 group cursor-pointer ${
-                  isSelected
-                    ? 'border-[#800020] bg-[#fde8ec] shadow-md ring-2 ring-[#800020]/20 text-[#2b0c15]'
-                    : 'border-[#ebd4d9] bg-white hover:border-[#800020]/50 hover:bg-[#fff8fa] text-[#2b0c15]'
+                onClick={handleToggleBookmark}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  bookmarked
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
+                    : 'text-[#76515b] hover:text-[#2b0c15] bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9]'
+                }`}
+                title="Bookmark question for review"
+              >
+                <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-amber-600 text-amber-600' : 'text-[#76515b]'}`} />
+                <span>{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
+              </button>
+
+              {/* Flag for review */}
+              <button
+                type="button"
+                onClick={handleToggleFlag}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  flaggedIds.includes(currentQuestion.id)
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
+                    : 'text-[#76515b] hover:text-[#2b0c15] bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9]'
                 }`}
               >
-                {/* Option Letter Circle */}
-                <span className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 transition-colors ${
-                  isSelected
-                    ? 'bg-[#800020] text-white'
-                    : 'bg-[#fff8fa] text-[#76515b] border border-[#ebd4d9] group-hover:bg-[#fde8ec] group-hover:text-[#800020]'
-                }`}>
-                  {letters[idx]}
-                </span>
-
-                {/* Option Text */}
-                <span className={`text-sm sm:text-base font-semibold leading-relaxed flex-1 ${
-                  isSelected ? 'text-[#800020] font-bold' : 'text-[#2b0c15]'
-                }`}>
-                  {option}
-                </span>
-
-                {/* Checkmark indicator */}
-                {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-[#800020] shrink-0 ml-auto" />
-                )}
+                <Flag className={`w-3.5 h-3.5 ${flaggedIds.includes(currentQuestion.id) ? 'fill-amber-600 text-amber-600' : ''}`} />
+                <span>{flaggedIds.includes(currentQuestion.id) ? 'Flagged' : 'Flag'}</span>
               </button>
-            );
-          })}
-        </div>
-
-        {/* Bottom helper tip, Bookmark & Flag */}
-        <div className="pt-2 text-xs text-[#76515b] flex flex-wrap items-center justify-between gap-2 border-t border-[#ebd4d9]">
-          <span className="hidden sm:inline">Tip: You can use keys 1-4 on your keyboard</span>
-          <div className="flex items-center gap-2 ml-auto">
-            {/* Bookmark button */}
-            <button
-              type="button"
-              onClick={handleToggleBookmark}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                bookmarked
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'text-[#76515b] hover:text-[#2b0c15] bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9]'
-              }`}
-              title="Bookmark question for review"
-            >
-              <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-amber-600 text-amber-600' : 'text-[#76515b]'}`} />
-              <span>{bookmarked ? 'Bookmarked' : 'Bookmark'}</span>
-            </button>
-
-            {/* Flag for review */}
-            <button
-              type="button"
-              onClick={handleToggleFlag}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                flaggedIds.includes(currentQuestion.id)
-                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                  : 'text-[#76515b] hover:text-[#2b0c15] bg-[#fff8fa] hover:bg-[#fde8ec] border border-[#ebd4d9]'
-              }`}
-            >
-              <Flag className={`w-3.5 h-3.5 ${flaggedIds.includes(currentQuestion.id) ? 'fill-amber-600 text-amber-600' : ''}`} />
-              <span>{flaggedIds.includes(currentQuestion.id) ? 'Flagged' : 'Flag'}</span>
-            </button>
+            </div>
           </div>
-        </div>
+        </motion.div>
+      </AnimatePresence>
 
-      </div>
-
-      {/* Bottom Navigation Controls */}
+      {/* Bottom Navigation Controls with Smooth Spring Micro-Interactions */}
       <div className="flex items-center justify-between gap-3 pt-2">
-        <button
+        <motion.button
+          whileHover={currentIndex > 0 ? { scale: 1.02 } : {}}
+          whileTap={currentIndex > 0 ? { scale: 0.98 } : {}}
           onClick={handlePrev}
           disabled={currentIndex === 0}
-          className={`px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 transition-all ${
+          className={`px-5 py-3 rounded-2xl font-black text-sm flex items-center gap-2 transition-all ${
             currentIndex === 0
               ? 'opacity-40 cursor-not-allowed bg-[#fff8fa] border border-[#ebd4d9] text-[#76515b]'
-              : 'bg-white border border-[#ebd4d9] text-[#2b0c15] hover:bg-[#fff8fa] active:scale-95 shadow-2xs'
+              : 'bg-white border border-[#ebd4d9] text-[#2b0c15] hover:bg-[#fff8fa] shadow-sm cursor-pointer'
           }`}
         >
           <ArrowLeft className="w-4 h-4" />
           Previous
-        </button>
+        </motion.button>
 
         <div className="flex items-center gap-2">
           {/* Submit button always accessible */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => setShowSubmitModal(true)}
-            className="px-5 py-3 rounded-2xl font-bold text-sm bg-[#800020] text-white hover:bg-[#68001a] active:scale-95 transition-all shadow-md flex items-center gap-2"
+            className="px-5 py-3 rounded-2xl font-black text-sm bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white shadow-ruby flex items-center gap-2 cursor-pointer border border-[#ff3366]/30"
           >
             <Send className="w-4 h-4" />
             <span className="hidden sm:inline">Submit Quiz</span>
             <span className="sm:hidden">Submit</span>
-          </button>
+          </motion.button>
 
           {/* Next Button */}
           {currentIndex < questions.length - 1 ? (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleNext}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-[#800020] text-white hover:bg-[#68001a] active:scale-95 transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-3 rounded-2xl font-black text-sm bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white shadow-ruby flex items-center gap-2 cursor-pointer border border-[#ff3366]/30"
             >
-              Next
+              <span>Next</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </motion.button>
           ) : (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setShowSubmitModal(true)}
-              className="px-6 py-3 rounded-2xl font-bold text-sm bg-[#800020] text-white hover:bg-[#68001a] active:scale-95 transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-3 rounded-2xl font-black text-sm bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white shadow-ruby flex items-center gap-2 cursor-pointer border border-[#ff3366]/30"
             >
-              Finish & Review
+              <span>Finish & Review</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </motion.button>
           )}
         </div>
       </div>

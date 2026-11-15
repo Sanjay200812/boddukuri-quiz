@@ -315,10 +315,10 @@ export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: s
   const quizId = typeof dayNumberOrId === 'string'
     ? dayNumberOrId
     : dayNumberOrId === 8
-    ? 'semi-final'
-    : dayNumberOrId === 9
-    ? 'grand-final'
-    : `day-${dayNumberOrId < 10 ? '0' + dayNumberOrId : dayNumberOrId}`;
+      ? 'semi-final'
+      : dayNumberOrId === 9
+        ? 'grand-final'
+        : `day-${dayNumberOrId < 10 ? '0' + dayNumberOrId : dayNumberOrId}`;
 
   // Completed days are never locked
   if (completedDayIds.includes(quizId)) {
@@ -388,10 +388,10 @@ export function getDayCountdown(dayNumberOrId: number | string, completedDayIds:
   const quizId = typeof dayNumberOrId === 'string'
     ? dayNumberOrId
     : dayNumberOrId === 8
-    ? 'semi-final'
-    : dayNumberOrId === 9
-    ? 'grand-final'
-    : `day-${dayNumberOrId < 10 ? '0' + dayNumberOrId : dayNumberOrId}`;
+      ? 'semi-final'
+      : dayNumberOrId === 9
+        ? 'grand-final'
+        : `day-${dayNumberOrId < 10 ? '0' + dayNumberOrId : dayNumberOrId}`;
 
   const unlocked = isDayUnlocked(quizId, completedDayIds);
   const schedule = DAILY_SCHEDULE.find(s => s.quizId === quizId || s.dayNumber === dayNumberOrId);

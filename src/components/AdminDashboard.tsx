@@ -85,6 +85,7 @@ import {
   type AdminAuditLogEntry
 } from '../utils/supabase';
 import { Sidebar, type AdminNavTab } from './Sidebar';
+import { Card3D } from './ui/Card3D';
 
 interface AdminDashboardProps {
   adminProfile: UserProfile;
@@ -898,82 +899,90 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               </div>
 
-              {/* 4 Primary Metric Cards matching Image 3 */}
+              {/* 4 Primary Metric Cards with 3D Depth & High Contrast */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
                 {/* Metric 1: Total Students */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
-                  <div className="flex items-center justify-between text-[#a68690] mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider">Total Students</span>
-                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                      1 Active
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
-                      <Users className="w-4 h-4" />
+                <Card3D intensity={8} depth={10} className="h-full">
+                  <div className="h-full p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-[#3a0d20] hover:border-[#ff3366]/40 shadow-lg backdrop-blur-md flex flex-col justify-between">
+                    <div className="flex items-center justify-between text-rose-200 mb-2">
+                      <span className="text-xs font-black uppercase tracking-wider">Total Students</span>
+                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                        1 Active
+                      </span>
                     </div>
-                    <div className="text-2xl sm:text-3xl font-black text-white">
-                      {enrolledStudentsCount}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2a0717] to-[#17030c] text-[#ff3366] border border-[#52102c] shadow-inner flex items-center justify-center shrink-0">
+                        <Users className="w-4 h-4 drop-shadow" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        {enrolledStudentsCount}
+                      </div>
                     </div>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">Mahi (Enrolled Scholar)</p>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">Mahi (Enrolled Scholar)</p>
-                </div>
+                </Card3D>
 
                 {/* Metric 2: Total Quizzes */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
-                  <div className="flex items-center justify-between text-[#a68690] mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider">Total Quizzes</span>
-                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                      {stats.completedCount} / {totalCurriculumQuizzes} Done
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
-                      <FileText className="w-4 h-4" />
+                <Card3D intensity={8} depth={10} className="h-full">
+                  <div className="h-full p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-[#3a0d20] hover:border-[#ff3366]/40 shadow-lg backdrop-blur-md flex flex-col justify-between">
+                    <div className="flex items-center justify-between text-rose-200 mb-2">
+                      <span className="text-xs font-black uppercase tracking-wider">Total Quizzes</span>
+                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                        {stats.completedCount} / {totalCurriculumQuizzes} Done
+                      </span>
                     </div>
-                    <div className="text-2xl sm:text-3xl font-black text-white">
-                      {totalCurriculumQuizzes}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2a0717] to-[#17030c] text-[#ff3366] border border-[#52102c] shadow-inner flex items-center justify-center shrink-0">
+                        <FileText className="w-4 h-4 drop-shadow" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        {totalCurriculumQuizzes}
+                      </div>
                     </div>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">7 Days + Semi-Final + Grand Test</p>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">7 Days + Semi-Final + Grand Test</p>
-                </div>
+                </Card3D>
 
                 {/* Metric 3: Total Questions */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
-                  <div className="flex items-center justify-between text-[#a68690] mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider">Total Questions</span>
-                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                      109 Parks
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
-                      <FileCheck className="w-4 h-4" />
+                <Card3D intensity={8} depth={10} className="h-full">
+                  <div className="h-full p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-[#3a0d20] hover:border-[#ff3366]/40 shadow-lg backdrop-blur-md flex flex-col justify-between">
+                    <div className="flex items-center justify-between text-rose-200 mb-2">
+                      <span className="text-xs font-black uppercase tracking-wider">Total Questions</span>
+                      <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
+                        109 Parks
+                      </span>
                     </div>
-                    <div className="text-2xl sm:text-3xl font-black text-white">
-                      {totalCurriculumQuestions}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2a0717] to-[#17030c] text-[#ff3366] border border-[#52102c] shadow-inner flex items-center justify-center shrink-0">
+                        <FileCheck className="w-4 h-4 drop-shadow" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        {totalCurriculumQuestions}
+                      </div>
                     </div>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">Verified syllabus across 30 States</p>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">Verified syllabus across 30 States</p>
-                </div>
+                </Card3D>
 
                 {/* Metric 4: Avg. Performance */}
-                <div className="p-4 sm:p-5 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg backdrop-blur-md">
-                  <div className="flex items-center justify-between text-[#a68690] mb-2">
-                    <span className="text-xs font-bold uppercase tracking-wider">Avg. Performance</span>
-                    <TrendingUp className="w-4 h-4 text-[#ff3366]" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-[#220713] text-[#ff3366] border border-[#470f25] flex items-center justify-center shrink-0">
-                      <Award className="w-4 h-4" />
+                <Card3D intensity={8} depth={10} className="h-full">
+                  <div className="h-full p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-[#3a0d20] hover:border-[#ff3366]/40 shadow-lg backdrop-blur-md flex flex-col justify-between">
+                    <div className="flex items-center justify-between text-rose-200 mb-2">
+                      <span className="text-xs font-black uppercase tracking-wider">Avg. Performance</span>
+                      <TrendingUp className="w-4 h-4 text-[#ff3366]" />
                     </div>
-                    <div className="text-2xl sm:text-3xl font-black text-[#ff8099]">
-                      {stats.avgPercentage}%
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2a0717] to-[#17030c] text-[#ff3366] border border-[#52102c] shadow-inner flex items-center justify-center shrink-0">
+                        <Award className="w-4 h-4 drop-shadow" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-[#ff8099] tracking-tight">
+                        {stats.avgPercentage}%
+                      </div>
                     </div>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">{attempts.length} submission{attempts.length === 1 ? '' : 's'} recorded</p>
                   </div>
-                  <p className="text-[11px] text-[#a68690] mt-2">{attempts.length} submission{attempts.length === 1 ? '' : 's'} recorded</p>
-                </div>
+                </Card3D>
 
               </div>
 

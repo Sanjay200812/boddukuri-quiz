@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
+import { Card3D } from './ui/Card3D';
 import type { DailyQuiz, OverallProgress, QuizAttempt, RetakeRequest } from '../types/quiz';
 import {
   getQuizStatus,
@@ -245,19 +246,22 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ duration: 0.45, delay: (idx % 4) * 0.08, ease: EASE_OUT }}
-                whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                className={`rounded-2xl border p-5 sm:p-6 transition-colors flex flex-col justify-between shadow-lg backdrop-blur-md relative ${
-                  isCompleted
-                    ? 'border-emerald-500/30 bg-[#0f090e]/85'
-                    : isNextTarget
-                    ? 'border-[#ff3366] bg-[#14060e] ring-2 ring-[#ff3366]/40 shadow-[0_0_25px_rgba(255,51,102,0.25)]'
-                    : isInProgress
-                    ? 'border-[#ff3366]/50 bg-[#0f090e]/85 ring-1 ring-[#ff3366]/30'
-                    : isUnlocked
-                    ? 'border-white/[0.08] hover:border-white/[0.16] bg-[#0f090e]/85'
-                    : 'border-white/[0.05] bg-[#0b070a]/80 opacity-90'
-                }`}
+                className="h-full"
               >
+                <Card3D intensity={5} depth={8} className="h-full">
+                  <div
+                    className={`h-full rounded-2xl border p-5 sm:p-6 transition-colors flex flex-col justify-between shadow-lg backdrop-blur-md relative ${
+                      isCompleted
+                        ? 'border-emerald-500/30 bg-[#0f090e]/90'
+                        : isNextTarget
+                        ? 'border-[#ff3366] bg-[#160611] ring-2 ring-[#ff3366]/40 shadow-[0_0_30px_rgba(255,51,102,0.25)]'
+                        : isInProgress
+                        ? 'border-[#ff3366]/60 bg-[#12050d]/90 ring-1 ring-[#ff3366]/30'
+                        : isUnlocked
+                        ? 'border-[#3a0d20] hover:border-[#ff3366]/40 bg-[#12050d]/90'
+                        : 'border-[#260a16] bg-[#0c0308]/90 opacity-90'
+                    }`}
+                  >
                 <div>
                   {/* Top Bar: Badge, Date & Status */}
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -496,8 +500,10 @@ export const MyQuizzes: React.FC<MyQuizzesProps> = ({
                     <span>Download Notes PDF</span>
                   </button>
                 </div>
-              </motion.div>
-            );
+              </div>
+            </Card3D>
+          </motion.div>
+        );
           })}
         </div>
       )}
