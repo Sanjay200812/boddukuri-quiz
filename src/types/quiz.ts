@@ -22,6 +22,9 @@ export interface StateNationalParkInfo {
 
 export interface QuizQuestion {
   id: string;
+  quizId?: string;
+  dayNumber?: number;
+  order?: number;
   section: QuizSection;
   state: string;
   parkName: string;
@@ -30,6 +33,7 @@ export interface QuizQuestion {
   correctAnswer: number; // 0, 1, 2, or 3
   difficulty: Difficulty;
   explanation: string;
+  status?: 'published' | 'draft';
   establishedYear?: number;
   district?: string;
   famousWildlife?: string[];
@@ -40,6 +44,8 @@ export interface DailyQuiz {
   id: string; // e.g. "day-01"
   dayNumber: number;
   title: string; // e.g. "Day 01"
+  version?: number;
+  status?: 'published' | 'draft' | 'scheduled';
   quizDate: string; // "09-11-2026"
   displayDate: string; // "09 November 2026"
   statusLabel?: string; // "Available"
@@ -49,6 +55,8 @@ export interface DailyQuiz {
   stateInfoList: StateNationalParkInfo[];
   questions: QuizQuestion[];
   totalQuestions: number;
+  publishedAt?: string;
+  updatedAt?: string;
 }
 
 export interface SectionScore {
@@ -69,6 +77,7 @@ export interface StateScoreBreakdown {
 export interface QuizAttempt {
   id: string;
   quizId: string;
+  quizVersion?: number;
   dayNumber: number;
   statesCovered: string[];
   timestamp: string; // ISO string
@@ -81,6 +90,7 @@ export interface QuizAttempt {
   submissionId?: string;
   status?: 'completed' | 'in-progress';
   answers: Record<string, number>; // questionId -> selectedOptionIndex (0-3), or -1 if skipped
+  questionsSnapshot?: QuizQuestion[]; // Immutable snapshot of exact questions when attempted
   totalQuestions: number;
   correctCount: number;
   incorrectCount: number;
@@ -101,6 +111,18 @@ export interface QuizAttempt {
     quote: string;
     author?: string;
     personalNote: string;
+  };
+}
+
+export interface QuizValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  stats: {
+    totalQuestions: number;
+    newQuestions: number;
+    revisionQuestions: number;
+    statesCoveredCount: number;
   };
 }
 

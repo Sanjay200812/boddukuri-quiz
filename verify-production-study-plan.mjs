@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { createClient } from '@supabase/supabase-js';
 import { DAILY_SCHEDULE, isDayUnlocked, setDayAdminOverride, getScheduleOverrides, ALL_30_STATES } from './src/utils/schedule.ts';
-import { ALL_SCHEDULED_QUIZZES, getQuizForDay } from './src/data/quizzes.ts';
+import { ALL_SCHEDULED_QUIZZES, getQuizForDay, validateQuizForPublishing } from './src/data/quizzes.ts';
 import { STATE_REPOSITORIES } from './src/data/stateRepositories.ts';
 
 const SUPABASE_URL = 'https://oohxmqohiaspgawsqacv.supabase.co';
@@ -58,15 +58,15 @@ async function runTestSuite() {
     }
   });
 
-  // TEST 3: Special Test Quotas (Semi-Final = 55, Grand Test = 54)
-  test('Semi-Final must have exactly 55 questions and Grand Test must have 54 questions (Total 109 Park Questions)', () => {
+  // TEST 3: Special Test Quotas (Semi-Final = 30, Grand Test = 60)
+  test('Semi-Final must have exactly 30 questions and Grand Test must have 60 questions (All 30 States Represented)', () => {
     const semi = getQuizForDay(8);
-    assert.strictEqual(semi.totalQuestions, 55, `Semi-Final totalQuestions must be 55, found ${semi.totalQuestions}`);
-    assert.strictEqual(semi.questions.length, 55, `Semi-Final questions array length must be 55`);
+    assert.strictEqual(semi.totalQuestions, 30, `Semi-Final totalQuestions must be 30, found ${semi.totalQuestions}`);
+    assert.strictEqual(semi.questions.length, 30, `Semi-Final questions array length must be 30`);
 
     const grand = getQuizForDay(9);
-    assert.strictEqual(grand.totalQuestions, 54, `Grand Test totalQuestions must be 54, found ${grand.totalQuestions}`);
-    assert.strictEqual(grand.questions.length, 54, `Grand Test questions array length must be 54`);
+    assert.strictEqual(grand.totalQuestions, 60, `Grand Test totalQuestions must be 60, found ${grand.totalQuestions}`);
+    assert.strictEqual(grand.questions.length, 60, `Grand Test questions array length must be 60`);
   });
 
   // TEST 4: Cumulative Revision Split
@@ -96,9 +96,9 @@ async function runTestSuite() {
   });
 
   // TEST 6: Total System Curriculum Questions
-  test('Total curriculum question bank across 9 modules must equal exactly 319 (210 daily + 109 special)', () => {
+  test('Total curriculum question bank across 9 modules must equal exactly 300 (210 daily + 30 semi + 60 grand)', () => {
     const totalQCount = DAILY_SCHEDULE.reduce((acc, s) => acc + s.totalQuestions, 0);
-    assert.strictEqual(totalQCount, 319, `Total questions must be 319, found ${totalQCount}`);
+    assert.strictEqual(totalQCount, 300, `Total questions must be 300, found ${totalQCount}`);
   });
 
   // TEST 7: Day 01 Question IDs backward compatibility
@@ -187,19 +187,64 @@ async function runTestSuite() {
     });
   });
 
-  // TEST 12: Supabase Cloud Data Verification - Sanju Admin Progress
+  // TEST 12: Supabase Cloud Data Verification - Sanju Admin Access to Student Progress
   await asyncTest("Supabase quiz_progress must synchronize with Sanju Admin account", async () => {
-    const SANJU_UUID = '81545df0-2a05-4257-a0f0-2c3342eb9e34';
+    const MAHI_UUID = '61758bc8-51bd-4cf9-b276-a7d6a796b6da';
     const { data, error } = await sanjuClient
       .from('quiz_progress')
-      .select('payload')
-      .eq('user_id', SANJU_UUID)
-      .single();
+      .select('user_id, payload, updated_at');
 
     assert.ifError(error);
-    assert.ok(data && data.payload, 'Sanju progress payload must exist');
-    const attempts = data.payload.attempts || [];
-    assert.ok(attempts.length >= 1, `Sanju must see at least 1 attempt, found ${attempts.length}`);
+    assert.ok(data && data.length >= 1, `Sanju must see student progress records, found ${data?.length}`);
+    const mahiRecord = data.find(r => r.user_id === MAHI_UUID);
+    assert.ok(mahiRecord, 'Sanju must be able to view Mahi student progress');
+    const mahiAttempts = mahiRecord.payload.attempts || [];
+    assert.ok(mahiAttempts.length >= 1, `Sanju must see Mahi's attempts, found ${mahiAttempts.length}`);
+  });
+
+  // TEST 13: Question Validation Engine (Phase 5)
+  test('Question Validation Engine must approve all 9 production quizzes without errors', () => {
+    ALL_SCHEDULED_QUIZZES.forEach(quiz => {
+      const res = validateQuizForPublishing(quiz);
+      assert.strictEqual(res.isValid, true, `Quiz ${quiz.title} must pass validation: ${res.errors.join('; ')}`);
+      assert.strictEqual(res.errors.length, 0, `Quiz ${quiz.title} must have 0 validation errors`);
+    });
+  });
+
+  // TEST 14: Cloud Quiz Storage Service (Phase 2 & 3)
+  await asyncTest('Cloud Quiz Storage Service must validate and support versioned storage in Supabase', async () => {
+    // Verify Day 01 quiz validation
+    const day1Quiz = getQuizForDay(1);
+    const validRes = validateQuizForPublishing(day1Quiz);
+    assert.strictEqual(validRes.isValid, true, 'Day 01 must be valid for cloud publishing');
+
+    // Test saving an immutable version snapshot via sanjuClient
+    const testSnapshotKey = 'quiz_version:test-quiz:v1';
+    const { error: upsertErr } = await sanjuClient
+      .from('admin_schedule_config')
+      .upsert({
+        key: testSnapshotKey,
+        payload: {
+          quizId: 'test-quiz',
+          version: 1,
+          test: true,
+          timestamp: new Date().toISOString()
+        },
+        updated_at: new Date().toISOString()
+      });
+    assert.ifError(upsertErr, 'Admin must be able to write immutable version snapshot');
+
+    // Test anon reading the immutable version snapshot
+    const { data: readData, error: readErr } = await supabase
+      .from('admin_schedule_config')
+      .select('payload')
+      .eq('key', testSnapshotKey)
+      .single();
+    assert.ifError(readErr, 'Anon client must be able to read immutable version snapshot');
+    assert.strictEqual(readData.payload.version, 1);
+
+    // Clean up test key
+    await sanjuClient.from('admin_schedule_config').delete().eq('key', testSnapshotKey);
   });
 
   console.log('\n===============================================================');

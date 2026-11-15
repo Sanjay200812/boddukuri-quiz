@@ -1,6 +1,7 @@
-import type { DailyQuiz, QuizQuestion, StateNationalParkInfo } from '../types/quiz.ts';
+import type { DailyQuiz, QuizQuestion, StateNationalParkInfo, QuizValidationResult } from '../types/quiz.ts';
 import { STATE_REPOSITORIES } from './stateRepositories.ts';
-import { ALL_30_STATES } from '../utils/schedule.ts';
+import { ALL_30_STATES } from './states.ts';
+import { DAY_01_AUTHENTIC_QUESTIONS } from './day01Questions.ts';
 
 /**
  * DAILY_CONFIGS: The central configuration for daily quizzes.
@@ -103,7 +104,7 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
     newStates: ['Sikkim', 'Tamil Nadu', 'Uttar Pradesh', 'West Bengal'],
     totalQuestions: 30
   },
-  // DAY 08: Semi-Final Test (Comprehensive All-State Assessment)
+  // DAY 08: Semi-Final Test (Comprehensive All-State Assessment — 1 Question per State)
   {
     dayNumber: 8,
     title: 'Semi-Final Test',
@@ -111,9 +112,9 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
     displayDate: '16 November 2026',
     statusLabel: 'Scheduled',
     newStates: ALL_30_STATES,
-    totalQuestions: 55
+    totalQuestions: 30
   },
-  // DAY 09: Grand Test (Championship All-State Comprehensive Pool)
+  // DAY 09: Grand Test (Championship All-State Comprehensive Pool — 2 Questions per State)
   {
     dayNumber: 9,
     title: 'Grand Test',
@@ -121,7 +122,7 @@ export const DAILY_DAY_CONFIGS: DayConfig[] = [
     displayDate: '17 November 2026',
     statusLabel: 'Scheduled',
     newStates: ALL_30_STATES,
-    totalQuestions: 54
+    totalQuestions: 60
   }
 ];
 
@@ -166,17 +167,9 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
         const repo = getRepositoryForState(stateName);
         if (repo) {
           stateInfoList.push(repo.stateInfo);
-          const stateQuestions = repo.questions;
-          for (let i = 0; i < 5; i++) {
-            const rawQ = stateQuestions[i % stateQuestions.length];
-            questions.push({
-              ...rawQ,
-              id: `d1-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-q${i + 1}`,
-              section: 'new'
-            });
-          }
         }
       });
+      questions.push(...DAY_01_AUTHENTIC_QUESTIONS);
     } else if (dayNumber >= 2 && dayNumber <= 7) {
       // DAYS 02–07: Exactly 30 questions each
       // Part A: 20 questions from newly introduced states (4 states * 5 questions each)
@@ -224,34 +217,72 @@ export function buildCumulativeQuizzes(configs: DayConfig[] = DAILY_DAY_CONFIGS)
         if (!cumulativeStates.includes(s)) cumulativeStates.push(s);
       });
     } else if (dayNumber === 8) {
-      // DAY 08: first half of every ZIP-derived park question.
-      const fullPool = ALL_30_STATES.flatMap(stateName => {
+      // DAY 08: SEMI-FINAL — Exactly 30 questions (15 from first half, 15 from second half, all 30 states represented)
+      const firstHalfStates = ALL_30_STATES.slice(0, 15);
+      const secondHalfStates = ALL_30_STATES.slice(15, 30);
+
+      firstHalfStates.forEach((stateName, sIdx) => {
         const repo = getRepositoryForState(stateName);
-        if (!repo) return [];
-        return repo.stateInfo.parks.map((_, index) => ({ stateName, repo, index }));
-      });
-      const splitIndex = Math.ceil(fullPool.length / 2);
-      fullPool.slice(0, splitIndex).forEach(({ stateName, repo, index }, questionIndex) => {
-        const rawQ = repo.questions[index % repo.questions.length];
-        if (rawQ) {
-          questions.push({ ...rawQ, id: `semi-final-${questionIndex + 1}-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, section: 'previous' });
+        if (repo && repo.questions.length > 0) {
+          const rawQ = repo.questions[0];
+          questions.push({
+            ...rawQ,
+            id: `semi-final-h1-${sIdx + 1}-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+            section: 'previous',
+            order: questions.length + 1
+          });
+          if (!stateInfoList.some(info => info.stateName === stateName)) stateInfoList.push(repo.stateInfo);
         }
-        if (repo && !stateInfoList.some(info => info.stateName === stateName)) stateInfoList.push(repo.stateInfo);
+      });
+
+      secondHalfStates.forEach((stateName, sIdx) => {
+        const repo = getRepositoryForState(stateName);
+        if (repo && repo.questions.length > 0) {
+          const rawQ = repo.questions[0];
+          questions.push({
+            ...rawQ,
+            id: `semi-final-h2-${sIdx + 1}-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+            section: 'new',
+            order: questions.length + 1
+          });
+          if (!stateInfoList.some(info => info.stateName === stateName)) stateInfoList.push(repo.stateInfo);
+        }
       });
     } else if (dayNumber === 9) {
-      // DAY 09: remaining half of every ZIP-derived park question.
-      const fullPool = ALL_30_STATES.flatMap(stateName => {
+      // DAY 09: GRAND TEST — Exactly 60 questions (30 from first half, 30 from second half, all 30 states represented)
+      const firstHalfStates = ALL_30_STATES.slice(0, 15);
+      const secondHalfStates = ALL_30_STATES.slice(15, 30);
+
+      firstHalfStates.forEach((stateName, sIdx) => {
         const repo = getRepositoryForState(stateName);
-        if (!repo) return [];
-        return repo.stateInfo.parks.map((_, index) => ({ stateName, repo, index }));
-      });
-      const splitIndex = Math.ceil(fullPool.length / 2);
-      fullPool.slice(splitIndex).forEach(({ stateName, repo, index }, questionIndex) => {
-        const rawQ = repo.questions[index % repo.questions.length];
-        if (rawQ) {
-          questions.push({ ...rawQ, id: `grand-final-${questionIndex + 1}-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`, section: 'new' });
+        if (repo && repo.questions.length > 0) {
+          for (let q = 0; q < 2; q++) {
+            const rawQ = repo.questions[q % repo.questions.length];
+            questions.push({
+              ...rawQ,
+              id: `grand-final-h1-${sIdx + 1}-q${q + 1}-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+              section: 'previous',
+              order: questions.length + 1
+            });
+          }
+          if (!stateInfoList.some(info => info.stateName === stateName)) stateInfoList.push(repo.stateInfo);
         }
-        if (repo && !stateInfoList.some(info => info.stateName === stateName)) stateInfoList.push(repo.stateInfo);
+      });
+
+      secondHalfStates.forEach((stateName, sIdx) => {
+        const repo = getRepositoryForState(stateName);
+        if (repo && repo.questions.length > 0) {
+          for (let q = 0; q < 2; q++) {
+            const rawQ = repo.questions[q % repo.questions.length];
+            questions.push({
+              ...rawQ,
+              id: `grand-final-h2-${sIdx + 1}-q${q + 1}-${stateName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+              section: 'new',
+              order: questions.length + 1
+            });
+          }
+          if (!stateInfoList.some(info => info.stateName === stateName)) stateInfoList.push(repo.stateInfo);
+        }
       });
     }
 
@@ -307,4 +338,132 @@ export function getQuizForDay(identifier: number | string): DailyQuiz {
       (idStr === 'grand-final' && q.dayNumber === 9)
   );
   return found || ALL_SCHEDULED_QUIZZES[0];
+}
+
+/**
+ * Question Validation Engine (Phase 5)
+ * Strict validation enforcing daily quotas, 20/10 split, Semi-Final (30 Qs / 30 states),
+ * Grand Test (60 Qs / 30 states), options completeness, and answer key consistency.
+ */
+export function validateQuizForPublishing(
+  quiz: DailyQuiz,
+  questionsToValidate?: QuizQuestion[]
+): QuizValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  const questions = questionsToValidate || quiz.questions;
+  const dayNumber = quiz.dayNumber;
+
+  // 1. Check question count
+  const expectedCount = dayNumber <= 7 ? 30 : dayNumber === 8 ? 30 : 60;
+  if (questions.length !== expectedCount) {
+    errors.push(`Quiz "${quiz.title}" requires exactly ${expectedCount} questions, but has ${questions.length}.`);
+  }
+
+  // 2. New vs Revision allocation
+  let newCount = 0;
+  let revCount = 0;
+  const statesInQuiz = new Set<string>();
+  const seenIds = new Set<string>();
+  const seenQuestionTexts = new Set<string>();
+
+  questions.forEach((q, idx) => {
+    const qNum = idx + 1;
+
+    // Check duplicate ID
+    if (seenIds.has(q.id)) {
+      errors.push(`Question #${qNum} has duplicate ID "${q.id}".`);
+    } else {
+      seenIds.add(q.id);
+    }
+
+    // Check duplicate question text
+    const normalizedText = (q.question || '').trim().toLowerCase();
+    if (normalizedText.length > 0) {
+      if (seenQuestionTexts.has(normalizedText)) {
+        if (dayNumber > 1) {
+          errors.push(`Question #${qNum} has duplicate question text: "${q.question.substring(0, 45)}...".`);
+        } else {
+          warnings.push(`Day 01 historical question #${qNum} has duplicate question text: "${q.question.substring(0, 45)}...".`);
+        }
+      } else {
+        seenQuestionTexts.add(normalizedText);
+      }
+    } else {
+      errors.push(`Question #${qNum} has empty question text.`);
+    }
+
+    // Check options
+    if (!Array.isArray(q.options) || q.options.length !== 4) {
+      errors.push(`Question #${qNum} must have exactly 4 options.`);
+    } else {
+      const optionTexts = q.options.map(o => (o || '').trim());
+      if (optionTexts.some(o => o.length === 0)) {
+        errors.push(`Question #${qNum} contains empty option text.`);
+      }
+      const uniqueOptions = new Set(optionTexts.map(o => o.toLowerCase()));
+      if (uniqueOptions.size !== 4) {
+        errors.push(`Question #${qNum} has duplicate options: ${q.options.join(', ')}.`);
+      }
+    }
+
+    // Check correct answer
+    if (typeof q.correctAnswer !== 'number' || q.correctAnswer < 0 || q.correctAnswer > 3) {
+      errors.push(`Question #${qNum} has invalid correct answer index "${q.correctAnswer}" (must be 0, 1, 2, or 3).`);
+    }
+
+    // Check explanation
+    if (!q.explanation || q.explanation.trim().length === 0) {
+      errors.push(`Question #${qNum} is missing an explanation.`);
+    }
+
+    // Check state & park association
+    if (!q.state || !ALL_30_STATES.includes(q.state)) {
+      errors.push(`Question #${qNum} has invalid state "${q.state}". Must be one of the 30 recognized States/UTs.`);
+    } else {
+      statesInQuiz.add(q.state);
+      const repo = getRepositoryForState(q.state);
+      if (repo && q.parkName) {
+        const parkExists = repo.stateInfo.parks.some(p => p.name.toLowerCase() === q.parkName.toLowerCase());
+        if (!parkExists) {
+          warnings.push(`Question #${qNum} park "${q.parkName}" is not listed in repository for state "${q.state}".`);
+        }
+      }
+    }
+
+    if (q.section === 'new') {
+      newCount++;
+    } else {
+      revCount++;
+    }
+  });
+
+  // Specific Day allocations
+  if (dayNumber >= 2 && dayNumber <= 7) {
+    if (newCount !== 20 || revCount !== 10) {
+      errors.push(`Day 0${dayNumber} must contain exactly 20 new-state questions and 10 revision questions (found ${newCount} new, ${revCount} revision).`);
+    }
+  } else if (dayNumber === 8) {
+    // Semi-Final: all 30 states represented
+    if (statesInQuiz.size < 30) {
+      errors.push(`Semi-Final Test must represent all 30 states/UTs (found ${statesInQuiz.size}/30).`);
+    }
+  } else if (dayNumber === 9) {
+    // Grand Test: all 30 states represented
+    if (statesInQuiz.size < 30) {
+      errors.push(`Grand Test must represent all 30 states/UTs (found ${statesInQuiz.size}/30).`);
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    warnings,
+    stats: {
+      totalQuestions: questions.length,
+      newQuestions: newCount,
+      revisionQuestions: revCount,
+      statesCoveredCount: statesInQuiz.size
+    }
+  };
 }

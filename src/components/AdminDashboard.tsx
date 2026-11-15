@@ -37,11 +37,15 @@ import {
   ChevronDown,
   ChevronUp,
   FileCheck,
-  X
+  X,
+  Plus,
+  Save,
+  UploadCloud,
+  Edit3
 } from 'lucide-react';
 import { DEFAULT_SANJU_WHATSAPP_NUMBER, formatWhatsAppMessage, getWhatsAppShareUrl } from '../utils/whatsapp';
 import { generateAnswerSheetPDF } from '../utils/pdfGenerator';
-import type { QuizAttempt, RetakeRequest, UserProfile, InboxNotification } from '../types/quiz';
+import type { QuizAttempt, RetakeRequest, UserProfile, InboxNotification, QuizQuestion } from '../types/quiz';
 import {
   getAllAttempts,
   getCompletedDayIds,
@@ -67,7 +71,8 @@ import {
   isDayUnlocked
 } from '../utils/schedule';
 import {
-  getQuizForDay
+  getQuizForDay,
+  validateQuizForPublishing
 } from '../data/quizzes';
 import {
   loadAllStudentsProgressCloud,
@@ -75,6 +80,8 @@ import {
   saveAdminScheduleOverrideCloud,
   logAdminActionCloud,
   loadAdminAuditLogsCloud,
+  publishQuizCloud,
+  saveQuizDraftCloud,
   type AdminAuditLogEntry
 } from '../utils/supabase';
 import { Sidebar, type AdminNavTab } from './Sidebar';
@@ -139,6 +146,120 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [resetConfirmQuizId, setResetConfirmQuizId] = useState<string | null>(null);
   const [showFullResetModal, setShowFullResetModal] = useState<boolean>(false);
   const [fullResetConfirmText, setFullResetConfirmText] = useState<string>('');
+
+  // Question Publishing Studio State
+  const [studioSubTab, setStudioSubTab] = useState<'schedule' | 'studio'>('schedule');
+  const [editingQuizId, setEditingQuizId] = useState<string>('day-01');
+  const [workingQuestions, setWorkingQuestions] = useState<QuizQuestion[]>(() => {
+    return getQuizForDay('day-01').questions;
+  });
+  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number>(0);
+  const [publishingLoading, setPublishingLoading] = useState<boolean>(false);
+  const [publishingMessage, setPublishingMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const editingQuiz = useMemo(() => getQuizForDay(editingQuizId), [editingQuizId]);
+  const validationResult = useMemo(() => {
+    return validateQuizForPublishing(editingQuiz, workingQuestions);
+  }, [editingQuiz, workingQuestions]);
+
+  const handleSelectQuizForEditing = (quizId: string) => {
+    setEditingQuizId(quizId);
+    const target = getQuizForDay(quizId);
+    setWorkingQuestions([...target.questions]);
+    setSelectedQuestionIndex(0);
+    setPublishingMessage(null);
+  };
+
+  const handleUpdateQuestion = (index: number, field: keyof QuizQuestion, value: unknown) => {
+    setWorkingQuestions(prev => {
+      const copy = [...prev];
+      copy[index] = { ...copy[index], [field]: value };
+      return copy;
+    });
+  };
+
+  const handleUpdateOption = (qIndex: number, optIndex: number, text: string) => {
+    setWorkingQuestions(prev => {
+      const copy = [...prev];
+      const newOpts = [...copy[qIndex].options] as [string, string, string, string];
+      newOpts[optIndex] = text;
+      copy[qIndex] = { ...copy[qIndex], options: newOpts };
+      return copy;
+    });
+  };
+
+  const handleAddQuestion = () => {
+    const newQ: QuizQuestion = {
+      id: `${editingQuizId}-q${workingQuestions.length + 1}`,
+      section: 'new',
+      state: editingQuiz.newStatesIntroduced[0] || 'Madhya Pradesh',
+      parkName: '',
+      question: 'New question text...',
+      options: ['Option A', 'Option B', 'Option C', 'Option D'],
+      correctAnswer: 0,
+      difficulty: 'easy',
+      explanation: 'Detailed factual explanation of the national park.',
+      status: 'draft'
+    };
+    setWorkingQuestions(prev => [...prev, newQ]);
+    setSelectedQuestionIndex(workingQuestions.length);
+  };
+
+  const handleDeleteQuestion = (index: number) => {
+    if (editingQuizId === 'day-01') {
+      alert('Day 01 is the authentic master historical curriculum (30/30) and cannot be deleted.');
+      return;
+    }
+    setWorkingQuestions(prev => prev.filter((_, i) => i !== index));
+    if (selectedQuestionIndex >= index && selectedQuestionIndex > 0) {
+      setSelectedQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    setPublishingLoading(true);
+    setPublishingMessage(null);
+    try {
+      await saveQuizDraftCloud(editingQuiz, workingQuestions);
+      setPublishingMessage({
+        type: 'success',
+        text: `Draft for "${editingQuiz.title}" saved to cloud with ${workingQuestions.length} questions.`
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setPublishingMessage({
+        type: 'error',
+        text: `Failed to save draft: ${msg}`
+      });
+    } finally {
+      setPublishingLoading(false);
+    }
+  };
+
+  const handlePublishToCloud = async () => {
+    if (!validationResult.isValid) {
+      alert('Cannot publish: quiz has validation errors. Please resolve all errors before publishing.');
+      return;
+    }
+    setPublishingLoading(true);
+    setPublishingMessage(null);
+    try {
+      const res = await publishQuizCloud(editingQuiz, workingQuestions, adminProfile.email);
+      setPublishingMessage({
+        type: 'success',
+        text: res.message
+      });
+      await logAdminActionCloud('publish_quiz', editingQuiz.id, { questions: workingQuestions.length });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setPublishingMessage({
+        type: 'error',
+        text: `Publishing failed: ${msg}`
+      });
+    } finally {
+      setPublishingLoading(false);
+    }
+  };
 
   // Reload local & cloud data safely
   const refreshAllData = async () => {
@@ -1549,6 +1670,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <td className="py-3 px-3">
                                 <span className="font-bold text-white">{quiz.title}</span>
                                 <span className="block text-[10px] text-slate-400">{att.quizId.toUpperCase()}</span>
+                                {att.percentage === 100 && att.totalQuestions === 30 && (
+                                  <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[10px] font-black uppercase inline-flex items-center gap-1 mt-1">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Authentic Master (100% • 30/30)
+                                  </span>
+                                )}
+                                {att.totalQuestions > 30 && att.marksObtained === 0 && (
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-950/80 text-amber-300 border border-amber-800 text-[10px] font-medium inline-flex items-center gap-1 mt-1">
+                                    ⚠️ Retake Record (0/{att.totalQuestions})
+                                  </span>
+                                )}
                               </td>
                               <td className="py-3 px-3 text-slate-300">
                                 {att.formattedDate || quiz.displayDate}
@@ -1821,6 +1952,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <td className="py-3 px-3">
                                 <span className="font-bold text-white">{quiz.title}</span>
                                 <span className="block text-[10px] text-slate-400">{att.quizId.toUpperCase()}</span>
+                                {att.percentage === 100 && att.totalQuestions === 30 && (
+                                  <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[10px] font-black uppercase inline-flex items-center gap-1 mt-1">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Authentic Master (100% • 30/30)
+                                  </span>
+                                )}
+                                {att.totalQuestions > 30 && att.marksObtained === 0 && (
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-950/80 text-amber-300 border border-amber-800 text-[10px] font-medium inline-flex items-center gap-1 mt-1">
+                                    ⚠️ Retake Record (0/{att.totalQuestions})
+                                  </span>
+                                )}
                               </td>
                               <td className="py-3 px-3 text-slate-300">
                                 {att.formattedDate || quiz.displayDate}
@@ -2342,145 +2483,500 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div>
                   <h2 className="text-xl font-black text-white flex items-center gap-2">
                     <Calendar className="w-5 h-5 text-red-600" />
-                    Seven-Day Syllabus & Release Schedule
+                    Quiz Management & Curriculum Studio
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Day 01 published & completed. Days 02–07 scheduled. Admin can manually unlock or lock any day.
+                    Release schedules, live question publishing, and automated curriculum validation.
                   </p>
+                </div>
+
+                {/* Sub-navigation Switcher */}
+                <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-900 border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setStudioSubTab('schedule')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      studioSubTab === 'schedule'
+                        ? 'bg-red-800 text-white shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Schedules</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStudioSubTab('studio')}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      studioSubTab === 'studio'
+                        ? 'bg-red-800 text-white shadow-md'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Publishing Studio</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Day Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {DAILY_SCHEDULE.map(dayItem => {
-                  const quiz = getQuizForDay(dayItem.quizId);
-                  const isCompleted = completedDays.includes(dayItem.quizId);
-                  const unlocked = isDayUnlocked(dayItem.quizId);
+              {/* VIEW A: RELEASE SCHEDULE CARDS */}
+              {studioSubTab === 'schedule' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {DAILY_SCHEDULE.map(dayItem => {
+                    const quiz = getQuizForDay(dayItem.quizId);
+                    const isCompleted = completedDays.includes(dayItem.quizId);
+                    const unlocked = isDayUnlocked(dayItem.quizId);
 
-                  return (
-                    <div
-                      key={dayItem.quizId}
-                      className={`p-5 rounded-2xl border transition-all ${
-                        isCompleted
-                          ? 'bg-slate-900/90 border-red-700/40 shadow-lg shadow-red-950/20'
-                          : unlocked
-                          ? 'bg-slate-900/80 border-slate-700'
-                          : 'bg-slate-950 border-slate-800/80 opacity-90'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-white font-black text-xs">
-                              {dayItem.quizId.toUpperCase()}
+                    return (
+                      <div
+                        key={dayItem.quizId}
+                        className={`p-5 rounded-2xl border transition-all ${
+                          isCompleted
+                            ? 'bg-slate-900/90 border-red-700/40 shadow-lg shadow-red-950/20'
+                            : unlocked
+                            ? 'bg-slate-900/80 border-slate-700'
+                            : 'bg-slate-950 border-slate-800/80 opacity-90'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-white font-black text-xs">
+                                {dayItem.quizId.toUpperCase()}
+                              </span>
+                              <h3 className="text-sm font-bold text-white">{dayItem.title}</h3>
+                            </div>
+                            <span className="text-[11px] text-slate-400 block mt-1">
+                              Scheduled Date: <strong className="text-slate-300">{dayItem.displayDate}</strong>
                             </span>
-                            <h3 className="text-sm font-bold text-white">{dayItem.title}</h3>
                           </div>
-                          <span className="text-[11px] text-slate-400 block mt-1">
-                            Scheduled Date: <strong className="text-slate-300">{dayItem.displayDate}</strong>
+
+                          {/* Status Badge */}
+                          <div>
+                            {isCompleted ? (
+                              <span className="px-2.5 py-1 rounded-full bg-red-700/10 text-red-600 border border-red-700/30 text-[10px] font-black uppercase flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> Completed
+                              </span>
+                            ) : unlocked ? (
+                              <span className="px-2.5 py-1 rounded-full bg-red-600/10 text-red-500 border border-red-600/30 text-[10px] font-black uppercase flex items-center gap-1">
+                                <Unlock className="w-3 h-3" /> Unlocked
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase flex items-center gap-1">
+                                <Lock className="w-3 h-3" /> Locked
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* States & Parks */}
+                        <div className="space-y-2 mb-4">
+                          <div className="text-[11px] text-slate-400">
+                            States ({dayItem.states.length}):
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {dayItem.states.map(st => (
+                              <span
+                                key={st}
+                                className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-semibold border border-slate-700/60"
+                              >
+                                {st}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="text-[11px] text-slate-400 pt-1 flex justify-between">
+                            <span>Question Pool: <strong className="text-white">{quiz.questions.length} Questions</strong></span>
+                            <span>Coverage: <strong className="text-red-600">{dayItem.totalQuestions} Questions</strong></span>
+                          </div>
+                        </div>
+
+                        {/* Controls Footer */}
+                        <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            {onPreviewDayQuiz && (
+                              <button
+                                type="button"
+                                onClick={() => onPreviewDayQuiz(dayItem.quizId)}
+                                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Preview</span>
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSelectQuizForEditing(dayItem.quizId);
+                                setStudioSubTab('studio');
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1"
+                              title="Edit questions in studio"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Edit Studio</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMarkCompletedModalDay(dayItem.dayNumber);
+                                setManualScore(dayItem.totalQuestions);
+                                setManualMaxMarks(dayItem.totalQuestions);
+                              }}
+                              className="px-2.5 py-1.5 rounded-xl bg-red-950/80 text-red-400 border border-red-900 hover:bg-red-950 text-xs font-bold transition-all flex items-center gap-1"
+                              title="Manually record this day as completed for Mahi"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Mark Done</span>
+                            </button>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {isCompleted && (
+                              <button
+                                type="button"
+                                onClick={() => setResetConfirmQuizId(dayItem.quizId)}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-950/80 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1"
+                                title="Reset this day's progress only"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                <span>Reset Day</span>
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleDayLock(dayItem.quizId, unlocked)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                                unlocked
+                                  ? 'bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900'
+                                  : 'bg-red-800 hover:bg-red-700 text-white shadow-sm'
+                              }`}
+                            >
+                              {unlocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                              <span>{unlocked ? 'Lock Day' : 'Unlock Now'}</span>
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* VIEW B: LIVE QUESTION PUBLISHING STUDIO */}
+              {studioSubTab === 'studio' && (
+                <div className="space-y-6">
+
+                  {/* Module Selector Carousel Tabs */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                    {DAILY_SCHEDULE.map(dayItem => {
+                      const isSelected = editingQuizId === dayItem.quizId;
+                      return (
+                        <button
+                          key={dayItem.quizId}
+                          type="button"
+                          onClick={() => handleSelectQuizForEditing(dayItem.quizId)}
+                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 shrink-0 border ${
+                            isSelected
+                              ? 'bg-red-800 border-red-600 text-white shadow-lg shadow-red-950/50'
+                              : 'bg-slate-900/90 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                          }`}
+                        >
+                          <span>{dayItem.quizId.toUpperCase()}: {dayItem.title}</span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-black/40 text-[10px]">
+                            {dayItem.totalQuestions} Qs
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Publishing Status Feedback Banner */}
+                  {publishingMessage && (
+                    <div className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
+                      publishingMessage.type === 'success'
+                        ? 'bg-emerald-950/80 border-emerald-800 text-emerald-200'
+                        : 'bg-rose-950/80 border-rose-800 text-rose-200'
+                    }`}>
+                      <div className="flex items-center gap-2 text-xs font-bold">
+                        {publishingMessage.type === 'success' ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4 text-rose-400" />
+                        )}
+                        <span>{publishingMessage.text}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPublishingMessage(null)}
+                        className="text-xs opacity-70 hover:opacity-100"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Top Action & Validation Header */}
+                  <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2.5">
+                          <span className="px-2.5 py-0.5 rounded-lg bg-red-950 text-red-300 border border-red-800 text-xs font-bold">
+                            {editingQuiz.id.toUpperCase()}
+                          </span>
+                          <h3 className="text-lg font-black text-white">{editingQuiz.title}</h3>
+                          <span className="text-xs text-slate-400">
+                            Version {editingQuiz.version || 1} • {editingQuiz.displayDate}
                           </span>
                         </div>
-
-                        {/* Status Badge */}
-                        <div>
-                          {isCompleted ? (
-                            <span className="px-2.5 py-1 rounded-full bg-red-700/10 text-red-600 border border-red-700/30 text-[10px] font-black uppercase flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> Completed
-                            </span>
-                          ) : unlocked ? (
-                            <span className="px-2.5 py-1 rounded-full bg-red-600/10 text-red-500 border border-red-600/30 text-[10px] font-black uppercase flex items-center gap-1">
-                              <Unlock className="w-3 h-3" /> Unlocked
-                            </span>
-                          ) : (
-                            <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase flex items-center gap-1">
-                              <Lock className="w-3 h-3" /> Locked
-                            </span>
-                          )}
-                        </div>
+                        <p className="text-xs text-slate-400 mt-1">
+                          States Covered: <strong className="text-slate-200">{editingQuiz.statesCovered.join(', ')}</strong>
+                        </p>
                       </div>
 
-                      {/* States & Parks */}
-                      <div className="space-y-2 mb-4">
-                        <div className="text-[11px] text-slate-400">
-                          States ({dayItem.states.length}):
-                        </div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {dayItem.states.map(st => (
-                            <span
-                              key={st}
-                              className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-semibold border border-slate-700/60"
-                            >
-                              {st}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="text-[11px] text-slate-400 pt-1 flex justify-between">
-                          <span>Question Pool: <strong className="text-white">{quiz.questions.length} Questions</strong></span>
-                          <span>Coverage: <strong className="text-red-600">{dayItem.totalQuestions} Questions</strong></span>
-                        </div>
+                      {/* Studio Action Buttons */}
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={handleSaveDraft}
+                          disabled={publishingLoading}
+                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-700 active:scale-95 disabled:opacity-50"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          <span>Save Draft</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handlePublishToCloud}
+                          disabled={publishingLoading || !validationResult.isValid}
+                          className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-800 to-red-700 hover:from-red-700 hover:to-red-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-red-950/40 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <UploadCloud className="w-3.5 h-3.5" />
+                          <span>{publishingLoading ? 'Publishing...' : 'Publish to Production Cloud'}</span>
+                        </button>
                       </div>
-
-                      {/* Controls Footer */}
-                      <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
-                          {onPreviewDayQuiz && (
-                            <button
-                              type="button"
-                              onClick={() => onPreviewDayQuiz(dayItem.quizId)}
-                              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                              <span>Preview</span>
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setMarkCompletedModalDay(dayItem.dayNumber);
-                              setManualScore(dayItem.totalQuestions);
-                              setManualMaxMarks(dayItem.totalQuestions);
-                            }}
-                            className="px-2.5 py-1.5 rounded-xl bg-red-950/80 text-red-400 border border-red-900 hover:bg-red-950 text-xs font-bold transition-all flex items-center gap-1"
-                            title="Manually record this day as completed for Mahi"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Mark Completed</span>
-                          </button>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {isCompleted && (
-                            <button
-                              type="button"
-                              onClick={() => setResetConfirmQuizId(dayItem.quizId)}
-                              className="px-2.5 py-1.5 rounded-xl bg-rose-950/80 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1"
-                              title="Reset this day's progress only"
-                            >
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Reset Day</span>
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            onClick={() => handleToggleDayLock(dayItem.quizId, unlocked)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                              unlocked
-                                ? 'bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900'
-                                : 'bg-red-800 hover:bg-red-700 text-white shadow-sm'
-                            }`}
-                          >
-                            {unlocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                            <span>{unlocked ? 'Lock Day' : 'Unlock Now'}</span>
-                          </button>
-                        </div>
-                      </div>
-
                     </div>
-                  );
-                })}
-              </div>
+
+                    {/* Question Validation Engine Results Banner */}
+                    <div>
+                      {validationResult.isValid ? (
+                        <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-800 text-emerald-300 text-xs font-bold flex items-center gap-2.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span>Question Validation Engine: PASSED (Exact {workingQuestions.length} Questions, Valid Options, Keys & Zero Duplicates)</span>
+                        </div>
+                      ) : (
+                        <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-bold space-y-1.5">
+                          <div className="flex items-center gap-2 text-rose-200">
+                            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                            <span>Question Validation Engine: {validationResult.errors.length} Issue(s) Must Be Fixed Before Publishing</span>
+                          </div>
+                          <ul className="list-disc pl-6 text-[11px] font-normal text-rose-300/90 space-y-0.5">
+                            {validationResult.errors.map((err, i) => (
+                              <li key={i}>{err}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Two-Column Question Studio Workspace */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+                    {/* Left: Question Pool Navigator (4 cols) */}
+                    <div className="lg:col-span-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                          Question Pool ({workingQuestions.length})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleAddQuestion}
+                          className="px-2.5 py-1 rounded-lg bg-red-950 text-red-300 border border-red-800 hover:bg-red-900 text-xs font-bold flex items-center gap-1 transition-all"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Question</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5 max-h-[620px] overflow-y-auto pr-1">
+                        {workingQuestions.map((q, qIdx) => {
+                          const isSelected = selectedQuestionIndex === qIdx;
+                          return (
+                            <button
+                              key={q.id || qIdx}
+                              type="button"
+                              onClick={() => setSelectedQuestionIndex(qIdx)}
+                              className={`w-full p-2.5 rounded-xl text-left transition-all border flex items-start gap-2.5 ${
+                                isSelected
+                                  ? 'bg-red-950/80 border-red-700 text-white shadow-sm'
+                                  : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700'
+                              }`}
+                            >
+                              <span className="w-6 h-6 rounded-lg bg-slate-800 text-white text-[11px] font-black flex items-center justify-center shrink-0">
+                                {qIdx + 1}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-800 text-slate-300 truncate max-w-[120px]">
+                                    {q.state}
+                                  </span>
+                                  {q.section && (
+                                    <span className="text-[9px] text-slate-500 uppercase font-semibold">
+                                      {q.section}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs font-medium truncate text-slate-200">
+                                  {q.question || 'Empty question text...'}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Right: Active Question Editor (8 cols) */}
+                    <div className="lg:col-span-8 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                      {workingQuestions[selectedQuestionIndex] ? (
+                        <>
+                          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                            <div>
+                              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                                <span>Question #{selectedQuestionIndex + 1} Editor</span>
+                                <span className="text-xs text-slate-500 font-mono">
+                                  ({workingQuestions[selectedQuestionIndex].id})
+                                </span>
+                              </h4>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteQuestion(selectedQuestionIndex)}
+                              className="px-2.5 py-1 rounded-lg bg-rose-950/80 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Delete Question</span>
+                            </button>
+                          </div>
+
+                          {/* Meta: State & Park Name */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                                State / Union Territory
+                              </label>
+                              <input
+                                type="text"
+                                value={workingQuestions[selectedQuestionIndex].state || ''}
+                                onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'state', e.target.value)}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-red-600"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                                National Park Name
+                              </label>
+                              <input
+                                type="text"
+                                value={workingQuestions[selectedQuestionIndex].parkName || ''}
+                                onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'parkName', e.target.value)}
+                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-red-600"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Question Text */}
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                              Question Text
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={workingQuestions[selectedQuestionIndex].question || ''}
+                              onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'question', e.target.value)}
+                              placeholder="Enter the question text..."
+                              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-600 leading-relaxed"
+                            />
+                          </div>
+
+                          {/* Options Grid (4 options with radio selection) */}
+                          <div className="space-y-2">
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                              Answer Options (Click radio button to mark correct answer)
+                            </label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                              {workingQuestions[selectedQuestionIndex].options.map((optText, optIdx) => {
+                                const isCorrect = workingQuestions[selectedQuestionIndex].correctAnswer === optIdx;
+                                return (
+                                  <div
+                                    key={optIdx}
+                                    className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
+                                      isCorrect
+                                        ? 'bg-emerald-950/40 border-emerald-600 shadow-xs'
+                                        : 'bg-slate-950 border-slate-800'
+                                    }`}
+                                  >
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdateQuestion(selectedQuestionIndex, 'correctAnswer', optIdx)}
+                                      className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                        isCorrect
+                                          ? 'bg-emerald-600 border-emerald-500 text-white font-black text-xs'
+                                          : 'border-slate-700 hover:border-slate-500 text-slate-400 text-xs'
+                                      }`}
+                                    >
+                                      {String.fromCharCode(65 + optIdx)}
+                                    </button>
+                                    <input
+                                      type="text"
+                                      value={optText || ''}
+                                      onChange={e => handleUpdateOption(selectedQuestionIndex, optIdx, e.target.value)}
+                                      className="flex-1 bg-transparent text-xs text-white focus:outline-none"
+                                      placeholder={`Option ${String.fromCharCode(65 + optIdx)} text...`}
+                                    />
+                                    {isCorrect && (
+                                      <span className="text-[10px] font-bold uppercase text-emerald-400 shrink-0">
+                                        Correct
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Explanation */}
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                              Explanation / Did You Know Fact
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={workingQuestions[selectedQuestionIndex].explanation || ''}
+                              onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'explanation', e.target.value)}
+                              placeholder="Factual explanation supporting the correct answer..."
+                              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-600 leading-relaxed"
+                            />
+                          </div>
+
+                        </>
+                      ) : (
+                        <div className="p-8 text-center text-slate-500 text-xs">
+                          No question selected.
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+                </div>
+              )}
 
             </div>
           )}
@@ -2559,6 +3055,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <td className="py-3 px-3">
                               <span className="font-bold text-slate-200">{quiz.title}</span>
                               <span className="block text-[10px] text-slate-400">{att.quizId.toUpperCase()}</span>
+                              {att.percentage === 100 && att.totalQuestions === 30 && (
+                                <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[10px] font-black uppercase inline-flex items-center gap-1 mt-1">
+                                  <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Authentic Master (100% • 30/30)
+                                </span>
+                              )}
+                              {att.totalQuestions > 30 && att.marksObtained === 0 && (
+                                <span className="px-2 py-0.5 rounded-md bg-amber-950/80 text-amber-300 border border-amber-800 text-[10px] font-medium inline-flex items-center gap-1 mt-1">
+                                  ⚠️ Retake Record (0/{att.totalQuestions})
+                                </span>
+                              )}
                             </td>
                             <td className="py-3 px-3 text-slate-300">
                               {att.formattedDate || quiz.displayDate}

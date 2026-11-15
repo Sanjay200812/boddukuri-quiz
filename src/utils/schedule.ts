@@ -29,47 +29,8 @@ export interface DaySchedule {
   isSpecialTest?: boolean;
 }
 
-export const ALL_30_STATES: string[] = [
-  // Day 01: Foundational 6 States (35 parks)
-  'Madhya Pradesh',
-  'Andhra Pradesh',
-  'Telangana',
-  'Kerala',
-  'Assam',
-  'Karnataka',
-  // Day 02: Islands & Small States (13 parks)
-  'Andaman and Nicobar Islands',
-  'Arunachal Pradesh',
-  'Bihar',
-  'Goa',
-  // Day 03: Central & Western India (13 parks)
-  'Chhattisgarh',
-  'Gujarat',
-  'Haryana',
-  'Jammu and Kashmir',
-  // Day 04: Northern Highlands (12 parks)
-  'Himachal Pradesh',
-  'Jharkhand',
-  'Ladakh',
-  'Rajasthan',
-  // Day 05: Western & Northeastern India (11 parks)
-  'Maharashtra',
-  'Manipur',
-  'Meghalaya',
-  'Nagaland',
-  // Day 06: Northeast & Southern Highlands (12 parks)
-  'Mizoram',
-  'Odisha',
-  'Tripura',
-  'Uttarakhand',
-  // Day 07: Final States (13 parks)
-  'Sikkim',
-  'Tamil Nadu',
-  'Uttar Pradesh',
-  'West Bengal'
-];
-
-export const ALL_28_STATES: string[] = ALL_30_STATES;
+import { ALL_30_STATES, ALL_28_STATES } from '../data/states.ts';
+export { ALL_30_STATES, ALL_28_STATES };
 
 export const DAILY_SCHEDULE: DaySchedule[] = [
   // DAY 01: Foundational 6 States (Published & Available Today: 09 November 2026)
@@ -201,13 +162,13 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 8,
     quizId: 'semi-final',
     title: 'Semi-Final Test',
-    theme: 'Championship Semi-Final (First Half of 109 National Parks — 55 Questions)',
+    theme: 'Comprehensive All-State Assessment (30 States — 15 First Half + 15 Second Half — 30 Questions)',
     dateStr: '16-11-2026',
     displayDate: '16 November 2026',
     unlockIsoUTC: '2026-11-16T14:59:00Z',
     states: ALL_30_STATES,
     newStates: ALL_30_STATES,
-    totalQuestions: 55,
+    totalQuestions: 30,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true
@@ -216,13 +177,13 @@ export const DAILY_SCHEDULE: DaySchedule[] = [
     dayNumber: 9,
     quizId: 'grand-final',
     title: 'Grand Test',
-    theme: 'Championship Grand Final (Remaining Half of 109 National Parks — 54 Questions)',
+    theme: 'Championship Grand Final Test (30 States — 30 First Half + 30 Second Half — 60 Questions)',
     dateStr: '17-11-2026',
     displayDate: '17 November 2026',
     unlockIsoUTC: '2026-11-17T14:59:00Z',
     states: ALL_30_STATES,
     newStates: ALL_30_STATES,
-    totalQuestions: 54,
+    totalQuestions: 60,
     isPublished: false,
     statusLabel: 'Locked',
     isSpecialTest: true

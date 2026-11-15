@@ -122,6 +122,16 @@ export const MyAttempts: React.FC<MyAttemptsProps> = ({
                         </span>
                       )}
                     </span>
+                    {att.percentage === 100 && att.totalQuestions === 30 && (
+                      <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold inline-flex items-center gap-1">
+                        🏆 Authentic Master Record (100% • 30/30)
+                      </span>
+                    )}
+                    {att.totalQuestions > 30 && att.marksObtained === 0 && (
+                      <span className="px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-medium">
+                        Retake Record (0/{att.totalQuestions})
+                      </span>
+                    )}
                     <span className="text-xs font-semibold text-white">
                       Student: <strong>{att.studentName || 'Mahi'}</strong>
                     </span>

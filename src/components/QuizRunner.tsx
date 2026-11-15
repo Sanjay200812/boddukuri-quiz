@@ -299,6 +299,8 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       studentEmail: 'mahi@boddukuri.quiz',
       status: 'completed',
       quizId: quiz.id,
+      quizVersion: quiz.version || 1,
+      questionsSnapshot: JSON.parse(JSON.stringify(questions)),
       dayNumber: quiz.dayNumber,
       statesCovered: quiz.statesCovered,
       timestamp: new Date().toISOString(),

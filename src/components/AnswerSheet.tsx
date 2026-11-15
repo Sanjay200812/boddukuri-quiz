@@ -39,7 +39,9 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
   const [sectionFilter, setSectionFilter] = useState<'all' | 'previous' | 'new'>('all');
   const [bookmarksList, setBookmarksList] = useState<string[]>(() => getBookmarks());
 
-  const questions = quiz.questions;
+  const questions = (attempt.questionsSnapshot && attempt.questionsSnapshot.length > 0)
+    ? attempt.questionsSnapshot
+    : quiz.questions;
 
   const handleToggle = (qId: string) => {
     toggleBookmark(qId);
