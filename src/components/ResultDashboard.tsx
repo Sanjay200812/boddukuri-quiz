@@ -148,7 +148,7 @@ export const ResultDashboard: React.FC<ResultDashboardProps> = ({
         <div className="relative z-10 max-w-2xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-rose-200 text-xs sm:text-sm font-semibold">
             <Sparkles className="w-4 h-4 text-rose-300" />
-            <span>Boddukuri's Quiz #Mahi</span>
+            <span>Quiz by Spideyy</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">

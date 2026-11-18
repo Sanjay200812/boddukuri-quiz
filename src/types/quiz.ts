@@ -198,10 +198,12 @@ export interface InboxNotification {
   id: string;
   userId?: string;
   targetRole: 'admin' | 'student';
-  type: 'submission' | 'achievement' | 'retake' | 'system';
+  type: 'submission' | 'achievement' | 'retake' | 'system' | 'topic_quiz';
   title: string;
   message: string;
   quizId?: string;
+  topicId?: string;
+  subtopicId?: string;
   attemptId?: string;
   dayNumber?: number;
   studentName?: string;
@@ -212,4 +214,119 @@ export interface InboxNotification {
   isRead?: boolean;
   createdAt: string;
   readAt?: string;
+}
+
+// ==============================================================================
+// TOPIC-BASED LEARNING WORKSPACE INTERFACES (QUIZ BY SPIDEEYY)
+// ==============================================================================
+
+export type TopicCategory =
+  | 'static-gk'
+  | 'current-affairs'
+  | 'banking-awareness'
+  | 'central-ministers'
+  | 'ramsar-sites';
+
+export interface SubTopic {
+  id: string;
+  title: string;
+  description: string;
+  questionCount: number;
+}
+
+export interface Topic {
+  id: string;
+  title: string;
+  category: TopicCategory;
+  description: string;
+  icon: string;
+  subtopics: SubTopic[];
+  totalQuestions: number;
+  isPublished: boolean;
+  publishedAt?: string;
+}
+
+export interface TopicQuestion {
+  id: string;
+  topicId: string;
+  subtopicId: string;
+  question: string;
+  options: [string, string, string, string];
+  correctAnswer: number;
+  explanation: string;
+  difficulty: Difficulty;
+  source?: string;
+  lastVerifiedDate?: string;
+  status: 'published' | 'draft';
+  documentId?: string;
+}
+
+export interface StudentTopicProgress {
+  userId: string;
+  topicId: string;
+  subtopicId?: string;
+  attemptsCount: number;
+  bestScore: number;
+  maxMarks: number;
+  completed: boolean;
+  lastAttemptAt?: string;
+}
+
+// ==============================================================================
+// PDF UPLOAD & QUESTION GENERATION PIPELINE INTERFACES (FUTURE WORKFLOW)
+// ==============================================================================
+
+export type DocumentProcessingStatus =
+  | 'uploaded'
+  | 'processing'
+  | 'extracted'
+  | 'questions_generated'
+  | 'completed'
+  | 'failed';
+
+export interface UploadedDocument {
+  id: string;
+  title: string;
+  fileName: string;
+  fileSizeBytes: number;
+  topicId: string;
+  subtopicId?: string;
+  status: DocumentProcessingStatus;
+  extractedTextPreview?: string;
+  uploadedAt: string;
+  uploadedBy?: string;
+  generatedCount?: number;
+}
+
+export interface GeneratedQuestionDraft {
+  id: string;
+  documentId: string;
+  topicId: string;
+  subtopicId?: string;
+  question: string;
+  options: [string, string, string, string];
+  correctAnswer: number;
+  explanation: string;
+  difficulty?: Difficulty;
+  status: 'draft' | 'approved' | 'rejected' | 'published';
+  adminNotes?: string;
+  createdAt: string;
+}
+
+// ==============================================================================
+// MULTI-STUDENT WORKSPACE INTERFACES (MAHI & SHAILU)
+// ==============================================================================
+
+export interface ManagedStudent {
+  id: string;
+  fullName: 'Mahi' | 'Shailu' | string;
+  email: string;
+  status: 'active' | 'awaiting_onboarding';
+  accessCode?: string;
+  totalAttempts: number;
+  completedTopics: number;
+  avgScore: number;
+  lastActive?: string;
+  streaks: number;
+  topicBreakdown: Record<string, { attempts: number; bestScore: number; maxMarks: number }>;
 }

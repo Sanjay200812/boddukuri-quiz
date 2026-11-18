@@ -37,15 +37,11 @@ import {
   ChevronDown,
   ChevronUp,
   FileCheck,
-  X,
-  Plus,
-  Save,
-  UploadCloud,
-  Edit3
+  X
 } from 'lucide-react';
 import { DEFAULT_SANJU_WHATSAPP_NUMBER, formatWhatsAppMessage, getWhatsAppShareUrl } from '../utils/whatsapp';
 import { generateAnswerSheetPDF } from '../utils/pdfGenerator';
-import type { QuizAttempt, RetakeRequest, UserProfile, InboxNotification, QuizQuestion } from '../types/quiz';
+import type { QuizAttempt, RetakeRequest, UserProfile, InboxNotification } from '../types/quiz';
 import {
   updateRetakeRequestStatus,
   deleteAttemptById,
@@ -68,8 +64,7 @@ import {
   isDayUnlocked
 } from '../utils/schedule';
 import {
-  getQuizForDay,
-  validateQuizForPublishing
+  getQuizForDay
 } from '../data/quizzes';
 import {
   loadAllStudentsProgressCloud,
@@ -77,14 +72,15 @@ import {
   saveAdminScheduleOverrideCloud,
   logAdminActionCloud,
   loadAdminAuditLogsCloud,
-  publishQuizCloud,
-  saveQuizDraftCloud,
   adminResetStudentProgressCloud,
   loadRetakeRequestsCloud,
   type AdminAuditLogEntry
 } from '../utils/supabase';
 import { Sidebar, type AdminNavTab } from './Sidebar';
 import { Card3D } from './ui/Card3D';
+import { MultiStudentHub } from './admin/MultiStudentHub';
+import { PdfQuestionStudio } from './admin/PdfQuestionStudio';
+import { TopicsChampionshipManager } from './admin/TopicsChampionshipManager';
 
 interface AdminDashboardProps {
   adminProfile: UserProfile;
@@ -107,8 +103,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [notifications, setNotifications] = useState<InboxNotification[]>(() => getInboxNotifications('admin'));
   const [_auditLogs, setAuditLogs] = useState<AdminAuditLogEntry[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
-  const [cloudError, setCloudError] = useState<string | null>(null);
+  const [_lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [_cloudError, setCloudError] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Inspector modal state
@@ -149,117 +145,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [showFullResetModal, setShowFullResetModal] = useState<boolean>(false);
   const [fullResetConfirmText, setFullResetConfirmText] = useState<string>('');
 
-  // Question Publishing Studio State
-  const [studioSubTab, setStudioSubTab] = useState<'schedule' | 'studio'>('schedule');
-  const [editingQuizId, setEditingQuizId] = useState<string>('day-01');
-  const [workingQuestions, setWorkingQuestions] = useState<QuizQuestion[]>(() => {
-    return getQuizForDay('day-01').questions;
-  });
-  const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number>(0);
-  const [publishingLoading, setPublishingLoading] = useState<boolean>(false);
-  const [publishingMessage, setPublishingMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  const editingQuiz = useMemo(() => getQuizForDay(editingQuizId), [editingQuizId]);
-  const validationResult = useMemo(() => {
-    return validateQuizForPublishing(editingQuiz, workingQuestions);
-  }, [editingQuiz, workingQuestions]);
-
-  const handleSelectQuizForEditing = (quizId: string) => {
-    setEditingQuizId(quizId);
-    const target = getQuizForDay(quizId);
-    setWorkingQuestions([...target.questions]);
-    setSelectedQuestionIndex(0);
-    setPublishingMessage(null);
-  };
-
-  const handleUpdateQuestion = (index: number, field: keyof QuizQuestion, value: unknown) => {
-    setWorkingQuestions(prev => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: value };
-      return copy;
-    });
-  };
-
-  const handleUpdateOption = (qIndex: number, optIndex: number, text: string) => {
-    setWorkingQuestions(prev => {
-      const copy = [...prev];
-      const newOpts = [...copy[qIndex].options] as [string, string, string, string];
-      newOpts[optIndex] = text;
-      copy[qIndex] = { ...copy[qIndex], options: newOpts };
-      return copy;
-    });
-  };
-
-  const handleAddQuestion = () => {
-    const newQ: QuizQuestion = {
-      id: `${editingQuizId}-q${workingQuestions.length + 1}`,
-      section: 'new',
-      state: editingQuiz.newStatesIntroduced[0] || 'Madhya Pradesh',
-      parkName: '',
-      question: 'New question text...',
-      options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      correctAnswer: 0,
-      difficulty: 'easy',
-      explanation: 'Detailed factual explanation of the national park.',
-      status: 'draft'
-    };
-    setWorkingQuestions(prev => [...prev, newQ]);
-    setSelectedQuestionIndex(workingQuestions.length);
-  };
-
-  const handleDeleteQuestion = (index: number) => {
-    if (editingQuizId === 'day-01') {
-      alert('Day 01 is the authentic master historical curriculum (30/30) and cannot be deleted.');
-      return;
-    }
-    setWorkingQuestions(prev => prev.filter((_, i) => i !== index));
-    if (selectedQuestionIndex >= index && selectedQuestionIndex > 0) {
-      setSelectedQuestionIndex(prev => prev - 1);
-    }
-  };
-
-  const handleSaveDraft = async () => {
-    setPublishingLoading(true);
-    setPublishingMessage(null);
+  // Handler for isolated student progress reset
+  const handleResetStudent = async (studentId: string, studentName: string, quizId?: string) => {
     try {
-      await saveQuizDraftCloud(editingQuiz, workingQuestions);
-      setPublishingMessage({
-        type: 'success',
-        text: `Draft for "${editingQuiz.title}" saved to cloud with ${workingQuestions.length} questions.`
+      const res = await adminResetStudentProgressCloud(studentId, quizId);
+      await logAdminActionCloud('reset_student_progress', studentId, { studentName, quizId, resetVersion: res.resetVersion });
+      broadcastQuizEvent('progress_reset', {
+        quizId,
+        studentId,
+        message: `${studentName}'s progress was reset by Admin.`
       });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setPublishingMessage({
-        type: 'error',
-        text: `Failed to save draft: ${msg}`
-      });
-    } finally {
-      setPublishingLoading(false);
-    }
-  };
-
-  const handlePublishToCloud = async () => {
-    if (!validationResult.isValid) {
-      alert('Cannot publish: quiz has validation errors. Please resolve all errors before publishing.');
-      return;
-    }
-    setPublishingLoading(true);
-    setPublishingMessage(null);
-    try {
-      const res = await publishQuizCloud(editingQuiz, workingQuestions, adminProfile.email);
-      setPublishingMessage({
-        type: 'success',
-        text: res.message
-      });
-      await logAdminActionCloud('publish_quiz', editingQuiz.id, { questions: workingQuestions.length });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setPublishingMessage({
-        type: 'error',
-        text: `Publishing failed: ${msg}`
-      });
-    } finally {
-      setPublishingLoading(false);
+      await refreshAllData();
+      alert(`Success: ${studentName}'s progress has been safely reset.`);
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -277,14 +176,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setAuditLogs(logs);
       setRetakeRequests(retakes);
 
-      const mahiRecord = cloudStudents.find(s => s.userId === MAHI_STUDENT_ID);
-      if (mahiRecord && mahiRecord.payload) {
-        setAttempts(mahiRecord.payload.attempts || []);
-        setCompletedDays(mahiRecord.payload.completedDays || []);
-      } else {
-        setAttempts([]);
-        setCompletedDays([]);
-      }
+      let allCombinedAttempts: QuizAttempt[] = [];
+      let allCombinedCompletedDays: string[] = [];
+
+      cloudStudents.forEach(st => {
+        if (st.payload?.attempts) {
+          allCombinedAttempts = [...allCombinedAttempts, ...st.payload.attempts];
+        }
+        if (st.payload?.completedDays) {
+          allCombinedCompletedDays = Array.from(new Set([...allCombinedCompletedDays, ...st.payload.completedDays]));
+        }
+      });
+
+      // Deduplicate attempts
+      const uniqueAttemptsMap = new Map<string, QuizAttempt>();
+      allCombinedAttempts.forEach(a => {
+        uniqueAttemptsMap.set(a.id, a);
+      });
+      const uniqueAttempts = Array.from(uniqueAttemptsMap.values()).sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      setAttempts(uniqueAttempts);
+      setCompletedDays(allCombinedCompletedDays);
       setNotifications(getInboxNotifications('admin'));
       setLastSyncedAt(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     } catch (err: unknown) {
@@ -455,8 +369,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const status: 'correct' | 'incorrect' | 'unanswered' = isUnanswered
         ? 'unanswered'
         : isCorrect
-        ? 'correct'
-        : 'incorrect';
+          ? 'correct'
+          : 'incorrect';
 
       const optionLetters = ['A', 'B', 'C', 'D'];
       const selectedAnswerText = isUnanswered
@@ -745,7 +659,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <div>
                   <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-white flex items-center gap-2">
-                    Boddukuri's Quiz Portal
+                    Quiz by Spideyy Portal
                   </h1>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#2a0b16] text-[#ff8099] border border-[#52142a]">
                     Admin Panel
@@ -777,12 +691,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {/* Date Range Selector Pill matching Image 3 */}
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#14060d] border border-[#2b0c18] text-[#cbb5bc] text-xs font-semibold">
                 <Calendar className="w-3.5 h-3.5 text-[#ff3366]" />
-                <span>Nov 9, 2026 – Nov 17, 2026</span>
-                {lastSyncedAt && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded bg-[#2b0c18] text-[#ff8099] text-[10px] font-mono">
-                    Synced {lastSyncedAt}
-                  </span>
-                )}
+                <span>Nov 1, 2026 – Nov 11, 2026</span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#7a5b67]" />
               </div>
 
@@ -857,17 +766,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button onClick={() => setStatusMessage(null)} className="text-[#ff3366] hover:text-white">✕</button>
             </div>
           )}
-
-          {/* Cloud Error banner */}
-          {cloudError && (
-            <div className="mt-2 py-1.5 px-3 rounded-lg bg-red-950/80 border border-red-500/50 text-red-300 text-xs font-semibold flex items-center justify-between animate-fadeIn">
-              <span className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                {cloudError}
-              </span>
-              <button onClick={() => setCloudError(null)} className="text-red-400 hover:text-white">✕</button>
-            </div>
-          )}
         </header>
 
         {/* Tab Navigation Pill Bar (Secondary quick access) */}
@@ -891,11 +789,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id as AdminNavTab)}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#ff3366]/40'
-                    : 'text-[#a68690] hover:text-white hover:bg-[#1a0610]'
-                }`}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${isActive
+                  ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#ff3366]/40'
+                  : 'text-[#a68690] hover:text-white hover:bg-[#1a0610]'
+                  }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{t.label}</span>
@@ -939,7 +836,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="flex items-center justify-between text-rose-200 mb-2">
                       <span className="text-xs font-black uppercase tracking-wider">Total Students</span>
                       <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
-                        1 Active
+                        2 Scholars
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -950,7 +847,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         {enrolledStudentsCount}
                       </div>
                     </div>
-                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">Mahi (Enrolled Scholar)</p>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">Mahi & Shailu (Scholars)</p>
                   </div>
                 </Card3D>
 
@@ -971,7 +868,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         {totalCurriculumQuizzes}
                       </div>
                     </div>
-                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">7 Days + Semi-Final + Grand Test</p>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">5 Topics + 2 Championship Tests</p>
                   </div>
                 </Card3D>
 
@@ -1008,12 +905,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <Award className="w-4 h-4 drop-shadow" />
                       </div>
                       <div className="text-2xl sm:text-3xl font-black text-[#ff8099] tracking-tight">
-                        {attempts.length > 0 ? `${stats.avgPercentage}%` : 'N/A'}
+                        {stats.avgPercentage}%
                       </div>
                     </div>
-                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">
-                      {attempts.length > 0 ? `${attempts.length} submission${attempts.length === 1 ? '' : 's'} recorded` : 'No attempts recorded yet'}
-                    </p>
+                    <p className="text-[11px] font-semibold text-rose-200/80 mt-2">{attempts.length} submission{attempts.length === 1 ? '' : 's'} recorded</p>
                   </div>
                 </Card3D>
 
@@ -1181,7 +1076,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           const quiz = getQuizForDay(item.dayNumber);
                           const isUnlocked = isDayUnlocked(item.dayNumber, completedDays);
                           const dayAttempts = attempts.filter(a => a.quizId === quiz.id);
-                          const avgScore = dayAttempts.length > 0 
+                          const avgScore = dayAttempts.length > 0
                             ? `${Math.round(dayAttempts.reduce((acc, a) => acc + (a.percentage || 0), 0) / dayAttempts.length)}%`
                             : '--';
 
@@ -1465,580 +1360,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           )}
 
           {/* ========================================================================= */}
-          {/* TAB: STUDENTS (STUDENT MONITORING FOR MAHI) */}
+          {/* TAB: STUDENTS & SCHOLARS WORKSPACE (MAHI & SHAILU) */}
           {/* ========================================================================= */}
-          {activeTab === 'students' && (
-            <div className="space-y-6 animate-fadeIn">
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
-                <div>
-                  <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <Users className="w-5 h-5 text-red-600" />
-                    Student Monitoring: Mahi
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    Real-time view of Mahi's learning journey, quiz attempts, answer sheets, and achievements
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => void refreshAllData()}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold flex items-center gap-1.5"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Sync Student Data</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Student Bio & Status */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                {/* Profile Card */}
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-red-800/30 text-red-600 border border-red-700/30 flex items-center justify-center font-black text-xl">
-                      M
-                    </div>
-                    <div>
-                      <h3 className="text-base font-black text-white">Mahi</h3>
-                      <p className="text-xs text-red-600 font-semibold">Role: Student</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-800 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-slate-400">
-                      <span>Access Code:</span>
-                      <strong className="font-mono text-red-400">2002</strong>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Account Status:</span>
-                      <span className="text-red-600 font-bold">● Active & Verified</span>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Sync Engine:</span>
-                      <span className="text-slate-300">Supabase + Local Snapshot</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Summary */}
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Syllabus Progress
-                  </h4>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-white">{stats.completedCount}</span>
-                    <span className="text-sm font-semibold text-slate-400">of 7 Days Completed ({Math.round((stats.completedCount / 7) * 100)}%)</span>
-                  </div>
-                  {/* Progress Bar */}
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-red-700 to-red-500 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
-                  </div>
-                  <div className="pt-1 text-[11px] text-slate-400 flex justify-between">
-                    <span>{stats.completedCount > 0 ? `Completed Days: ${stats.completedCount}` : 'No days completed yet'}</span>
-                    <span className="text-red-600 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
-                  </div>
-                </div>
-
-                {/* Badges & Streaks */}
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Streaks & Achievements
-                  </h4>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-950/60 border border-orange-800 text-orange-300 text-xs font-bold">
-                      <Flame className="w-4 h-4 text-orange-400" />
-                      <span>{stats.currentStreak}-Day Streak</span>
-                    </div>
-                    {stats.bestPercentage === 100 && (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-800 text-amber-300 text-xs font-bold">
-                        <Award className="w-4 h-4 text-amber-400" />
-                        <span>Perfect Score</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="pt-1 text-[11px] text-slate-400">
-                    Badges Earned: <strong className="text-slate-200">
-                      {stats.unlockedBadges.length > 0 ? stats.unlockedBadges.map(b => b.title).join(', ') : 'No badges earned yet'}
-                    </strong>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* 7-Day Syllabus & Individual Day Management */}
-              <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-red-600" />
-                      Learning Progress & Day Management
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      Manage individual day completions, reset specific days without affecting others, or record manual scores.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowFullResetModal(true)}
-                    className="px-3 py-1.5 rounded-xl bg-rose-950/70 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1.5 self-start sm:self-auto"
-                  >
-                    <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Reset All Student Progress</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {DAILY_SCHEDULE.map(item => {
-                    const isDayDone = completedDays.includes(item.quizId);
-                    const bestAtt = attempts.find(a => a.quizId === item.quizId);
-                    const isUnlocked = isDayUnlocked(item.quizId);
-
-                    return (
-                      <div
-                        key={item.quizId}
-                        className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2.5 transition-all ${
-                          isDayDone
-                            ? 'bg-red-950/20 border-red-700/40'
-                            : isUnlocked
-                            ? 'bg-slate-950/60 border-slate-800'
-                            : 'bg-slate-950/30 border-slate-900 opacity-80'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs font-black text-white">
-                                {item.quizId.toUpperCase()}
-                              </span>
-                              <span className="text-xs font-bold text-slate-200">
-                                {item.title}
-                              </span>
-                            </div>
-                            <span className="text-[10px] text-slate-400 block mt-0.5">
-                              {item.displayDate} • {item.states.length} States
-                            </span>
-                          </div>
-
-                          {isDayDone ? (
-                            <span className="px-2 py-0.5 rounded-full bg-red-700/20 text-red-400 text-[10px] font-black uppercase flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" /> Done
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[10px] font-semibold">
-                              Pending
-                            </span>
-                          )}
-                        </div>
-
-                        {isDayDone && bestAtt && (
-                          <div className="p-2 rounded-lg bg-red-950/40 border border-red-950/60 text-[11px] flex justify-between items-center">
-                            <span className="text-slate-300">Best Score:</span>
-                            <span className="font-bold text-red-400">
-                              {bestAtt.marksObtained}/{bestAtt.maxMarks} ({bestAtt.percentage}%) • {bestAtt.timeTakenSeconds}s
-                            </span>
-                          </div>
-                        )}
-
-                        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setMarkCompletedModalDay(item.dayNumber);
-                              setManualScore(item.totalQuestions);
-                              setManualMaxMarks(item.totalQuestions);
-                            }}
-                            className="flex-1 py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold transition-all text-center"
-                          >
-                            {isDayDone ? 'Edit Score' : 'Mark Completed'}
-                          </button>
-
-                          {isDayDone && (
-                            <button
-                              type="button"
-                              onClick={() => setResetConfirmQuizId(item.quizId)}
-                              className="py-1 px-2 rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-900/60 text-[11px] font-bold transition-all"
-                              title="Reset only this day"
-                            >
-                              Reset Day
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Attempts Table for Mahi */}
-              <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-red-600" />
-                    Quiz Attempt History & Answer Sheets
-                  </h3>
-                  <span className="text-xs text-slate-400">
-                    Total Attempts Recorded: <strong className="text-white">{attempts.length}</strong>
-                  </span>
-                </div>
-
-                {attempts.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500 text-sm">
-                    No attempts recorded yet.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
-                          <th className="py-2.5 px-3">Quiz Day</th>
-                          <th className="py-2.5 px-3">Date Completed</th>
-                          <th className="py-2.5 px-3">Score / Marks</th>
-                          <th className="py-2.5 px-3">Percentage</th>
-                          <th className="py-2.5 px-3">Time Taken</th>
-                          <th className="py-2.5 px-3">Correct / Wrong</th>
-                          <th className="py-2.5 px-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/60 font-medium">
-                        {attempts.map(att => {
-                          const quiz = getQuizForDay(att.quizId);
-                          const isPerfect = att.percentage === 100;
-                          return (
-                            <tr key={att.id} className="hover:bg-slate-800/40 transition-colors">
-                              <td className="py-3 px-3">
-                                <span className="font-bold text-white">{quiz.title}</span>
-                                <span className="block text-[10px] text-slate-400">{att.quizId.toUpperCase()}</span>
-                                {att.percentage === 100 && att.totalQuestions === 30 && (
-                                  <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[10px] font-black uppercase inline-flex items-center gap-1 mt-1">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Authentic Master (100% • 30/30)
-                                  </span>
-                                )}
-                                {att.totalQuestions > 30 && att.marksObtained === 0 && (
-                                  <span className="px-2 py-0.5 rounded-md bg-amber-950/80 text-amber-300 border border-amber-800 text-[10px] font-medium inline-flex items-center gap-1 mt-1">
-                                    ⚠️ Retake Record (0/{att.totalQuestions})
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-3 px-3 text-slate-300">
-                                {att.formattedDate || quiz.displayDate}
-                              </td>
-                              <td className="py-3 px-3">
-                                <span className="font-bold text-red-600 text-sm">
-                                  {att.marksObtained} / {att.maxMarks}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3">
-                                <span className={`inline-block px-2 py-0.5 rounded-full font-black text-[11px] ${
-                                  isPerfect
-                                    ? 'bg-red-700/20 text-red-400 border border-red-700/40'
-                                    : 'bg-slate-800 text-slate-200'
-                                }`}>
-                                  {att.percentage}%
-                                </span>
-                              </td>
-                              <td className="py-3 px-3 text-slate-300 font-mono">
-                                {`${Math.floor(att.timeTakenSeconds / 60)}m ${att.timeTakenSeconds % 60}s`}
-                              </td>
-                              <td className="py-3 px-3">
-                                <span className="text-red-600 font-semibold">{att.correctCount} correct</span>
-                                {att.incorrectCount > 0 ? (
-                                  <span className="text-rose-400 ml-1">({att.incorrectCount} wrong)</span>
-                                ) : (
-                                  <span className="text-slate-500 ml-1">(0 mistakes)</span>
-                                )}
-                              </td>
-                              <td className="py-3 px-3 text-right space-x-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenCompleteAnswerSheet(att)}
-                                  className="px-3 py-1.5 rounded-lg bg-red-800 hover:bg-red-700 text-white font-bold text-xs transition-colors inline-flex items-center gap-1.5 shadow-sm"
-                                >
-                                  <FileCheck className="w-3.5 h-3.5" />
-                                  <span>View Complete Answer Sheet</span>
-                                </button>
-
-                                <a
-                                  href={getWhatsAppShareUrl(formatWhatsAppMessage(att), DEFAULT_SANJU_WHATSAPP_NUMBER)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-2 py-1.5 rounded-lg bg-red-950 text-red-400 border border-red-900 hover:bg-red-950 text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
-                                  title="Share to WhatsApp (+91 70759 20852)"
-                                >
-                                  <MessageCircle className="w-3 h-3" />
-                                </a>
-
-                                <button
-                                  type="button"
-                                  onClick={() => setResetConfirmQuizId(att.quizId)}
-                                  className="px-2 py-1.5 rounded-lg bg-rose-950 text-rose-300 border border-rose-900/60 hover:bg-rose-900 text-[11px] font-bold inline-flex items-center gap-1 transition-colors"
-                                  title="Reset Day Progress"
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-              </div>
-
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB: MAHI'S PROFILE */}
-          {/* ========================================================================= */}
-          {activeTab === 'mahi-profile' && (
-            <div className="space-y-6 animate-fadeIn">
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
-                <div>
-                  <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <UserCheck className="w-5 h-5 text-red-600" />
-                    Mahi's Student Profile
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    Dedicated learning record, syllabus progress, and complete attempt history
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {attempts.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
-                      className="px-4 py-2 rounded-xl bg-red-800 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
-                    >
-                      <FileCheck className="w-4 h-4" />
-                      <span>VIEW COMPLETE ANSWER SHEET</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Bio & Access Information */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-3 shadow-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-red-800 to-red-500 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shadow-red-950/40">
-                      M
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-black text-white">Mahi</h3>
-                      <p className="text-xs text-red-600 font-semibold">Student Account</p>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-800 space-y-2 text-xs">
-                    <div className="flex justify-between text-slate-400">
-                      <span>Access Code (PIN):</span>
-                      <strong className="font-mono text-red-400 text-sm">2002</strong>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Email Account:</span>
-                      <span className="font-mono text-slate-300">mahi@boddukuri.quiz</span>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Target Curriculum:</span>
-                      <span className="text-slate-200 font-semibold">106 National Parks (7 Days)</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress Card */}
-                <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-3 shadow-xl">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Curriculum Completion
-                  </h4>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-white">{stats.completedCount}</span>
-                    <span className="text-sm font-semibold text-slate-400">of 7 Days Completed ({Math.round((stats.completedCount / 7) * 100)}%)</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-red-700 to-red-500 rounded-full transition-all duration-500" style={{ width: `${(stats.completedCount / 7) * 100}%` }} />
-                  </div>
-                  <div className="pt-1 text-[11px] text-slate-400 flex justify-between">
-                    <span>Distinct Quizzes: {stats.completedCount} / 7</span>
-                    <span className="text-red-600 font-bold">{stats.completedCount > 0 ? `${stats.completedCount * 30} Parks Mastered` : '0 Parks Mastered'}</span>
-                  </div>
-                </div>
-
-                {/* Streaks & Badges Card */}
-                <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-3 shadow-xl">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Habit Streak & Badges
-                  </h4>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-950/60 border border-orange-800 text-orange-300 text-xs font-bold">
-                      <Flame className="w-4 h-4 text-orange-400" />
-                      <span>{stats.currentStreak}-Day Streak</span>
-                    </div>
-                    {stats.bestPercentage === 100 && (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-800 text-amber-300 text-xs font-bold">
-                        <Award className="w-4 h-4 text-amber-400" />
-                        <span>100% Top Score</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="pt-1 text-[11px] text-slate-400">
-                    Earned Badges: <strong className="text-slate-200">
-                      {stats.unlockedBadges.length > 0 ? stats.unlockedBadges.map(b => b.title).join(', ') : '0 of 10 Badges'}
-                    </strong>
-                  </div>
-                </div>
-              </div>
-
-              {/* Latest Attempt Spotlight & Button */}
-              {attempts.length > 0 ? (
-                <div className="p-5 sm:p-6 rounded-3xl bg-slate-900/85 backdrop-blur-xl border border-red-700/40 shadow-2xl space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-amber-400" />
-                        <h3 className="text-base font-black text-white">
-                          Latest Submission: {getQuizForDay(attempts[0].quizId).title}
-                        </h3>
-                      </div>
-                      <p className="text-xs text-slate-400">
-                        Submitted: {attempts[0].formattedDate} • Duration: {Math.floor(attempts[0].timeTakenSeconds / 60)}m {attempts[0].timeTakenSeconds % 60}s
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleOpenCompleteAnswerSheet(attempts[0])}
-                      className="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-700 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-950/40 transition-all active:scale-95"
-                    >
-                      <FileCheck className="w-4 h-4" />
-                      <span>VIEW COMPLETE ANSWER SHEET</span>
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Score</div>
-                      <div className="text-xl font-black text-red-600">{attempts[0].marksObtained} / {attempts[0].maxMarks}</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Percentage</div>
-                      <div className="text-xl font-black text-red-600">{attempts[0].percentage}%</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Correct / Wrong</div>
-                      <div className="text-sm font-bold text-slate-200 mt-1">{attempts[0].correctCount} / {attempts[0].incorrectCount}</div>
-                    </div>
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                      <div className="text-[10px] uppercase font-bold text-slate-400">Performance</div>
-                      <div className="text-sm font-bold text-amber-400 mt-1">{attempts[0].performanceMessage || 'Completed'}</div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-8 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-800 text-center space-y-2">
-                  <div className="w-10 h-10 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-1">
-                    <Sparkles className="w-5 h-5 text-red-600" />
-                  </div>
-                  <h4 className="text-sm font-bold text-white">No Quiz Attempts Recorded Yet</h4>
-                  <p className="text-xs text-slate-400 max-w-md mx-auto">
-                    Day 01 National Parks Quiz (6 States, 30 Questions) is published and ready for Mahi to begin. Results and answer sheets will update here in real time.
-                  </p>
-                </div>
-              )}
-
-              {/* All Previous Attempts Table */}
-              <div className="p-5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-red-600" />
-                    All Attempts History ({attempts.length})
-                  </h3>
-                  <span className="text-xs text-slate-400">
-                    Each attempt preserves full selected answers independently
-                  </span>
-                </div>
-
-                {attempts.length === 0 ? (
-                  <div className="p-6 text-center text-slate-500 text-xs">
-                    No attempts recorded yet.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
-                          <th className="py-2.5 px-3">Attempt</th>
-                          <th className="py-2.5 px-3">Quiz Day</th>
-                          <th className="py-2.5 px-3">Date</th>
-                          <th className="py-2.5 px-3">Marks</th>
-                          <th className="py-2.5 px-3">Percentage</th>
-                          <th className="py-2.5 px-3">Duration</th>
-                          <th className="py-2.5 px-3 text-right">Answer Inspection</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-800/60 font-medium">
-                        {attempts.map((att, attIdx) => {
-                          const quiz = getQuizForDay(att.quizId);
-                          return (
-                            <tr key={att.id} className="hover:bg-slate-800/40 transition-colors">
-                              <td className="py-3 px-3 font-mono text-red-600 font-bold">
-                                #{attempts.length - attIdx}
-                              </td>
-                              <td className="py-3 px-3">
-                                <span className="font-bold text-white">{quiz.title}</span>
-                                <span className="block text-[10px] text-slate-400">{att.quizId.toUpperCase()}</span>
-                                {att.percentage === 100 && att.totalQuestions === 30 && (
-                                  <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-300 border border-emerald-800 text-[10px] font-black uppercase inline-flex items-center gap-1 mt-1">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Authentic Master (100% • 30/30)
-                                  </span>
-                                )}
-                                {att.totalQuestions > 30 && att.marksObtained === 0 && (
-                                  <span className="px-2 py-0.5 rounded-md bg-amber-950/80 text-amber-300 border border-amber-800 text-[10px] font-medium inline-flex items-center gap-1 mt-1">
-                                    ⚠️ Retake Record (0/{att.totalQuestions})
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-3 px-3 text-slate-300">
-                                {att.formattedDate || quiz.displayDate}
-                              </td>
-                              <td className="py-3 px-3 font-bold text-red-600">
-                                {att.marksObtained} / {att.maxMarks}
-                              </td>
-                              <td className="py-3 px-3">
-                                <span className="px-2 py-0.5 rounded-full bg-red-700/20 text-red-400 border border-red-700/30 text-[10px] font-bold">
-                                  {att.percentage}%
-                                </span>
-                              </td>
-                              <td className="py-3 px-3 text-slate-300 font-mono">
-                                {Math.floor(att.timeTakenSeconds / 60)}m {att.timeTakenSeconds % 60}s
-                              </td>
-                              <td className="py-3 px-3 text-right">
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenCompleteAnswerSheet(att)}
-                                  className="px-3 py-1.5 rounded-xl bg-red-800 hover:bg-red-700 text-white font-bold text-xs inline-flex items-center gap-1.5 transition-colors shadow-sm"
-                                >
-                                  <FileCheck className="w-3.5 h-3.5" />
-                                  <span>View Answer Sheet</span>
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-            </div>
+          {(activeTab === 'students' || activeTab === 'mahi-profile') && (
+            <MultiStudentHub
+              attempts={attempts}
+              completedDays={completedDays}
+              onResetStudent={handleResetStudent}
+              onViewAnswerSheet={handleOpenCompleteAnswerSheet}
+              onRefreshData={refreshAllData}
+            />
           )}
 
           {/* ========================================================================= */}
@@ -2209,11 +1540,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               setAnswerStatusFilter(f.id as any);
                               setSelectedQuestionNavNumber(null);
                             }}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                              answerStatusFilter === f.id
-                                ? 'bg-red-800 text-white shadow-md shadow-red-950'
-                                : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
-                            }`}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${answerStatusFilter === f.id
+                              ? 'bg-red-800 text-white shadow-md shadow-red-950'
+                              : 'bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700'
+                              }`}
                           >
                             {f.label}
                           </button>
@@ -2347,13 +1677,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div
                             id={`question-card-${item.questionNumber}`}
                             key={item.question.id}
-                            className={`p-5 rounded-2xl border transition-all text-sm space-y-3.5 backdrop-blur-xl shadow-xl ${
-                              item.status === 'correct'
-                                ? 'bg-slate-900/85 border-red-700/40 shadow-red-950/20'
-                                : item.status === 'incorrect'
+                            className={`p-5 rounded-2xl border transition-all text-sm space-y-3.5 backdrop-blur-xl shadow-xl ${item.status === 'correct'
+                              ? 'bg-slate-900/85 border-red-700/40 shadow-red-950/20'
+                              : item.status === 'incorrect'
                                 ? 'bg-slate-900/85 border-rose-500/50 shadow-rose-950/20'
                                 : 'bg-slate-900/85 border-slate-700/60'
-                            }`}
+                              }`}
                           >
                             {/* Question Header: Number, State, Status Badge */}
                             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
@@ -2410,13 +1739,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${optionStyle}`}
                                   >
                                     <div className="flex items-center gap-2.5">
-                                      <span className={`w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold text-[11px] ${
-                                        isCorrectOption
-                                          ? 'bg-red-800 text-white'
-                                          : isSelectedOption
+                                      <span className={`w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold text-[11px] ${isCorrectOption
+                                        ? 'bg-red-800 text-white'
+                                        : isSelectedOption
                                           ? 'bg-rose-600 text-white'
                                           : 'bg-slate-800 text-slate-400'
-                                      }`}>
+                                        }`}>
                                         {optionLetters[optIdx]}
                                       </span>
                                       <span>{opt}</span>
@@ -2518,509 +1846,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {/* ========================================================================= */}
           {/* TAB: QUIZ MANAGEMENT & SCHEDULE */}
           {/* ========================================================================= */}
+          {/* ========================================================================= */}
+          {/* TAB: TOPICS & CHAMPIONSHIP MANAGER */}
+          {/* ========================================================================= */}
           {(activeTab === 'quiz-management' || activeTab === 'schedule') && (
-            <div className="space-y-6 animate-fadeIn">
+            <TopicsChampionshipManager
+              completedDays={completedDays}
+              onRefreshData={refreshAllData}
+              onPreviewQuiz={onPreviewDayQuiz}
+            />
+          )}
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
-                <div>
-                  <h2 className="text-xl font-black text-white flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-red-600" />
-                    Quiz Management & Curriculum Studio
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    Release schedules, live question publishing, and automated curriculum validation.
-                  </p>
-                </div>
-
-                {/* Sub-navigation Switcher */}
-                <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-900 border border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setStudioSubTab('schedule')}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      studioSubTab === 'schedule'
-                        ? 'bg-red-800 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Schedules</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setStudioSubTab('studio')}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      studioSubTab === 'studio'
-                        ? 'bg-red-800 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Publishing Studio</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* VIEW A: RELEASE SCHEDULE CARDS */}
-              {studioSubTab === 'schedule' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {DAILY_SCHEDULE.map(dayItem => {
-                    const quiz = getQuizForDay(dayItem.quizId);
-                    const isCompleted = completedDays.includes(dayItem.quizId);
-                    const unlocked = isDayUnlocked(dayItem.quizId);
-
-                    return (
-                      <div
-                        key={dayItem.quizId}
-                        className={`p-5 rounded-2xl border transition-all ${
-                          isCompleted
-                            ? 'bg-slate-900/90 border-red-700/40 shadow-lg shadow-red-950/20'
-                            : unlocked
-                            ? 'bg-slate-900/80 border-slate-700'
-                            : 'bg-slate-950 border-slate-800/80 opacity-90'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-3">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-white font-black text-xs">
-                                {dayItem.quizId.toUpperCase()}
-                              </span>
-                              <h3 className="text-sm font-bold text-white">{dayItem.title}</h3>
-                            </div>
-                            <span className="text-[11px] text-slate-400 block mt-1">
-                              Scheduled Date: <strong className="text-slate-300">{dayItem.displayDate}</strong>
-                            </span>
-                          </div>
-
-                          {/* Status Badge */}
-                          <div>
-                            {isCompleted ? (
-                              <span className="px-2.5 py-1 rounded-full bg-red-700/10 text-red-600 border border-red-700/30 text-[10px] font-black uppercase flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" /> Completed
-                              </span>
-                            ) : unlocked ? (
-                              <span className="px-2.5 py-1 rounded-full bg-red-600/10 text-red-500 border border-red-600/30 text-[10px] font-black uppercase flex items-center gap-1">
-                                <Unlock className="w-3 h-3" /> Unlocked
-                              </span>
-                            ) : (
-                              <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-black uppercase flex items-center gap-1">
-                                <Lock className="w-3 h-3" /> Locked
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* States & Parks */}
-                        <div className="space-y-2 mb-4">
-                          <div className="text-[11px] text-slate-400">
-                            States ({dayItem.states.length}):
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {dayItem.states.map(st => (
-                              <span
-                                key={st}
-                                className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-semibold border border-slate-700/60"
-                              >
-                                {st}
-                              </span>
-                            ))}
-                          </div>
-                          <div className="text-[11px] text-slate-400 pt-1 flex justify-between">
-                            <span>Question Pool: <strong className="text-white">{quiz.questions.length} Questions</strong></span>
-                            <span>Coverage: <strong className="text-red-600">{dayItem.totalQuestions} Questions</strong></span>
-                          </div>
-                        </div>
-
-                        {/* Controls Footer */}
-                        <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5">
-                            {onPreviewDayQuiz && (
-                              <button
-                                type="button"
-                                onClick={() => onPreviewDayQuiz(dayItem.quizId)}
-                                className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Preview</span>
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleSelectQuizForEditing(dayItem.quizId);
-                                setStudioSubTab('studio');
-                              }}
-                              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors flex items-center gap-1"
-                              title="Edit questions in studio"
-                            >
-                              <Edit3 className="w-3.5 h-3.5" />
-                              <span>Edit Studio</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setMarkCompletedModalDay(dayItem.dayNumber);
-                                setManualScore(dayItem.totalQuestions);
-                                setManualMaxMarks(dayItem.totalQuestions);
-                              }}
-                              className="px-2.5 py-1.5 rounded-xl bg-red-950/80 text-red-400 border border-red-900 hover:bg-red-950 text-xs font-bold transition-all flex items-center gap-1"
-                              title="Manually record this day as completed for Mahi"
-                            >
-                              <CheckCircle2 className="w-3.5 h-3.5" />
-                              <span>Mark Done</span>
-                            </button>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            {isCompleted && (
-                              <button
-                                type="button"
-                                onClick={() => setResetConfirmQuizId(dayItem.quizId)}
-                                className="px-2.5 py-1.5 rounded-xl bg-rose-950/80 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1"
-                                title="Reset this day's progress only"
-                              >
-                                <RotateCcw className="w-3.5 h-3.5" />
-                                <span>Reset Day</span>
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => handleToggleDayLock(dayItem.quizId, unlocked)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                                unlocked
-                                  ? 'bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900'
-                                  : 'bg-red-800 hover:bg-red-700 text-white shadow-sm'
-                              }`}
-                            >
-                              {unlocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-                              <span>{unlocked ? 'Lock Day' : 'Unlock Now'}</span>
-                            </button>
-                          </div>
-                        </div>
-
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* VIEW B: LIVE QUESTION PUBLISHING STUDIO */}
-              {studioSubTab === 'studio' && (
-                <div className="space-y-6">
-
-                  {/* Module Selector Carousel Tabs */}
-                  <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-                    {DAILY_SCHEDULE.map(dayItem => {
-                      const isSelected = editingQuizId === dayItem.quizId;
-                      return (
-                        <button
-                          key={dayItem.quizId}
-                          type="button"
-                          onClick={() => handleSelectQuizForEditing(dayItem.quizId)}
-                          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 shrink-0 border ${
-                            isSelected
-                              ? 'bg-red-800 border-red-600 text-white shadow-lg shadow-red-950/50'
-                              : 'bg-slate-900/90 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
-                          }`}
-                        >
-                          <span>{dayItem.quizId.toUpperCase()}: {dayItem.title}</span>
-                          <span className="px-1.5 py-0.5 rounded-md bg-black/40 text-[10px]">
-                            {dayItem.totalQuestions} Qs
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Publishing Status Feedback Banner */}
-                  {publishingMessage && (
-                    <div className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
-                      publishingMessage.type === 'success'
-                        ? 'bg-emerald-950/80 border-emerald-800 text-emerald-200'
-                        : 'bg-rose-950/80 border-rose-800 text-rose-200'
-                    }`}>
-                      <div className="flex items-center gap-2 text-xs font-bold">
-                        {publishingMessage.type === 'success' ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        ) : (
-                          <AlertTriangle className="w-4 h-4 text-rose-400" />
-                        )}
-                        <span>{publishingMessage.text}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setPublishingMessage(null)}
-                        className="text-xs opacity-70 hover:opacity-100"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Top Action & Validation Header */}
-                  <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2.5">
-                          <span className="px-2.5 py-0.5 rounded-lg bg-red-950 text-red-300 border border-red-800 text-xs font-bold">
-                            {editingQuiz.id.toUpperCase()}
-                          </span>
-                          <h3 className="text-lg font-black text-white">{editingQuiz.title}</h3>
-                          <span className="text-xs text-slate-400">
-                            Version {editingQuiz.version || 1} • {editingQuiz.displayDate}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-400 mt-1">
-                          States Covered: <strong className="text-slate-200">{editingQuiz.statesCovered.join(', ')}</strong>
-                        </p>
-                      </div>
-
-                      {/* Studio Action Buttons */}
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        <button
-                          type="button"
-                          onClick={handleSaveDraft}
-                          disabled={publishingLoading}
-                          className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-700 active:scale-95 disabled:opacity-50"
-                        >
-                          <Save className="w-3.5 h-3.5" />
-                          <span>Save Draft</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handlePublishToCloud}
-                          disabled={publishingLoading || !validationResult.isValid}
-                          className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-800 to-red-700 hover:from-red-700 hover:to-red-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-lg shadow-red-950/40 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          <UploadCloud className="w-3.5 h-3.5" />
-                          <span>{publishingLoading ? 'Publishing...' : 'Publish to Production Cloud'}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Question Validation Engine Results Banner */}
-                    <div>
-                      {validationResult.isValid ? (
-                        <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-800 text-emerald-300 text-xs font-bold flex items-center gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                          <span>Question Validation Engine: PASSED (Exact {workingQuestions.length} Questions, Valid Options, Keys & Zero Duplicates)</span>
-                        </div>
-                      ) : (
-                        <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs font-bold space-y-1.5">
-                          <div className="flex items-center gap-2 text-rose-200">
-                            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-                            <span>Question Validation Engine: {validationResult.errors.length} Issue(s) Must Be Fixed Before Publishing</span>
-                          </div>
-                          <ul className="list-disc pl-6 text-[11px] font-normal text-rose-300/90 space-y-0.5">
-                            {validationResult.errors.map((err, i) => (
-                              <li key={i}>{err}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Two-Column Question Studio Workspace */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-
-                    {/* Left: Question Pool Navigator (4 cols) */}
-                    <div className="lg:col-span-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                          Question Pool ({workingQuestions.length})
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleAddQuestion}
-                          className="px-2.5 py-1 rounded-lg bg-red-950 text-red-300 border border-red-800 hover:bg-red-900 text-xs font-bold flex items-center gap-1 transition-all"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Add Question</span>
-                        </button>
-                      </div>
-
-                      <div className="space-y-1.5 max-h-[620px] overflow-y-auto pr-1">
-                        {workingQuestions.map((q, qIdx) => {
-                          const isSelected = selectedQuestionIndex === qIdx;
-                          return (
-                            <button
-                              key={q.id || qIdx}
-                              type="button"
-                              onClick={() => setSelectedQuestionIndex(qIdx)}
-                              className={`w-full p-2.5 rounded-xl text-left transition-all border flex items-start gap-2.5 ${
-                                isSelected
-                                  ? 'bg-red-950/80 border-red-700 text-white shadow-sm'
-                                  : 'bg-slate-950/60 border-slate-800/80 text-slate-300 hover:border-slate-700'
-                              }`}
-                            >
-                              <span className="w-6 h-6 rounded-lg bg-slate-800 text-white text-[11px] font-black flex items-center justify-center shrink-0">
-                                {qIdx + 1}
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 mb-0.5">
-                                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-800 text-slate-300 truncate max-w-[120px]">
-                                    {q.state}
-                                  </span>
-                                  {q.section && (
-                                    <span className="text-[9px] text-slate-500 uppercase font-semibold">
-                                      {q.section}
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-xs font-medium truncate text-slate-200">
-                                  {q.question || 'Empty question text...'}
-                                </p>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Right: Active Question Editor (8 cols) */}
-                    <div className="lg:col-span-8 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-                      {workingQuestions[selectedQuestionIndex] ? (
-                        <>
-                          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-                            <div>
-                              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                                <span>Question #{selectedQuestionIndex + 1} Editor</span>
-                                <span className="text-xs text-slate-500 font-mono">
-                                  ({workingQuestions[selectedQuestionIndex].id})
-                                </span>
-                              </h4>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteQuestion(selectedQuestionIndex)}
-                              className="px-2.5 py-1 rounded-lg bg-rose-950/80 text-rose-300 border border-rose-900 hover:bg-rose-900 text-xs font-bold transition-all flex items-center gap-1"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Delete Question</span>
-                            </button>
-                          </div>
-
-                          {/* Meta: State & Park Name */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                                State / Union Territory
-                              </label>
-                              <input
-                                type="text"
-                                value={workingQuestions[selectedQuestionIndex].state || ''}
-                                onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'state', e.target.value)}
-                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-red-600"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                                National Park Name
-                              </label>
-                              <input
-                                type="text"
-                                value={workingQuestions[selectedQuestionIndex].parkName || ''}
-                                onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'parkName', e.target.value)}
-                                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-red-600"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Question Text */}
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                              Question Text
-                            </label>
-                            <textarea
-                              rows={3}
-                              value={workingQuestions[selectedQuestionIndex].question || ''}
-                              onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'question', e.target.value)}
-                              placeholder="Enter the question text..."
-                              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-600 leading-relaxed"
-                            />
-                          </div>
-
-                          {/* Options Grid (4 options with radio selection) */}
-                          <div className="space-y-2">
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                              Answer Options (Click radio button to mark correct answer)
-                            </label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                              {workingQuestions[selectedQuestionIndex].options.map((optText, optIdx) => {
-                                const isCorrect = workingQuestions[selectedQuestionIndex].correctAnswer === optIdx;
-                                return (
-                                  <div
-                                    key={optIdx}
-                                    className={`p-2.5 rounded-xl border flex items-center gap-2.5 transition-all ${
-                                      isCorrect
-                                        ? 'bg-emerald-950/40 border-emerald-600 shadow-xs'
-                                        : 'bg-slate-950 border-slate-800'
-                                    }`}
-                                  >
-                                    <button
-                                      type="button"
-                                      onClick={() => handleUpdateQuestion(selectedQuestionIndex, 'correctAnswer', optIdx)}
-                                      className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 transition-all ${
-                                        isCorrect
-                                          ? 'bg-emerald-600 border-emerald-500 text-white font-black text-xs'
-                                          : 'border-slate-700 hover:border-slate-500 text-slate-400 text-xs'
-                                      }`}
-                                    >
-                                      {String.fromCharCode(65 + optIdx)}
-                                    </button>
-                                    <input
-                                      type="text"
-                                      value={optText || ''}
-                                      onChange={e => handleUpdateOption(selectedQuestionIndex, optIdx, e.target.value)}
-                                      className="flex-1 bg-transparent text-xs text-white focus:outline-none"
-                                      placeholder={`Option ${String.fromCharCode(65 + optIdx)} text...`}
-                                    />
-                                    {isCorrect && (
-                                      <span className="text-[10px] font-bold uppercase text-emerald-400 shrink-0">
-                                        Correct
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          {/* Explanation */}
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                              Explanation / Did You Know Fact
-                            </label>
-                            <textarea
-                              rows={2}
-                              value={workingQuestions[selectedQuestionIndex].explanation || ''}
-                              onChange={e => handleUpdateQuestion(selectedQuestionIndex, 'explanation', e.target.value)}
-                              placeholder="Factual explanation supporting the correct answer..."
-                              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-red-600 leading-relaxed"
-                            />
-                          </div>
-
-                        </>
-                      ) : (
-                        <div className="p-8 text-center text-slate-500 text-xs">
-                          No question selected.
-                        </div>
-                      )}
-                    </div>
-
-                  </div>
-
-                </div>
-              )}
-
-            </div>
+          {/* ========================================================================= */}
+          {/* TAB: PDF QUESTION STUDIO (EXTRACTION, DRAFTS & APPROVAL QUEUE) */}
+          {/* ========================================================================= */}
+          {activeTab === 'pdf-studio' && (
+            <PdfQuestionStudio />
           )}
 
           {/* ========================================================================= */}
@@ -3166,11 +2007,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         key={f}
                         type="button"
                         onClick={() => setRetakeFilter(f)}
-                        className={`px-3 py-1.5 rounded-lg capitalize transition-all ${
-                          retakeFilter === f
-                            ? 'bg-slate-800 text-white font-bold shadow-sm'
-                            : 'text-slate-400 hover:text-slate-200'
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg capitalize transition-all ${retakeFilter === f
+                          ? 'bg-slate-800 text-white font-bold shadow-sm'
+                          : 'text-slate-400 hover:text-slate-200'
+                          }`}
                       >
                         {f} ({f === 'all' ? retakeRequests.length : retakeRequests.filter(r => r.status === f).length})
                       </button>
@@ -3248,11 +2088,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               type="button"
                               onClick={() => handleReviewRetake(req.id, 'approved')}
                               disabled={isApproved}
-                              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm ${
-                                isApproved
-                                  ? 'bg-red-950 text-red-700 border border-red-900/40 opacity-70 cursor-not-allowed'
-                                  : 'bg-red-800 hover:bg-red-700 text-white shadow-red-950 active:scale-95'
-                              }`}
+                              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 shadow-sm ${isApproved
+                                ? 'bg-red-950 text-red-700 border border-red-900/40 opacity-70 cursor-not-allowed'
+                                : 'bg-red-800 hover:bg-red-700 text-white shadow-red-950 active:scale-95'
+                                }`}
                             >
                               <CheckCircle2 className="w-4 h-4" />
                               <span>{isApproved ? 'Approved' : 'Approve Retake'}</span>
@@ -3262,11 +2101,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               type="button"
                               onClick={() => handleReviewRetake(req.id, 'rejected')}
                               disabled={isRejected}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                                isRejected
-                                  ? 'bg-rose-950 text-rose-500 border border-rose-800/40 opacity-70 cursor-not-allowed'
-                                  : 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 active:scale-95'
-                              }`}
+                              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${isRejected
+                                ? 'bg-rose-950 text-rose-500 border border-rose-800/40 opacity-70 cursor-not-allowed'
+                                : 'bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 active:scale-95'
+                                }`}
                             >
                               <X className="w-4 h-4" />
                               <span>{isRejected ? 'Rejected' : 'Reject'}</span>
@@ -3311,21 +2149,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Average Score</div>
-                  <div className="text-2xl sm:text-3xl font-black text-white">
-                    {attempts.length > 0 ? `${stats.avgPercentage}%` : 'N/A'}
-                  </div>
-                  <p className="text-[11px] text-red-500 font-semibold mt-1">
-                    {attempts.length > 0 ? 'Mean accuracy' : 'No attempts recorded yet'}
-                  </p>
+                  <div className="text-2xl sm:text-3xl font-black text-white">{stats.avgPercentage}%</div>
+                  <p className="text-[11px] text-red-500 font-semibold mt-1">{attempts.length > 0 ? 'Mean accuracy' : '0% (No attempts)'}</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/60 border border-slate-800">
                   <div className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Highest Score</div>
-                  <div className="text-2xl sm:text-3xl font-black text-white">
-                    {attempts.length > 0 ? `${stats.bestPercentage}%` : 'N/A'}
-                  </div>
-                  <p className="text-[11px] text-amber-300 font-semibold mt-1">
-                    {attempts.length > 0 ? 'Peak performance' : 'No attempts recorded yet'}
-                  </p>
+                  <div className="text-2xl sm:text-3xl font-black text-white">{stats.bestPercentage}%</div>
+                  <p className="text-[11px] text-amber-300 font-semibold mt-1">{attempts.length > 0 ? 'Peak performance' : '0% (No attempts)'}</p>
                 </div>
               </div>
 
@@ -3446,11 +2276,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <button
                     key={f.id}
                     onClick={() => setInboxFilter(f.id as any)}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
-                      inboxFilter === f.id
-                        ? 'bg-red-800 text-white'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                    }`}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${inboxFilter === f.id
+                      ? 'bg-red-800 text-white'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      }`}
                   >
                     {f.label}
                   </button>
@@ -3469,18 +2298,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     return (
                       <div
                         key={notif.id}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                          !isItemUnread
-                            ? 'bg-slate-900/60 border-slate-800/80 text-slate-300'
-                            : 'bg-slate-900 border-red-700/40 text-white shadow-md shadow-red-950/20'
-                        }`}
+                        className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${!isItemUnread
+                          ? 'bg-slate-900/60 border-slate-800/80 text-slate-300'
+                          : 'bg-slate-900 border-red-700/40 text-white shadow-md shadow-red-950/20'
+                          }`}
                       >
                         <div className="flex items-start gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                            !isItemUnread
-                              ? 'bg-slate-800 text-slate-400'
-                              : 'bg-red-700/20 text-red-600 border border-red-700/30'
-                          }`}>
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${!isItemUnread
+                            ? 'bg-slate-800 text-slate-400'
+                            : 'bg-red-700/20 text-red-600 border border-red-700/30'
+                            }`}>
                             <Sparkles className="w-4 h-4" />
                           </div>
                           <div className="space-y-1">
@@ -3565,13 +2392,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   WhatsApp Result Dispatch Pipeline
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Upon quiz submission, Boddukuri's Quiz creates an inbox notification and prepares the WhatsApp message payload using the exact formatted template for <strong>+91 70759 20852</strong>.
+                  Upon quiz submission, Quiz by Spideyy creates an inbox notification and prepares the WhatsApp message payload using the exact formatted template for <strong>+91 70759 20852</strong>.
                 </p>
 
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="text-[11px] font-mono text-slate-400 uppercase">Live Template Preview:</div>
                   <pre className="text-xs font-mono text-red-400 whitespace-pre-wrap leading-relaxed">
-{attempts.length > 0 ? formatWhatsAppMessage(attempts[0]) : `🌿 BODDUKURI'S QUIZ — RESULT NOTIFICATION
+                    {attempts.length > 0 ? formatWhatsAppMessage(attempts[0]) : `⚡ QUIZ BY SPIDEEYY — RESULT NOTIFICATION
 Student: Mahi
 Quiz: Day 01
 Date: 09 November 2026
@@ -3696,7 +2523,7 @@ Performance: Outstanding`}
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `boddukuri_quiz_backup_${new Date().toISOString().slice(0, 10)}.json`;
+                    a.download = `spideyy_quiz_backup_${new Date().toISOString().slice(0, 10)}.json`;
                     a.click();
                     URL.revokeObjectURL(url);
                   }}
@@ -3718,7 +2545,7 @@ Performance: Outstanding`}
               <div className="pb-2 border-b border-slate-800">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
                   <HelpCircle className="w-5 h-5 text-red-600" />
-                  Boddukuri's Quiz System Architecture & Guide
+                  Quiz by Spideyy System Architecture & Guide
                 </h2>
                 <p className="text-xs text-slate-400">
                   Role specifications, access codes, and syllabus schedule reference
@@ -3786,11 +2613,10 @@ Performance: Outstanding`}
                   return (
                     <div
                       key={q.id}
-                      className={`p-3.5 rounded-xl border text-xs space-y-2 ${
-                        isCorrect
-                          ? 'bg-slate-950/60 border-red-950/60'
-                          : 'bg-rose-950/20 border-rose-900/60'
-                      }`}
+                      className={`p-3.5 rounded-xl border text-xs space-y-2 ${isCorrect
+                        ? 'bg-slate-950/60 border-red-950/60'
+                        : 'bg-rose-950/20 border-rose-900/60'
+                        }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="font-bold text-slate-200">
@@ -3815,13 +2641,12 @@ Performance: Outstanding`}
                           return (
                             <div
                               key={opt}
-                              className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-medium flex items-center justify-between ${
-                                isTarget
-                                  ? 'bg-red-950/80 border-red-700/60 text-red-400'
-                                  : isSelected
+                              className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-medium flex items-center justify-between ${isTarget
+                                ? 'bg-red-950/80 border-red-700/60 text-red-400'
+                                : isSelected
                                   ? 'bg-rose-950/80 border-rose-500/60 text-rose-300'
                                   : 'bg-slate-900/50 border-slate-800 text-slate-400'
-                              }`}
+                                }`}
                             >
                               <span>{opt}</span>
                               {isTarget && <Check className="w-3.5 h-3.5 text-red-600" />}

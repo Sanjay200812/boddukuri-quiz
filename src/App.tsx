@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DAILY_QUIZZES, getQuizForDay } from './data/quizzes';
+import { getQuizForTopic, getTopicById } from './data/topics';
 import type {
   QuizAttempt,
   DailyQuiz,
@@ -261,8 +262,12 @@ export const App: React.FC = () => {
     };
   }, [refreshProgress, userId, performCloudSync]);
 
-  // Current active quiz object (supports Days 01 to 07)
+  // Current active quiz object (supports Topics and Championship Tests)
   const currentQuiz: DailyQuiz = (() => {
+    const topic = getTopicById(activeQuizId);
+    if (topic) {
+      return getQuizForTopic(activeQuizId);
+    }
     const found = getQuizForDay(activeQuizId);
     const completedDayIds = getCompletedDayIds();
     if (!isDayUnlocked(activeQuizId, completedDayIds) && userRole !== 'admin') {
@@ -273,11 +278,14 @@ export const App: React.FC = () => {
 
   // Handler: Start or resume a quiz (Strict locking guard)
   const handleStartQuiz = (quizId: string) => {
-    const completedDayIds = getCompletedDayIds();
-    const isUnlocked = isDayUnlocked(quizId, completedDayIds);
-    if (!isUnlocked && userRole !== 'admin') {
-      alert("This day's quiz is scheduled and locked. Only Day 01 is currently published.");
-      return;
+    const topic = getTopicById(quizId);
+    if (!topic) {
+      const completedDayIds = getCompletedDayIds();
+      const isUnlocked = isDayUnlocked(quizId, completedDayIds);
+      if (!isUnlocked && userRole !== 'admin') {
+        alert("This championship assessment is scheduled and locked.");
+        return;
+      }
     }
     setActiveQuizId(quizId);
     setCurrentView('quiz');
@@ -287,6 +295,14 @@ export const App: React.FC = () => {
   // Handler: Quiz submitted & finished
   const handleFinishQuiz = async (attempt: QuizAttempt) => {
     const currentUid = userId || MAHI_STUDENT_ID;
+    const resolvedStudentName = userProfile?.fullName || (userEmail?.toLowerCase().includes('shailu') ? 'Shailu' : 'Mahi');
+    const enrichedAttempt: QuizAttempt = {
+      ...attempt,
+      studentId: currentUid,
+      studentName: resolvedStudentName,
+      studentEmail: userEmail || undefined
+    };
+
     try {
       // Supabase is the single source of truth.
       if (!supabase || !userId) {
@@ -294,10 +310,10 @@ export const App: React.FC = () => {
       }
       setSyncStatus('pending');
       // 1. Authoritatively save attempt to Supabase
-      await submitStudentQuizAttemptCloud(currentUid, attempt);
+      await submitStudentQuizAttemptCloud(currentUid, enrichedAttempt, resolvedStudentName);
       // 2. Save locally for instant offline UI responsiveness
-      saveQuizAttempt(attempt);
-      setActiveAttempt(attempt);
+      saveQuizAttempt(enrichedAttempt);
+      setActiveAttempt(enrichedAttempt);
       refreshProgress();
       setSyncStatus('synced');
       setCurrentView('result');
@@ -409,7 +425,7 @@ export const App: React.FC = () => {
   const handleSignOut = async () => {
     clearLocalAuthSession();
     if (supabase) {
-      await supabase.auth.signOut().catch(() => {});
+      await supabase.auth.signOut().catch(() => { });
     }
     setUserEmail(null);
     setUserId(null);

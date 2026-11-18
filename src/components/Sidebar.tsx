@@ -8,17 +8,17 @@ import {
   LogOut,
   Inbox,
   Users,
-  Calendar,
   FileCheck,
   TrendingUp,
   ShieldCheck,
   GraduationCap,
   X,
   RotateCcw,
-  UserCheck,
   FileText,
   BookOpen,
-  Crown
+  Crown,
+  UploadCloud,
+  Layers
 } from 'lucide-react';
 
 export type StudentNavView =
@@ -46,6 +46,7 @@ export type AdminNavTab =
   | 'answer-sheets'
   | 'quiz-management'
   | 'schedule'
+  | 'pdf-studio'
   | 'analytics'
   | 'inbox'
   | 'notifications'
@@ -117,8 +118,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     badgeColor?: string;
   }> = [
     { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'students', label: 'Students', icon: Users },
-    { id: 'mahi-profile', label: "Mahi's Profile", icon: UserCheck },
+    { id: 'students', label: 'Students (Mahi & Shailu)', icon: Users },
+    { id: 'schedule', label: 'Topics & Championship', icon: Layers },
+    { id: 'pdf-studio', label: 'PDF Question Studio', icon: UploadCloud },
     { id: 'attempts', label: 'Quiz Attempts', icon: FileText },
     {
       id: 'retake-requests',
@@ -128,7 +130,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-amber-500 text-amber-950 font-black'
     },
     { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
-    { id: 'schedule', label: 'Quiz Schedule', icon: Calendar },
     {
       id: 'inbox',
       label: 'Inbox',
@@ -185,14 +186,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-base font-black tracking-tight text-white">
-                  Boddukuri's
+                  Quiz by
+                </span>
+                <span className="text-base font-black tracking-tight text-[#ff3366]">
+                  Spideyy
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#2a0b16] text-[#ff8099] border border-[#52142a]">
-                  {isStudent ? '#Mahi' : 'Admin'}
+                  {isStudent ? 'Portal' : 'Admin'}
                 </span>
               </div>
-              <p className="text-[11px] font-bold text-[#ff3366]">
-                {isStudent ? 'Quiz Portal' : 'Admin Panel'}
+              <p className="text-[11px] font-bold text-[#ff8099]">
+                {isStudent ? 'GK & Examination Platform' : 'Central Admin Console'}
               </p>
             </div>
           </div>

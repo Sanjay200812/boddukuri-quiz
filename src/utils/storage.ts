@@ -187,67 +187,67 @@ function saveSyncMeta(updatedAt: string, settingsUpdatedAt: string): void { safe
  * completely replacing stale local cache.
  */
 export function applyServerProgressSnapshot(serverData: ProgressSnapshot): void {
-  safeSet(STORAGE_KEYS.ATTEMPTS, serverData.attempts || []);
-  safeSet(STORAGE_KEYS.COMPLETED_DAYS, serverData.completedDays || []);
-  safeSet(STORAGE_KEYS.IN_PROGRESS, serverData.inProgress || {});
-  if (serverData.settings) safeSet(STORAGE_KEYS.SETTINGS, serverData.settings);
-  if (serverData.bookmarks) safeSet(STORAGE_KEYS.BOOKMARKS, serverData.bookmarks);
-  if (serverData.retakeRequests) safeSet(STORAGE_KEYS.RETAKE_REQUESTS, serverData.retakeRequests);
-  if (serverData.notifications) safeSet(STORAGE_KEYS.NOTIFICATIONS, serverData.notifications || []);
-  if (serverData.resetVersion) safeSet('mahi_last_reset_version', serverData.resetVersion);
-  if (serverData.resetAt) safeSet('mahi_last_reset_at', serverData.resetAt);
-  saveSyncMeta(serverData.updatedAt || new Date().toISOString(), serverData.settingsUpdatedAt || serverData.updatedAt || new Date().toISOString());
-  notifyStorageChanged();
-}
-
-export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnapshot {
-  const localResetAt = safeGet<string | null>('mahi_last_reset_at', null);
-  const localResetVersion = safeGet<number | null>('mahi_last_reset_version', null);
-
-  const serverResetAtTime = incoming.resetAt ? new Date(incoming.resetAt).getTime() : 0;
-  const serverResetVersion = incoming.resetVersion || 0;
-
-  // 1. If server was reset (or incoming attempts are empty), adopt server data authoritatively
-  if (
-    serverResetVersion > (localResetVersion || 0) ||
-    serverResetAtTime > (localResetAt ? new Date(localResetAt).getTime() : 0) ||
-    (Array.isArray(incoming.attempts) && incoming.attempts.length === 0)
-  ) {
-    applyServerProgressSnapshot(incoming);
-    return incoming;
+    safeSet(STORAGE_KEYS.ATTEMPTS, serverData.attempts || []);
+    safeSet(STORAGE_KEYS.COMPLETED_DAYS, serverData.completedDays || []);
+    safeSet(STORAGE_KEYS.IN_PROGRESS, serverData.inProgress || {});
+    if (serverData.settings) safeSet(STORAGE_KEYS.SETTINGS, serverData.settings);
+    if (serverData.bookmarks) safeSet(STORAGE_KEYS.BOOKMARKS, serverData.bookmarks);
+    if (serverData.retakeRequests) safeSet(STORAGE_KEYS.RETAKE_REQUESTS, serverData.retakeRequests);
+    if (serverData.notifications) safeSet(STORAGE_KEYS.NOTIFICATIONS, serverData.notifications || []);
+    if (serverData.resetVersion) safeSet('mahi_last_reset_version', serverData.resetVersion);
+    if (serverData.resetAt) safeSet('mahi_last_reset_at', serverData.resetAt);
+    saveSyncMeta(serverData.updatedAt || new Date().toISOString(), serverData.settingsUpdatedAt || serverData.updatedAt || new Date().toISOString());
+    notifyStorageChanged();
   }
 
-  // 2. Otherwise adopt server snapshot as primary source of truth
-  const serverAttemptIds = new Set((incoming.attempts || []).map(a => a.id));
-  const local = getProgressSnapshot();
-  const validLocalAttempts = (local.attempts || []).filter(a => {
-    if (serverAttemptIds.has(a.id)) return false;
-    const aTime = new Date(a.timestamp).getTime();
-    if (serverResetAtTime > 0 && aTime < serverResetAtTime) return false;
-    return true;
-  });
+export function mergeProgressSnapshot(incoming: ProgressSnapshot): ProgressSnapshot {
+    const localResetAt = safeGet<string | null>('mahi_last_reset_at', null);
+    const localResetVersion = safeGet<number | null>('mahi_last_reset_version', null);
 
-  const mergedAttempts = [...(incoming.attempts || []), ...validLocalAttempts].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  );
+    const serverResetAtTime = incoming.resetAt ? new Date(incoming.resetAt).getTime() : 0;
+    const serverResetVersion = incoming.resetVersion || 0;
 
-  const mergedCompleted = Array.from(new Set([
-    ...(incoming.completedDays || []),
-    ...validLocalAttempts.map(a => a.quizId)
-  ]));
+    // 1. If server was reset (or incoming attempts are empty), adopt server data authoritatively
+    if (
+      serverResetVersion > (localResetVersion || 0) ||
+      serverResetAtTime > (localResetAt ? new Date(localResetAt).getTime() : 0) ||
+      (Array.isArray(incoming.attempts) && incoming.attempts.length === 0)
+    ) {
+      applyServerProgressSnapshot(incoming);
+      return incoming;
+    }
 
-  const merged: ProgressSnapshot = {
-    ...incoming,
-    version: 1,
-    attempts: mergedAttempts,
-    completedDays: mergedCompleted,
-    settings: incoming.settings || local.settings,
-    resetVersion: incoming.resetVersion,
-    resetAt: incoming.resetAt
-  };
+    // 2. Otherwise adopt server snapshot as primary source of truth
+    const serverAttemptIds = new Set((incoming.attempts || []).map(a => a.id));
+    const local = getProgressSnapshot();
+    const validLocalAttempts = (local.attempts || []).filter(a => {
+      if (serverAttemptIds.has(a.id)) return false;
+      const aTime = new Date(a.timestamp).getTime();
+      if (serverResetAtTime > 0 && aTime < serverResetAtTime) return false;
+      return true;
+    });
 
-  applyServerProgressSnapshot(merged);
-  return merged;
+    const mergedAttempts = [...(incoming.attempts || []), ...validLocalAttempts].sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    const mergedCompleted = Array.from(new Set([
+      ...(incoming.completedDays || []),
+      ...validLocalAttempts.map(a => a.quizId)
+    ]));
+
+    const merged: ProgressSnapshot = {
+      ...incoming,
+      version: 1,
+      attempts: mergedAttempts,
+      completedDays: mergedCompleted,
+      settings: incoming.settings || local.settings,
+      resetVersion: incoming.resetVersion,
+      resetAt: incoming.resetAt
+    };
+
+    applyServerProgressSnapshot(merged);
+    return merged;
 }
 
 export function markProgressChanged(settingsChanged = false): void { const now = new Date().toISOString(); const meta = safeGet<{ updatedAt?: string; settingsUpdatedAt?: string }>('mahi_quiz_sync_meta_v1', {}); saveSyncMeta(now, settingsChanged ? now : (meta.settingsUpdatedAt || now)); notifyStorageChanged(); }

@@ -217,17 +217,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between overflow-hidden bg-[#070508] text-neutral-100 selection:bg-[#9e1030] selection:text-white px-4 py-8 sm:py-12">
-      {/* 3D Interactive Background Cubes Grid (Aceternity UI component) */}
-      <div className="absolute inset-0 z-0 opacity-40 pointer-events-auto">
+      {/* 3D Interactive Background Cubes Grid (Optimized for desktop fine pointers) */}
+      <div className="hidden sm:block absolute inset-0 z-0 opacity-40 pointer-events-auto">
         <BackgroundCubesGrid
           variant="isometric"
-          cellSize={48}
+          cellSize={54}
           gap={0.12}
           topColor="#160811"
           leftColor="#0a0307"
           rightColor="#10050d"
           glowColor="#a31d38"
-          glow={0.8}
+          glow={0.7}
         />
       </div>
 
@@ -247,13 +247,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center gap-2">
-            <span>Boddukuri's Quiz</span>
+            <span>Quiz by</span>
+            <span className="text-[#ff3366]">Spideyy</span>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#9e1030]/20 text-[#ff8099] border border-[#ff3366]/30">
-              #Mahi
+              GK Portal
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-neutral-400 font-medium mt-1">
-            National Parks Master Curriculum • Daily Interactive Assessment
+            Topic-Based Learning Workspace • Multi-Student Assessment Engine
           </p>
         </div>
       </motion.div>
@@ -537,7 +538,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         transition={{ delay: 0.3 }}
         className="relative z-10 max-w-md w-full mx-auto text-center text-[11px] text-neutral-500 pt-4"
       >
-        Boddukuri's Quiz #Mahi • All learning progress stored locally and synchronized with Supabase Cloud.
+        Quiz by Spideyy • Shared GK Learning Workspace for Mahi & Shailu • Supabase Cloud Verified
       </motion.div>
     </div>
   );

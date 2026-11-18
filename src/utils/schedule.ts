@@ -72,159 +72,34 @@ export const ALL_30_STATES: string[] = [
 export const ALL_28_STATES: string[] = ALL_30_STATES;
 
 export const DAILY_SCHEDULE: DaySchedule[] = [
-  // DAY 01: Foundational 6 States (Published & Available Today: 09 November 2026)
-  {
-    dayNumber: 1,
-    quizId: 'day-01',
-    title: 'Day 01',
-    theme: 'Foundational 6 States (Madhya Pradesh, Andhra Pradesh, Telangana, Kerala, Assam, Karnataka — 35 Parks)',
-    dateStr: '09-11-2026',
-    displayDate: '09 November 2026',
-    unlockIsoUTC: '2026-11-09T14:59:00Z', // 8:29 PM IST
-    states: [
-      'Madhya Pradesh',
-      'Andhra Pradesh',
-      'Telangana',
-      'Kerala',
-      'Assam',
-      'Karnataka'
-    ],
-    newStates: [
-      'Madhya Pradesh',
-      'Andhra Pradesh',
-      'Telangana',
-      'Kerala',
-      'Assam',
-      'Karnataka'
-    ],
-    totalQuestions: 30,
-    isPublished: true, // Only Day 01 is published and accessible
-    statusLabel: 'Available'
-  },
-
-  // DAY 02: Islands & Small States (13 Parks)
-  {
-    dayNumber: 2,
-    quizId: 'day-02',
-    title: 'Day 02',
-    theme: 'Islands & Small States (Andaman & Nicobar [9], Arunachal Pradesh [2], Bihar [1], Goa [1] — 13 Parks)',
-    dateStr: '10-11-2026',
-    displayDate: '10 November 2026',
-    unlockIsoUTC: '2026-11-10T14:59:00Z', // Sharp 8:29 PM IST
-    states: ['Andaman and Nicobar Islands', 'Arunachal Pradesh', 'Bihar', 'Goa'],
-    newStates: ['Andaman and Nicobar Islands', 'Arunachal Pradesh', 'Bihar', 'Goa'],
-    totalQuestions: 30,
-    isPublished: false, // Locked until sharp 8:29 PM IST or admin unlock
-    statusLabel: 'Scheduled'
-  },
-
-  // DAY 03: Central & Western India (13 Parks)
-  {
-    dayNumber: 3,
-    quizId: 'day-03',
-    title: 'Day 03',
-    theme: 'Central & Western India (Chhattisgarh [3], Gujarat [4], Haryana [2], Jammu & Kashmir [4] — 13 Parks)',
-    dateStr: '11-11-2026',
-    displayDate: '11 November 2026',
-    unlockIsoUTC: '2026-11-11T14:59:00Z',
-    states: ['Chhattisgarh', 'Gujarat', 'Haryana', 'Jammu and Kashmir'],
-    newStates: ['Chhattisgarh', 'Gujarat', 'Haryana', 'Jammu and Kashmir'],
-    totalQuestions: 30,
-    isPublished: false,
-    statusLabel: 'Scheduled'
-  },
-
-  // DAY 04: Northern Highlands (12 Parks)
-  {
-    dayNumber: 4,
-    quizId: 'day-04',
-    title: 'Day 04',
-    theme: 'Northern Highlands (Himachal Pradesh [5], Jharkhand [1], Ladakh [1], Rajasthan [5] — 12 Parks)',
-    dateStr: '12-11-2026',
-    displayDate: '12 November 2026',
-    unlockIsoUTC: '2026-11-12T14:59:00Z',
-    states: ['Himachal Pradesh', 'Jharkhand', 'Ladakh', 'Rajasthan'],
-    newStates: ['Himachal Pradesh', 'Jharkhand', 'Ladakh', 'Rajasthan'],
-    totalQuestions: 30,
-    isPublished: false,
-    statusLabel: 'Scheduled'
-  },
-
-  // DAY 05: Western & Northeastern India (11 Parks)
-  {
-    dayNumber: 5,
-    quizId: 'day-05',
-    title: 'Day 05',
-    theme: 'Western & Northeastern India (Maharashtra [6], Manipur [1], Meghalaya [2], Nagaland [1] — 11 Parks)',
-    dateStr: '13-11-2026',
-    displayDate: '13 November 2026',
-    unlockIsoUTC: '2026-11-13T14:59:00Z',
-    states: ['Maharashtra', 'Manipur', 'Meghalaya', 'Nagaland'],
-    newStates: ['Maharashtra', 'Manipur', 'Meghalaya', 'Nagaland'],
-    totalQuestions: 30,
-    isPublished: false,
-    statusLabel: 'Scheduled'
-  },
-
-  // DAY 06: Northeast & Southern Highlands (12 Parks)
-  {
-    dayNumber: 6,
-    quizId: 'day-06',
-    title: 'Day 06',
-    theme: 'Northeast & Southern Highlands (Mizoram [2], Odisha [2], Tripura [2], Uttarakhand [6] — 12 Parks)',
-    dateStr: '14-11-2026',
-    displayDate: '14 November 2026',
-    unlockIsoUTC: '2026-11-14T14:59:00Z',
-    states: ['Mizoram', 'Odisha', 'Tripura', 'Uttarakhand'],
-    newStates: ['Mizoram', 'Odisha', 'Tripura', 'Uttarakhand'],
-    totalQuestions: 30,
-    isPublished: false,
-    statusLabel: 'Scheduled'
-  },
-
-  // DAY 07: Final States (13 Parks)
-  {
-    dayNumber: 7,
-    quizId: 'day-07',
-    title: 'Day 07',
-    theme: 'Final States (Sikkim [1], Tamil Nadu [5], Uttar Pradesh [1], West Bengal [6] — 13 Parks)',
-    dateStr: '15-11-2026',
-    displayDate: '15 November 2026',
-    unlockIsoUTC: '2026-11-15T14:59:00Z',
-    states: ['Sikkim', 'Tamil Nadu', 'Uttar Pradesh', 'West Bengal'],
-    newStates: ['Sikkim', 'Tamil Nadu', 'Uttar Pradesh', 'West Bengal'],
-    totalQuestions: 30,
-    isPublished: false,
-    statusLabel: 'Scheduled'
-  },
   {
     dayNumber: 8,
     quizId: 'semi-final',
     title: 'Semi-Final Test',
-    theme: 'Comprehensive All-State Assessment (30 States — 15 First Half + 15 Second Half — 30 Questions)',
+    theme: 'Comprehensive All-State Assessment (30 States/UTs — 30 Questions)',
     dateStr: '16-11-2026',
     displayDate: '16 November 2026',
     unlockIsoUTC: '2026-11-16T14:59:00Z',
     states: ALL_30_STATES,
     newStates: ALL_30_STATES,
     totalQuestions: 30,
-    isPublished: false,
-    statusLabel: 'Locked',
+    isPublished: true,
+    statusLabel: 'Available',
     isSpecialTest: true
   },
   {
     dayNumber: 9,
     quizId: 'grand-final',
     title: 'Grand Test',
-    theme: 'Championship Grand Final Test (30 States — 30 First Half + 30 Second Half — 60 Questions)',
+    theme: 'Championship Grand Final Test (30 States/UTs — 60 Questions)',
     dateStr: '17-11-2026',
     displayDate: '17 November 2026',
     unlockIsoUTC: '2026-11-17T14:59:00Z',
     states: ALL_30_STATES,
     newStates: ALL_30_STATES,
     totalQuestions: 60,
-    isPublished: false,
-    statusLabel: 'Locked',
+    isPublished: true,
+    statusLabel: 'Available',
     isSpecialTest: true
   }
 ];
@@ -304,12 +179,12 @@ export function setDayAdminOverride(quizId: string, override: ScheduleOverrideIt
 }
 
 /**
- * Evaluates whether a given day or test is unlocked:
- * - If the day was already completed by Mahi, it is ALWAYS unlocked for review.
- * - If an Admin force-unlocked the day, it is unlocked.
- * - If an Admin force-locked the day, it is locked.
- * - Day 01 is published and always available.
- * - Days 02–07 remain scheduled/locked until explicitly published or unlocked by Admin.
+ * Evaluates whether a given topic, day or test is unlocked:
+ * - Topics are self-paced learning modules and are always unlocked.
+ * - If the quiz was already completed, it is ALWAYS unlocked for review.
+ * - If an Admin force-unlocked the test, it is unlocked.
+ * - If an Admin force-locked the test, it is locked.
+ * - Championship assessments (Semi-Final & Grand Test) are available or governed by schedule/admin.
  */
 export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: string[] = []): boolean {
   const quizId = typeof dayNumberOrId === 'string'
@@ -320,13 +195,21 @@ export function isDayUnlocked(dayNumberOrId: number | string, completedDayIds: s
         ? 'grand-final'
         : `day-${dayNumberOrId < 10 ? '0' + dayNumberOrId : dayNumberOrId}`;
 
+  // Topic modules are always unlocked
+  if (
+    quizId.startsWith('top-') ||
+    ['static-gk', 'current-affairs', 'banking-awareness', 'central-ministers', 'ramsar-sites'].includes(quizId)
+  ) {
+    return true;
+  }
+
   // Completed days are never locked
   if (completedDayIds.includes(quizId)) {
     return true;
   }
 
   const schedule = DAILY_SCHEDULE.find(s => s.quizId === quizId || s.dayNumber === dayNumberOrId);
-  if (!schedule) return false;
+  if (!schedule) return true;
 
   // Global Admin Dev Unlock
   if (isDevUnlockAllEnabled()) {

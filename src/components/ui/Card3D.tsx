@@ -1,119 +1,135 @@
-import React, { useRef, useState } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'motion/react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 
 interface Card3DProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
-  intensity?: number; // max tilt degrees (default: 8)
-  glareOpacity?: number; // max glare opacity (default: 0.16)
-  depth?: number; // translateZ for inner contents in px (default: 12)
-  perspective?: number; // perspective distance in px (default: 1000)
+  intensity?: number; // max tilt degrees (default: 6 for subtle, elegant feel)
+  glareOpacity?: number; // max glare opacity (default: 0.12)
+  depth?: number; // translateZ for inner contents in px (default: 8)
+  perspective?: number; // perspective distance in px (default: 800)
 }
 
 export const Card3D: React.FC<Card3DProps> = ({
   children,
   className = '',
-  intensity = 8,
-  glareOpacity = 0.16,
-  depth = 12,
-  perspective = 1000,
+  intensity = 6,
+  glareOpacity = 0.12,
+  depth = 8,
+  perspective = 800,
   onClick,
   ...rest
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const rectRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
+  const rafRef = useRef<number | null>(null);
+
   const [isHovered, setIsHovered] = useState(false);
+  const [canTilt, setCanTilt] = useState(false);
+  const [transformStyle, setTransformStyle] = useState<string>('rotateX(0deg) rotateY(0deg)');
+  const [glarePos, setGlarePos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
 
-  // Raw normalized mouse coordinates (-0.5 to 0.5)
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  // Detect true hover/pointer capability and respect reduced motion preference
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hoverQuery = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  // Mouse position inside element in px for glare
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+    const updateCapabilities = () => {
+      setCanTilt(hoverQuery.matches && !motionQuery.matches);
+    };
 
-  // Smooth springs for rotation
-  const springConfig = { damping: 22, stiffness: 240, mass: 0.4 };
-  const smoothX = useSpring(x, springConfig);
-  const smoothY = useSpring(y, springConfig);
+    updateCapabilities();
+    hoverQuery.addEventListener('change', updateCapabilities);
+    motionQuery.addEventListener('change', updateCapabilities);
 
-  // Map mouse movement to rotation degrees
-  const rotateX = useTransform(smoothY, [-0.5, 0.5], [intensity, -intensity]);
-  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-intensity, intensity]);
+    return () => {
+      hoverQuery.removeEventListener('change', updateCapabilities);
+      motionQuery.removeEventListener('change', updateCapabilities);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
-  // Reactive hardware-accelerated radial glare template
-  const glareBg = useMotionTemplate`radial-gradient(circle 260px at ${mouseX}px ${mouseY}px, rgba(255, 120, 160, 0.28), rgba(255, 255, 255, 0.12) 35%, transparent 75%)`;
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-
-    const posX = e.clientX - rect.left;
-    const posY = e.clientY - rect.top;
-
-    mouseX.set(posX);
-    mouseY.set(posY);
-
-    // Normalize from -0.5 to 0.5
-    x.set(posX / width - 0.5);
-    y.set(posY / height - 0.5);
-  };
-
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
+    if (!cardRef.current || !canTilt) return;
+    // Cache bounding client rect ONCE on enter to eliminate layout thrashing
+    const r = cardRef.current.getBoundingClientRect();
+    rectRef.current = { left: r.left, top: r.top, width: r.width, height: r.height };
     setIsHovered(true);
-  };
+  }, [canTilt]);
 
-  const handleMouseLeave = () => {
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!canTilt || !rectRef.current) return;
+
+    const { left, top, width, height } = rectRef.current;
+    if (width <= 0 || height <= 0) return;
+
+    // Cancel queued RAF to throttle to native display refresh rate
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    rafRef.current = requestAnimationFrame(() => {
+      const relX = (clientX - left) / width; // 0 to 1
+      const relY = (clientY - top) / height; // 0 to 1
+
+      const tiltX = (0.5 - relY) * intensity * 2; // -intensity to +intensity
+      const tiltY = (relX - 0.5) * intensity * 2; // -intensity to +intensity
+
+      setTransformStyle(`rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translateZ(${depth}px)`);
+      setGlarePos({ x: Math.round(relX * 100), y: Math.round(relY * 100) });
+    });
+  }, [canTilt, intensity, depth]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rectRef.current = null;
     setIsHovered(false);
-    x.set(0);
-    y.set(0);
-  };
+    setTransformStyle('rotateX(0deg) rotateY(0deg) translateZ(0px)');
+  }, []);
 
   return (
     <div
       ref={cardRef}
-      onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
       style={{
-        perspective: `${perspective}px`,
+        perspective: canTilt ? `${perspective}px` : undefined,
       }}
-      className={`relative select-none ${className}`}
+      className={`relative select-none transition-transform duration-200 ease-out ${className}`}
       {...rest}
     >
-      <motion.div
+      <div
         style={{
-          rotateX,
-          rotateY,
-          transformStyle: 'preserve-3d',
+          transform: canTilt ? transformStyle : undefined,
+          transformStyle: canTilt ? 'preserve-3d' : undefined,
+          transition: isHovered
+            ? 'transform 0.08s ease-out'
+            : 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+          willChange: isHovered && canTilt ? 'transform' : 'auto',
         }}
-        className="w-full h-full relative"
+        className="w-full h-full relative rounded-2xl"
       >
-        {/* Child Content rendered with 3D Depth */}
-        <div
-          style={{
-            transform: isHovered ? `translateZ(${depth}px)` : 'translateZ(0px)',
-            transition: 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-          }}
-          className="w-full h-full"
-        >
+        {/* Child Content rendered with clean depth */}
+        <div className="w-full h-full">
           {children}
         </div>
 
-        {/* Dynamic Specular Glare / Sheen Overlay */}
-        <motion.div
-          animate={{ opacity: isHovered ? glareOpacity : 0 }}
-          transition={{ duration: 0.2 }}
-          className="absolute inset-0 rounded-[inherit] pointer-events-none overflow-hidden z-20"
-          style={{
-            transform: 'translateZ(25px)',
-            background: glareBg,
-          }}
-        />
-      </motion.div>
+        {/* High-Performance Hardware-Accelerated Sheen Glare (only when active on desktop) */}
+        {canTilt && (
+          <div
+            className="absolute inset-0 rounded-[inherit] pointer-events-none overflow-hidden z-20 transition-opacity duration-200"
+            style={{
+              opacity: isHovered ? glareOpacity : 0,
+              background: `radial-gradient(circle 240px at ${glarePos.x}% ${glarePos.y}%, rgba(255, 120, 160, 0.22), rgba(255, 255, 255, 0.08) 40%, transparent 80%)`,
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 };
+
 export default Card3D;

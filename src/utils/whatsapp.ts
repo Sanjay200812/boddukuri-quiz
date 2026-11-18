@@ -20,7 +20,6 @@ function formatStatesList(states: string[]): string {
  * Formats the quiz result into the exact WhatsApp message template requested for Boddukuri's Quiz
  */
 export function formatWhatsAppMessage(attempt: QuizAttempt): string {
-  const dayStr = attempt.dayNumber < 10 ? `0${attempt.dayNumber}` : `${attempt.dayNumber}`;
   const statesFormatted = formatStatesList(attempt.statesCovered);
   const minutes = Math.floor(attempt.timeTakenSeconds / 60);
   const seconds = attempt.timeTakenSeconds % 60;
@@ -28,13 +27,16 @@ export function formatWhatsAppMessage(attempt: QuizAttempt): string {
 
   const dateStr = attempt.displayDate || attempt.quizDate || '09 November 2026';
 
+  const studentName = attempt.studentName || 'Student';
+  const quizLabel = attempt.quizId === 'semi-final' ? 'Semi-Final Test' : attempt.quizId === 'grand-final' ? 'Grand Final Test' : attempt.quizId.toUpperCase();
+
   return [
-    `🌿 BODDUKURI'S QUIZ`,
+    `⚡ QUIZ BY SPIDEEYY`,
     ``,
-    `🎉 #Mahi – Day ${dayStr} Completed!`,
+    `🎉 ${studentName} – ${quizLabel} Completed!`,
     `📅 Date: ${dateStr}`,
     ``,
-    `📚 States Covered:`,
+    `📚 Assessment / Topic:`,
     `${statesFormatted}`,
     ``,
     `📊 Result:`,
@@ -49,7 +51,7 @@ export function formatWhatsAppMessage(attempt: QuizAttempt): string {
     ``,
     `"Every day you learn something new, you become a better version of yourself."`,
     ``,
-    `Keep learning, Mahi! 💚`
+    `Keep learning, ${studentName}! 🚀`
   ].join('\n');
 }
 
@@ -70,8 +72,7 @@ export function getWhatsAppShareUrl(attemptOrMessage: QuizAttempt | string, phon
  */
 export async function shareResultNative(attempt: QuizAttempt): Promise<{ success: boolean; method: 'native' | 'clipboard' | 'failed' }> {
   const message = formatWhatsAppMessage(attempt);
-  const dayStr = attempt.dayNumber < 10 ? `0${attempt.dayNumber}` : `${attempt.dayNumber}`;
-  const title = `Boddukuri's Quiz #Mahi — Day ${dayStr} Result`;
+  const title = `Quiz by Spideyy — Assessment Result`;
 
   if (navigator.share) {
     try {

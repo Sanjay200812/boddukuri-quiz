@@ -63,7 +63,7 @@ export const OpeningMotivation: React.FC<OpeningMotivationProps> = ({ onComplete
       <div className="relative z-10 flex items-center justify-between">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-950/60 border border-red-700/30 text-red-300 text-xs font-semibold backdrop-blur-md">
           <Sparkles className="w-3.5 h-3.5 text-red-600 animate-spin" />
-          <span>Boddukuri's Quiz #Mahi</span>
+          <span>Quiz by Spideyy</span>
         </div>
 
         <button

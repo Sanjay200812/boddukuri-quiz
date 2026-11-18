@@ -331,8 +331,8 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
       performanceMessage: performance.title,
       quote: {
         quote: "Every day you learn something new, you become a better version of yourself.",
-        author: "Boddukuri's Daily Creed",
-        personalNote: "Keep learning, Mahi! 💚"
+        author: "Daily Learning Creed",
+        personalNote: "Keep learning and reaching higher! 🚀"
       }
     };
 
@@ -387,7 +387,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                 {quiz.title}
               </span>
               <h2 className="text-base sm:text-lg font-bold text-[#2b0c15]">
-                Boddukuri's Quiz #Mahi
+                Quiz by Spideyy
               </h2>
             </div>
             <p className="text-xs text-[#76515b]">

@@ -95,7 +95,7 @@ export const AnswerSheet: React.FC<AnswerSheetProps> = ({
                 </span>
               </div>
               <h2 className="text-xl font-bold text-[#2b0c15] mt-0.5">
-                Boddukuri's Quiz #Mahi — {quiz.title} Explanations ({quiz.statesCovered.length} States)
+                Quiz by Spideyy — {quiz.title} Explanations
               </h2>
             </div>
           </div>

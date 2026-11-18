@@ -212,6 +212,7 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
       if (!error && data) {
         const res = data as {
           success?: boolean;
+          user_id?: string;
           email?: string;
           auth_ticket?: string;
           locked?: boolean;
@@ -221,18 +222,16 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
           role?: string;
         };
 
-        if (res.success && res.email) {
+        if (res.success && res.email && res.user_id) {
           saveRateLimitState({ failedAttempts: 0, lockedUntil: null });
           const role = (res.role === 'admin' || res.email.toLowerCase().includes('sanju') || res.email.toLowerCase().includes('sanjay') ? 'admin' : 'student') as UserRole;
           return {
             success: true,
             email: res.email,
             role,
-            fullName: role === 'admin' ? 'Sanju' : 'Mahi',
+            fullName: role === 'admin' ? 'Sanju' : 'Student',
             authTicket: res.auth_ticket,
-            // The RPC intentionally returns no user id. Map the two controlled
-            // access-code identities so progress always targets the correct row.
-            userId: role === 'admin' ? SANJU_ADMIN_ID : MAHI_STUDENT_ID
+            userId: res.user_id
           };
         }
 
@@ -248,11 +247,13 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
         }
       }
     } catch {
-      // Fall through to resilient cryptographic verification
+      // Configured deployments fail closed if the secure RPC is unavailable.
     }
+
+    return { success: false, error: 'Secure access-code verification is unavailable. Please contact the administrator.' };
   }
 
-  // 3. Resilient Cryptographic SHA-256 Hash Verification
+  // 3. Local verification is only available when no cloud backend is configured.
   try {
     const inputHash = await computeSha256Hex(trimmedCode);
 
@@ -477,7 +478,8 @@ export async function adminResetStudentProgressCloud(
  */
 export async function submitStudentQuizAttemptCloud(
   userId: string,
-  attempt: QuizAttempt
+  attempt: QuizAttempt,
+  studentName?: string
 ): Promise<{ success: boolean; attempt: QuizAttempt; message: string }> {
   if (!supabase) throw new Error('Supabase is not configured.');
   const cleanId = normalizeUserId(userId);
@@ -511,6 +513,8 @@ export async function submitStudentQuizAttemptCloud(
   const inProgress = { ...(existingPayload.inProgress || {}) };
   delete inProgress[attempt.quizId];
 
+  const resolvedStudentName = studentName || attempt.studentName || existingPayload.settings?.studentName || 'Student';
+
   const studentNotification: InboxNotification = {
     id: `notif-student-${attempt.id}`,
     targetRole: 'student',
@@ -533,7 +537,11 @@ export async function submitStudentQuizAttemptCloud(
     ...existingPayload,
     version: 1,
     updatedAt: now,
-    settings: existingPayload.settings || { studentName: 'Mahi', sanjuWhatsAppNumber: '917075920852' },
+    settings: {
+      ...existingPayload.settings,
+      studentName: resolvedStudentName,
+      sanjuWhatsAppNumber: existingPayload.settings?.sanjuWhatsAppNumber || '917075920852'
+    },
     attempts: updatedAttempts,
     completedDays,
     inProgress,

@@ -43,16 +43,21 @@ create policy "profiles_admin_all"
   on public.profiles for all
   using (public.is_admin());
 
--- Helper function: Check if current caller is Admin
+-- Helper function: Check if current caller is Admin (Safe against 42P17 recursion)
 create or replace function public.is_admin()
 returns boolean
 language sql
 stable
 security definer
+set search_path = public
 as $$
   select exists (
-    select 1 from public.profiles
-    where id = auth.uid() and role = 'admin'
+    select 1 from auth.users
+    where id = auth.uid()
+      and (
+        lower(email) in ('boddukurisanjay@gmail.com', 'sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz', 'sanju@boddukuri.quiz')
+        or (raw_user_meta_data->>'role') = 'admin'
+      )
   );
 $$;
 
@@ -269,6 +274,7 @@ begin
 
   return jsonb_build_object(
     'success', true,
+    'user_id', v_rec.user_id,
     'email', v_rec.email,
     'auth_ticket', v_rec.auth_ticket
   );
@@ -340,4 +346,110 @@ grant select on public.profiles to authenticated;
 grant select on public.admin_schedule_config to anon, authenticated;
 grant select, insert, update on public.quiz_progress to authenticated;
 grant select, insert, update, delete on public.inbox_notifications to anon, authenticated;
+
+-- ==============================================================================
+-- 12. TOPIC-BASED LEARNING WORKSPACE & FUTURE PDF PIPELINE TABLES (QUIZ BY SPIDEEYY)
+-- ==============================================================================
+
+-- Topics Table
+create table if not exists public.topics (
+  id text primary key,
+  title text not null,
+  category text not null,
+  description text not null,
+  icon text not null,
+  subtopics jsonb not null default '[]'::jsonb,
+  is_published boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.topics enable row level security;
+create policy "topics_select_all" on public.topics for select using (true);
+create policy "topics_admin_all" on public.topics for all using (public.is_admin());
+
+-- Topic Questions Table
+create table if not exists public.topic_questions (
+  id text primary key,
+  topic_id text not null references public.topics(id) on delete cascade,
+  subtopic_id text not null,
+  question text not null,
+  options jsonb not null,
+  correct_answer int not null,
+  explanation text not null,
+  difficulty text not null default 'medium',
+  source text,
+  last_verified_date text,
+  status text not null default 'published',
+  document_id uuid,
+  created_at timestamptz not null default now()
+);
+
+alter table public.topic_questions enable row level security;
+create policy "topic_questions_select_all" on public.topic_questions for select using (status = 'published' or public.is_admin());
+create policy "topic_questions_admin_all" on public.topic_questions for all using (public.is_admin());
+
+-- Uploaded Documents Table (Future PDF Pipeline)
+create table if not exists public.uploaded_documents (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  file_name text not null,
+  file_size_bytes bigint not null,
+  topic_id text references public.topics(id) on delete cascade,
+  subtopic_id text,
+  status text not null default 'uploaded',
+  extracted_text_preview text,
+  uploaded_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+
+alter table public.uploaded_documents enable row level security;
+create policy "uploaded_documents_admin_all" on public.uploaded_documents for all using (public.is_admin());
+
+-- Generated Question Drafts Table (Admin review & approval queue)
+create table if not exists public.generated_question_drafts (
+  id uuid primary key default gen_random_uuid(),
+  document_id uuid references public.uploaded_documents(id) on delete cascade,
+  topic_id text references public.topics(id) on delete cascade,
+  subtopic_id text,
+  question text not null,
+  options jsonb not null,
+  correct_answer int not null,
+  explanation text not null,
+  status text not null default 'draft', -- draft, approved, rejected, published
+  admin_notes text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.generated_question_drafts enable row level security;
+create policy "generated_question_drafts_admin_all" on public.generated_question_drafts for all using (public.is_admin());
+
+-- Student Topic Progress Table
+create table if not exists public.student_topic_progress (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  topic_id text not null references public.topics(id) on delete cascade,
+  subtopic_id text,
+  attempts_count int not null default 0,
+  best_score int not null default 0,
+  max_marks int not null default 0,
+  completed boolean not null default false,
+  last_attempt_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (user_id, topic_id, subtopic_id)
+);
+
+alter table public.student_topic_progress enable row level security;
+create policy "topic_progress_select_own" on public.student_topic_progress for select using (auth.uid() = user_id or public.is_admin());
+create policy "topic_progress_insert_own" on public.student_topic_progress for insert with check (auth.uid() = user_id);
+create policy "topic_progress_update_own" on public.student_topic_progress for update using (auth.uid() = user_id or public.is_admin());
+
+-- Additional grants
+grant select on public.topics to anon, authenticated;
+grant select on public.topic_questions to anon, authenticated;
+grant select, insert, update on public.student_topic_progress to authenticated;
+grant all on public.uploaded_documents to authenticated;
+grant all on public.generated_question_drafts to authenticated;
+
 

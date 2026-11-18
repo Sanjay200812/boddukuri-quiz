@@ -34,7 +34,7 @@ export function generateDayNotesPDF(quiz: DailyQuiz): void {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(21, 128, 61); // Forest Green
-    doc.text("BODDUKURI'S QUIZ #MAHI — DAILY NATIONAL PARKS STUDY NOTES", margin, y);
+    doc.text("QUIZ BY SPIDEEYY — STUDY NOTES", margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(140, 140, 140);
     doc.text(`${quiz.title} • ${quiz.displayDate || quiz.quizDate}`, pageWidth - margin, y, { align: 'right' });
@@ -54,7 +54,7 @@ export function generateDayNotesPDF(quiz: DailyQuiz): void {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(255, 255, 255);
-  doc.text("BODDUKURI'S QUIZ #MAHI", margin + 6, y + 8);
+  doc.text("QUIZ BY SPIDEEYY", margin + 6, y + 8);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -226,7 +226,7 @@ export function generateDayNotesPDF(quiz: DailyQuiz): void {
     doc.setFontSize(7.5);
     doc.setTextColor(150, 150, 150);
     doc.text(
-      `Boddukuri's Quiz #Mahi — Learn. Revise. Remember. Achieve. | Page ${i} of ${totalPages}`,
+      `Quiz by Spideyy — Learn. Revise. Remember. Achieve. | Page ${i} of ${totalPages}`,
       pageWidth / 2,
       pageHeight - 6,
       { align: 'center' }
@@ -234,7 +234,7 @@ export function generateDayNotesPDF(quiz: DailyQuiz): void {
   }
 
   // Trigger download
-  const safeFilename = `Boddukuris_Quiz_${quiz.title.replace(/\s+/g, '_')}_Notes.pdf`;
+  const safeFilename = `Quiz_by_Spideyy_${quiz.title.replace(/\s+/g, '_')}_Notes.pdf`;
   doc.save(safeFilename);
 }
 
@@ -273,10 +273,10 @@ export function generateAnswerSheetPDF(attempt: QuizAttempt, quiz: DailyQuiz): v
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(21, 128, 61); // Forest Green
-    doc.text("BODDUKURI'S QUIZ — ADMIN ANSWER SHEET INSPECTOR", margin, y);
+    doc.text("QUIZ BY SPIDEEYY — ADMIN ANSWER SHEET INSPECTOR", margin, y);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(120, 120, 120);
-    doc.text(`${quiz.title} • Student: ${attempt.studentName || 'Mahi'}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`${quiz.title} • Student: ${attempt.studentName || 'Student'}`, pageWidth - margin, y, { align: 'right' });
     y += 3;
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.3);
@@ -291,7 +291,7 @@ export function generateAnswerSheetPDF(attempt: QuizAttempt, quiz: DailyQuiz): v
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
   doc.setTextColor(255, 255, 255);
-  doc.text("BODDUKURI'S QUIZ — STUDENT ANSWER SHEET", margin + 6, y + 8);
+  doc.text("QUIZ BY SPIDEEYY — STUDENT ANSWER SHEET", margin + 6, y + 8);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
@@ -431,14 +431,14 @@ export function generateAnswerSheetPDF(attempt: QuizAttempt, quiz: DailyQuiz): v
     doc.setFontSize(7.5);
     doc.setTextColor(140, 140, 140);
     doc.text(
-      `Boddukuri's Quiz #Mahi — Official Student Answer Sheet Inspection | Page ${i} of ${totalPages}`,
+      `Quiz by Spideyy — Official Student Answer Sheet Inspection | Page ${i} of ${totalPages}`,
       pageWidth / 2,
       pageHeight - 6,
       { align: 'center' }
     );
   }
 
-  const safeFilename = `Boddukuris_Quiz_AnswerSheet_${quiz.id}_Mahi.pdf`;
+  const safeFilename = `Quiz_by_Spideyy_AnswerSheet_${quiz.id}_${attempt.studentName || 'Student'}.pdf`;
   doc.save(safeFilename);
 }
 
