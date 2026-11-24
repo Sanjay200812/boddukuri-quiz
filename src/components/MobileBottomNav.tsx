@@ -30,17 +30,17 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#0c0407]/95 backdrop-blur-2xl border-t border-[#260c18] py-2 px-3 flex items-center justify-around lg:hidden shadow-[0_-8px_25px_rgba(0,0,0,0.8)]"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 px-3 flex items-center justify-around lg:hidden shadow-[0_-4px_15px_rgba(15,23,42,0.06)]"
     >
       {/* 1: Home */}
       <button
         onClick={() => onNavigate('dashboard')}
         className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
-          isDashboard ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
+          isDashboard ? 'text-[#1e3a5f] font-bold' : 'text-slate-500 hover:text-slate-900'
         }`}
       >
-        <div className={`p-1.5 rounded-xl ${isDashboard ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
-          <Home className={`w-5 h-5 ${isDashboard ? 'stroke-[2.5]' : ''}`} />
+        <div className={`p-1.5 rounded-xl ${isDashboard ? 'bg-slate-100 text-[#1e3a5f] border border-slate-200' : ''}`}>
+          <Home className={`w-5 h-5 ${isDashboard ? 'stroke-[2.25]' : ''}`} />
         </div>
         <span className="text-[10px] mt-1 font-semibold">Home</span>
       </button>
@@ -49,11 +49,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => onNavigate('my-quizzes')}
         className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
-          isQuizzes ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
+          isQuizzes ? 'text-[#1e3a5f] font-bold' : 'text-slate-500 hover:text-slate-900'
         }`}
       >
-        <div className={`p-1.5 rounded-xl ${isQuizzes ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
-          <Play className={`w-5 h-5 ${isQuizzes ? 'stroke-[2.5] fill-[#ff3366]' : ''}`} />
+        <div className={`p-1.5 rounded-xl ${isQuizzes ? 'bg-slate-100 text-[#1e3a5f] border border-slate-200' : ''}`}>
+          <Play className={`w-5 h-5 ${isQuizzes ? 'stroke-[2.25] fill-[#1e3a5f]' : ''}`} />
         </div>
         <span className="text-[10px] mt-1 font-semibold">Quizzes</span>
       </button>
@@ -62,11 +62,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => onNavigate('progress')}
         className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
-          isProgress ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
+          isProgress ? 'text-[#1e3a5f] font-bold' : 'text-slate-500 hover:text-slate-900'
         }`}
       >
-        <div className={`p-1.5 rounded-xl ${isProgress ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
-          <BarChart3 className={`w-5 h-5 ${isProgress ? 'stroke-[2.5]' : ''}`} />
+        <div className={`p-1.5 rounded-xl ${isProgress ? 'bg-slate-100 text-[#1e3a5f] border border-slate-200' : ''}`}>
+          <BarChart3 className={`w-5 h-5 ${isProgress ? 'stroke-[2.25]' : ''}`} />
         </div>
         <span className="text-[10px] mt-1 font-semibold">Progress</span>
       </button>
@@ -75,11 +75,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={() => onNavigate('study-guide')}
         className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
-          isSaved ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
+          isSaved ? 'text-[#1e3a5f] font-bold' : 'text-slate-500 hover:text-slate-900'
         }`}
       >
-        <div className={`p-1.5 rounded-xl ${isSaved ? 'bg-[#220713] text-[#ff3366] border border-[#470f25] shadow-ruby' : ''}`}>
-          <Bookmark className={`w-5 h-5 ${isSaved ? 'stroke-[2.5] fill-[#ff3366]' : ''}`} />
+        <div className={`p-1.5 rounded-xl ${isSaved ? 'bg-slate-100 text-[#1e3a5f] border border-slate-200' : ''}`}>
+          <Bookmark className={`w-5 h-5 ${isSaved ? 'stroke-[2.25] fill-[#1e3a5f]' : ''}`} />
         </div>
         <span className="text-[10px] mt-1 font-semibold">Saved</span>
       </button>
@@ -88,7 +88,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       <button
         onClick={onOpenDrawer}
         className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[52px] min-h-[44px] cursor-pointer ${
-          isProfile ? 'text-[#ff3366] font-bold' : 'text-[#a68690] hover:text-white'
+          isProfile ? 'text-[#1e3a5f] font-bold' : 'text-slate-500 hover:text-slate-900'
         }`}
       >
         <div className="p-1.5 rounded-xl">

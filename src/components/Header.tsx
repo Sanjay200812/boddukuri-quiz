@@ -50,15 +50,15 @@ export const Header: React.FC<HeaderProps> = ({
   onSignOut,
 }) => {
   return (
-    <header className="sticky top-0 z-30 bg-[#0c0407]/90 backdrop-blur-xl border-b border-[#260c18] text-[#f2e6eb] transition-all shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 text-slate-900 transition-all shadow-soft">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20 gap-3">
+        <div className="flex items-center justify-between h-16 sm:h-18 gap-3">
           {/* Left: Sidebar Toggle (Mobile) & Brand */}
           <div className="flex items-center gap-3 shrink-0">
             {onToggleSidebar && (
               <button
                 onClick={onToggleSidebar}
-                className="p-2 rounded-xl text-[#a68690] hover:text-white hover:bg-[#1f0913] transition-colors lg:hidden cursor-pointer border border-[#2b0c18]"
+                className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors lg:hidden cursor-pointer border border-slate-200"
                 aria-label="Toggle navigation menu"
                 title="Open menu"
               >
@@ -70,42 +70,42 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('dashboard')}
               className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group"
             >
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-[#9e1030] to-[#e6194b] flex items-center justify-center text-white shadow-ruby group-hover:scale-105 transition-transform shrink-0">
-                <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-[#1e3a5f] flex items-center justify-center text-white shadow-soft group-hover:bg-[#102a43] transition-colors shrink-0">
+                <GraduationCap className="w-5 h-5 text-white" />
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-[#ff8099] transition-colors">
+                  <span className="font-serif text-lg sm:text-xl font-bold tracking-tight text-slate-900">
                     Spideyy
                   </span>
-                  <span className="text-base sm:text-lg font-black tracking-tight text-[#ff3366] group-hover:text-[#ff8099] transition-colors">
+                  <span className="font-serif text-lg sm:text-xl font-bold tracking-tight text-[#800020]">
                     Quiz
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#2b0c18] text-[#ff8099] border border-[#52142a]">
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                     GK Portal
                   </span>
                 </div>
-                <p className="text-[11px] font-bold text-[#ff3366] hidden sm:block">
-                  Student Portal
+                <p className="text-[11px] font-medium text-slate-500 hidden sm:block">
+                  Academic Assessment Workspace
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Center Search Bar Matching Image 1 */}
+          {/* Center Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md mx-4">
-            <label className="flex items-center gap-2.5 w-full rounded-2xl px-4 py-2 border border-[#2b0c18] bg-[#14060d] text-white shadow-inner focus-within:border-[#ff3366]/60 focus-within:bg-[#190710] transition-all">
-              <Search className="w-4 h-4 text-[#ff3366]" />
+            <label className="flex items-center gap-2.5 w-full rounded-xl px-3.5 py-2 border border-slate-200 bg-slate-50 text-slate-900 focus-within:border-[#1e3a5f] focus-within:bg-white transition-all">
+              <Search className="w-4 h-4 text-slate-400" />
               <input
                 aria-label="Search quizzes, topics"
                 placeholder="Search quizzes, topics..."
-                className="w-full bg-transparent outline-none text-xs text-white placeholder:text-[#7a5b67]"
+                className="w-full bg-transparent outline-none text-xs text-slate-900 placeholder:text-slate-400"
               />
             </label>
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 bg-[#14060d] p-1 rounded-xl border border-[#260c18]">
+          <nav className="hidden lg:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: Home, match: ['dashboard'] },
               { id: 'my-quizzes', label: 'Quizzes', icon: Play, match: ['my-quizzes', 'quiz'] },
@@ -119,10 +119,10 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => onNavigate(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby border border-[#ff3366]/30'
-                      : 'text-[#a68690] hover:text-white hover:bg-[#1a0610]'
+                      ? 'bg-[#1e3a5f] text-white shadow-soft'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -132,20 +132,20 @@ export const Header: React.FC<HeaderProps> = ({
             })}
           </nav>
 
-          {/* Right: Streak, Notification Bell & User Avatar Pill Matching Image 1 */}
+          {/* Right: Streak, Notification Bell & User Avatar Pill */}
           <div className="flex items-center gap-2 shrink-0">
             {/* Streak Counter */}
             <div
               title={`${streakDays} days consecutive learning streak!`}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
                 streakDays > 0
-                  ? 'bg-[#1e0712] text-[#ff8099] border-[#470f25] shadow-ruby'
-                  : 'bg-[#14060d] text-[#7a5b67] border-[#2b0c18]'
+                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  : 'bg-slate-50 text-slate-500 border-slate-200'
               }`}
             >
               <Flame
                 className={`w-3.5 h-3.5 ${
-                  streakDays > 0 ? 'text-[#ff3366] fill-[#ff3366] animate-pulse' : 'text-[#7a5b67]'
+                  streakDays > 0 ? 'text-amber-600 fill-amber-500' : 'text-slate-400'
                 }`}
               />
               <span>
@@ -153,37 +153,37 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
 
-            {/* Notifications Bell with Red Dot Matching Image 1 */}
+            {/* Notifications Bell */}
             {onOpenNotifications && (
               <button
                 onClick={onOpenNotifications}
                 title="Notifications"
-                className="relative p-2 rounded-xl text-[#a68690] hover:text-white hover:bg-[#1f0913] border border-[#2b0c18] bg-[#14060d] transition-colors cursor-pointer"
+                className="relative p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 bg-white transition-colors cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                 {unreadNotifsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#ff3366] text-white font-black text-[10px] flex items-center justify-center shadow-ruby animate-pulse">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#800020] text-white font-bold text-[10px] flex items-center justify-center">
                     {unreadNotifsCount}
                   </span>
                 )}
               </button>
             )}
 
-            {/* User Profile Pill Matching Image 1: Avatar + Name + Student + Dropdown Chevron */}
+            {/* User Profile Pill */}
             <div
               onClick={onOpenSettings}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-[#14060d] border border-[#2b0c18] hover:border-[#ff3366]/40 transition-colors cursor-pointer"
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors cursor-pointer"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#9e1030] to-[#e6194b] text-white font-black text-xs flex items-center justify-center shadow-ruby shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#1e3a5f] text-white font-bold text-xs flex items-center justify-center shrink-0">
                 {userName.charAt(0).toUpperCase()}
               </div>
               <div className="hidden sm:block text-left text-xs">
-                <div className="font-bold text-white leading-tight flex items-center gap-1">
+                <div className="font-semibold text-slate-900 leading-tight flex items-center gap-1">
                   <span>{userName}</span>
-                  <ChevronDown className="w-3 h-3 text-[#7a5b67]" />
+                  <ChevronDown className="w-3 h-3 text-slate-400" />
                 </div>
-                <div className="text-[10px] text-[#a68690] leading-tight">Student</div>
+                <div className="text-[10px] text-slate-500 leading-tight">Student</div>
               </div>
             </div>
 
@@ -192,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={onSignOut}
                 title="Sign out"
-                className="hidden xl:flex items-center justify-center p-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-[#1f0913] border border-[#2b0c18] transition-colors cursor-pointer"
+                className="hidden xl:flex items-center justify-center p-2 rounded-lg text-slate-500 hover:text-[#800020] hover:bg-rose-50 border border-slate-200 bg-white transition-colors cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
               </button>

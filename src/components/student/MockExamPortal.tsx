@@ -211,14 +211,14 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
     });
 
     return (
-      <div className="space-y-4 text-[#f2e6eb] pb-16">
+      <div className="space-y-4 text-slate-900 pb-16">
         {/* Exam Navigation Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-[#14060d] border border-[#2b0c18] shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-lg">
           <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#ff8099] px-2 py-0.5 rounded-full bg-[#2a0717] border border-[#52102c]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#800020] px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200">
               Examination Mode (Strict)
             </span>
-            <h2 className="text-base sm:text-lg font-black text-white mt-1">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-1">
               {examState.title}
             </h2>
           </div>
@@ -229,7 +229,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
               className={`flex items-center gap-2 px-4 py-2 rounded-xl border font-mono font-black text-sm sm:text-base ${
                 timerUrgent
                   ? 'bg-rose-950/80 border-rose-600 text-rose-300 animate-pulse'
-                  : 'bg-[#200713] border-[#52102c] text-emerald-300'
+                  : 'bg-slate-100 border-slate-200 text-emerald-300'
               }`}
             >
               <Clock className="w-4 h-4" />
@@ -248,19 +248,19 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
         {/* Main Examination Layout: Question + Palette */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Question Viewer (3 Cols) */}
-          <div className="lg:col-span-3 p-5 sm:p-7 rounded-3xl bg-[#15050e] border border-[#3a0d20] shadow-xl space-y-6 flex flex-col justify-between">
+          <div className="lg:col-span-3 p-5 sm:p-7 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-6 flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs pb-3 border-b border-[#260c18]">
-                <span className="font-extrabold text-[#ff8099]">
+              <div className="flex items-center justify-between text-xs pb-3 border-b border-slate-200">
+                <span className="font-extrabold text-[#800020]">
                   Question {examState.currentQuestionIndex + 1} of {examState.questions.length}
                 </span>
-                <span className="text-neutral-400">
+                <span className="text-slate-500">
                   Marks: +1.00 | -0.25 (Negative)
                 </span>
               </div>
 
               {/* Question Text */}
-              <h3 className="text-base sm:text-lg font-black text-white leading-relaxed">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
                 {currentQ.question}
               </h3>
 
@@ -275,15 +275,15 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                       onClick={() => handleSelectOption(idx)}
                       className={`w-full p-4 rounded-xl border text-left text-xs sm:text-sm font-medium transition-all flex items-start gap-3 cursor-pointer ${
                         isSelected
-                          ? 'bg-[#2b0918] border-[#ff3366] text-white shadow-ruby font-bold'
-                          : 'bg-[#12040b] border-[#2b0c18] text-neutral-300 hover:border-[#ff3366]/40 hover:text-white'
+                          ? 'bg-blue-50 border-[#1e3a5f] text-white shadow-soft font-bold'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-[#1e3a5f]/30 hover:text-slate-900'
                       }`}
                     >
                       <span
                         className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 border ${
                           isSelected
                             ? 'bg-[#ff3366] text-white border-white'
-                            : 'bg-[#1e0714] border-[#470f25] text-neutral-400'
+                            : 'bg-slate-100 border-slate-200 text-slate-500'
                         }`}
                       >
                         {String.fromCharCode(65 + idx)}
@@ -296,13 +296,13 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
             </div>
 
             {/* Bottom Action Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-[#260c18]">
+            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-slate-200">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleClearResponse}
                   disabled={chosenAns === undefined}
-                  className="px-3 py-2 rounded-xl bg-[#200713] hover:bg-[#330c1f] text-neutral-300 disabled:opacity-40 text-xs font-bold transition-all border border-[#470f25] cursor-pointer"
+                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-40 text-xs font-bold transition-all border border-slate-200 cursor-pointer"
                 >
                   Clear Selection
                 </button>
@@ -320,7 +320,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                   type="button"
                   disabled={examState.currentQuestionIndex === 0}
                   onClick={() => handleJumpToQuestion(examState.currentQuestionIndex - 1)}
-                  className="px-3 py-2 rounded-xl bg-[#200713] hover:bg-[#330c1f] text-white disabled:opacity-40 text-xs font-bold transition-all border border-[#470f25] cursor-pointer flex items-center gap-1"
+                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-white disabled:opacity-40 text-xs font-bold transition-all border border-slate-200 cursor-pointer flex items-center gap-1"
                 >
                   <ChevronLeft className="w-4 h-4" />
                   <span>Previous</span>
@@ -329,7 +329,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                 <button
                   type="button"
                   onClick={handleSaveAndNext}
-                  className="px-5 py-2 min-h-[44px] rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby cursor-pointer border border-[#ff3366]/40 flex items-center gap-1"
+                  className="px-5 py-2 min-h-[44px] rounded-xl bg-[#1e3a5f] hover:bg-[#102a43] text-white text-xs font-bold transition-all shadow-soft cursor-pointer border border-[#1e3a5f]/30 flex items-center gap-1"
                 >
                   <span>Save & Next</span>
                   <ChevronRight className="w-4 h-4" />
@@ -339,13 +339,13 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
           </div>
 
           {/* Question Palette Sidebar (1 Col) */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-[#14060d] border border-[#2b0c18] space-y-4">
+          <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 space-y-4">
             <h4 className="text-xs font-black uppercase tracking-wider text-white">
               Question Palette
             </h4>
 
             {/* Legend */}
-            <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-neutral-300">
+            <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-700">
               <div className="flex items-center gap-1.5">
                 <span className="w-3.5 h-3.5 rounded-md bg-emerald-600 shrink-0" />
                 <span>Answered ({answeredCount})</span>
@@ -370,7 +370,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                 const status = examState.questionStatus[q.id];
                 const isCurrent = examState.currentQuestionIndex === idx;
 
-                let bgClass = 'bg-[#1a0712] text-neutral-400 border-[#3a0d20]';
+                let bgClass = 'bg-[#1a0712] text-slate-500 border-slate-200';
                 if (status === 'answered') bgClass = 'bg-emerald-600 text-white border-emerald-400';
                 else if (status === 'marked-for-review' || status === 'answered-and-marked') {
                   bgClass = 'bg-purple-600 text-white border-purple-400';
@@ -397,36 +397,36 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
         {/* Submit Confirmation Modal */}
         {showSubmitConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-            <div className="max-w-md w-full p-6 rounded-3xl bg-gradient-to-b from-[#180510] to-[#0e0209] border border-[#3a0d20] shadow-2xl space-y-4">
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
+            <div className="max-w-md w-full p-6 rounded-3xl bg-gradient-to-b from-[#180510] to-[#0e0209] border border-slate-200 shadow-2xl space-y-4">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
                 <span>Submit Mock Examination?</span>
               </h3>
 
-              <div className="p-4 rounded-xl bg-[#12040b] border border-[#2b0c18] space-y-2 text-xs">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">Total Questions:</span>
-                  <strong className="text-white">{examState.questions.length}</strong>
+                  <span className="text-slate-500">Total Questions:</span>
+                  <strong className="text-slate-900">{examState.questions.length}</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">Answered Questions:</span>
+                  <span className="text-slate-500">Answered Questions:</span>
                   <strong className="text-emerald-400">{answeredCount}</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">Marked for Review:</span>
+                  <span className="text-slate-500">Marked for Review:</span>
                   <strong className="text-purple-300">{markedCount}</strong>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-neutral-400">Unanswered Questions:</span>
+                  <span className="text-slate-500">Unanswered Questions:</span>
                   <strong className="text-rose-400">{unansweredCount + notVisitedCount}</strong>
                 </div>
                 <div className="flex justify-between pt-1 border-t border-white/10">
-                  <span className="text-neutral-400">Time Remaining:</span>
+                  <span className="text-slate-500">Time Remaining:</span>
                   <strong className="text-amber-300 font-mono">{formatTime(examState.secondsRemaining)}</strong>
                 </div>
               </div>
 
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-slate-500">
                 Are you sure you want to finalize your exam submission? You cannot change answers after submitting.
               </p>
 
@@ -434,7 +434,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowSubmitConfirm(false)}
-                  className="py-2.5 rounded-xl bg-[#200713] hover:bg-[#330c1f] text-neutral-300 font-bold text-xs transition-colors border border-[#470f25] cursor-pointer"
+                  className="py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors border border-slate-200 cursor-pointer"
                 >
                   Return to Test
                 </button>
@@ -458,32 +458,32 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
   // ============================================================================
   if (activeResult) {
     return (
-      <div className="space-y-6 text-[#f2e6eb] pb-16 animate-fadeIn">
+      <div className="space-y-6 text-slate-900 pb-16 animate-fadeIn">
         {/* Result Header Banner */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#1c0612] via-[#14040d] to-[#0c0208] border border-[#3a0d20] shadow-2xl space-y-4">
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-[#1c0612] via-[#14040d] to-[#0c0208] border border-slate-200 shadow-2xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-xs font-black uppercase tracking-wider text-[#ff8099] px-2.5 py-0.5 rounded-full bg-[#2a0717] border border-[#52102c]">
+              <span className="text-xs font-black uppercase tracking-wider text-[#800020] px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200">
                 Official Score Report
               </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
                 {activeResult.title}
               </h2>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                Candidate: <strong className="text-white">{activeResult.studentName}</strong> • Completed on{' '}
+              <p className="text-xs text-slate-500 mt-0.5">
+                Candidate: <strong className="text-slate-900">{activeResult.studentName}</strong> • Completed on{' '}
                 {new Date(activeResult.completedAt).toLocaleString()}
               </p>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="px-5 py-3 rounded-2xl bg-[#12040b] border border-[#2b0c18] text-center">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Final Score</div>
-                <div className="text-2xl font-black text-[#ff8099]">
+              <div className="px-5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Final Score</div>
+                <div className="text-2xl font-black text-[#800020]">
                   {activeResult.score} / {activeResult.maxScore}
                 </div>
               </div>
-              <div className="px-5 py-3 rounded-2xl bg-[#12040b] border border-[#2b0c18] text-center">
-                <div className="text-[10px] uppercase font-bold text-neutral-400">Percentage</div>
+              <div className="px-5 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-center">
+                <div className="text-[10px] uppercase font-bold text-slate-500">Percentage</div>
                 <div className="text-2xl font-black text-emerald-400">
                   {activeResult.percentage}%
                 </div>
@@ -493,29 +493,29 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
 
           {/* Quick Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-[#260817]">
-            <div className="p-3 rounded-xl bg-[#12040b] border border-[#2b0c18] text-xs">
-              <span className="text-neutral-400">Correct: </span>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <span className="text-slate-500">Correct: </span>
               <strong className="text-emerald-400">{activeResult.correctCount}</strong>
             </div>
-            <div className="p-3 rounded-xl bg-[#12040b] border border-[#2b0c18] text-xs">
-              <span className="text-neutral-400">Incorrect: </span>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <span className="text-slate-500">Incorrect: </span>
               <strong className="text-rose-400">{activeResult.incorrectCount}</strong>
             </div>
-            <div className="p-3 rounded-xl bg-[#12040b] border border-[#2b0c18] text-xs">
-              <span className="text-neutral-400">Unanswered: </span>
-              <strong className="text-neutral-300">{activeResult.unansweredCount}</strong>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <span className="text-slate-500">Unanswered: </span>
+              <strong className="text-slate-700">{activeResult.unansweredCount}</strong>
             </div>
-            <div className="p-3 rounded-xl bg-[#12040b] border border-[#2b0c18] text-xs">
-              <span className="text-neutral-400">Time Taken: </span>
-              <strong className="text-white">{Math.round(activeResult.timeTakenSeconds / 60)} mins</strong>
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <span className="text-slate-500">Time Taken: </span>
+              <strong className="text-slate-900">{Math.round(activeResult.timeTakenSeconds / 60)} mins</strong>
             </div>
           </div>
         </div>
 
         {/* Detailed Question Review with Explanations */}
         <div className="space-y-4">
-          <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#ff3366]" />
+          <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#1e3a5f]" />
             <span>Question-by-Question Solution & Verification Explanations</span>
           </h3>
 
@@ -532,12 +532,12 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                     isCorrect
                       ? 'bg-[#0e1713] border-emerald-800/40'
                       : isUnanswered
-                      ? 'bg-[#14060d] border-[#2b0c18]'
+                      ? 'bg-white border-slate-200'
                       : 'bg-[#18050e] border-rose-900/40'
                   }`}
                 >
                   <div className="flex items-center justify-between text-xs pb-2 border-b border-white/5">
-                    <span className="font-extrabold text-[#ff8099]">
+                    <span className="font-extrabold text-[#800020]">
                       Question {idx + 1}
                     </span>
                     {isCorrect ? (
@@ -546,7 +546,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                         <span>Correct (+1.00)</span>
                       </span>
                     ) : isUnanswered ? (
-                      <span className="text-neutral-400 font-bold">Unanswered (0.00)</span>
+                      <span className="text-slate-500 font-bold">Unanswered (0.00)</span>
                     ) : (
                       <span className="text-rose-400 font-bold flex items-center gap-1">
                         <XCircle className="w-3.5 h-3.5" />
@@ -555,7 +555,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                     )}
                   </div>
 
-                  <h4 className="text-sm font-bold text-white leading-relaxed">
+                  <h4 className="text-sm font-bold text-slate-900 leading-relaxed">
                     {q.question}
                   </h4>
 
@@ -565,7 +565,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                       const isStudentSelected = studentAns === optIdx;
                       const isRealAnswer = q.correctAnswer === optIdx;
 
-                      let optClass = 'bg-[#10030a] border-[#220713] text-neutral-300';
+                      let optClass = 'bg-[#10030a] border-[#220713] text-slate-700';
                       if (isRealAnswer) {
                         optClass = 'bg-emerald-950 border-emerald-600 text-emerald-200 font-bold';
                       } else if (isStudentSelected && !isCorrect) {
@@ -590,7 +590,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
 
                   {/* Explanation */}
                   {q.explanation && (
-                    <div className="p-3 rounded-xl bg-[#0b0207] border border-[#200814] text-xs text-neutral-300 leading-relaxed">
+                    <div className="p-3 rounded-xl bg-[#0b0207] border border-[#200814] text-xs text-slate-700 leading-relaxed">
                       <strong className="text-rose-300 block mb-0.5">Explanation:</strong>
                       {q.explanation}
                     </div>
@@ -603,7 +603,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
           <div className="pt-4 text-center">
             <button
               onClick={() => setActiveResult(null)}
-              className="px-6 py-3 min-h-[44px] rounded-xl bg-[#260817] hover:bg-[#380e22] text-white text-xs font-bold transition-all border border-[#52102c] cursor-pointer"
+              className="px-6 py-3 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-white text-xs font-bold transition-all border border-slate-200 cursor-pointer"
             >
               Back to Mock Exams Portal
             </button>
@@ -617,11 +617,11 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
   // 3. LAUNCHER & CONFIGURATION PORTAL
   // ============================================================================
   return (
-    <div className="space-y-6 text-[#f2e6eb] pb-16">
+    <div className="space-y-6 text-slate-900 pb-16">
       <div className="flex items-center justify-between">
         <button
           onClick={exitHandler}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#ff8099] hover:bg-white/5 transition active:scale-95 min-h-[44px]"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#800020] hover:bg-slate-100 transition active:scale-95 min-h-[44px]"
         >
           <ChevronLeft className="w-4 h-4" />
           Back to Dashboard
@@ -629,16 +629,16 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
       </div>
 
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#260c18] pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-[#ff8099] px-2.5 py-0.5 rounded-full bg-[#2a0717] border border-[#52102c]">
+          <span className="text-xs font-black uppercase tracking-wider text-[#800020] px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200">
             Timed Competitive Exam Environment
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex items-center gap-2.5">
-            <Trophy className="w-6 h-6 text-[#ff3366]" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1 flex items-center gap-2.5">
+            <Trophy className="w-6 h-6 text-[#1e3a5f]" />
             <span>Mock Examination Mode</span>
           </h1>
-          <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Simulate realistic competitive test conditions with question palettes, countdown timers, and negative marking.
           </p>
         </div>
@@ -649,8 +649,8 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
             onClick={() => setHistoryTab('launcher')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               historyTab === 'launcher'
-                ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby'
-                : 'text-neutral-400 hover:text-white bg-[#14060d]'
+                ? 'bg-[#1e3a5f] text-white shadow-soft'
+                : 'text-slate-500 hover:text-slate-900 bg-white'
             }`}
           >
             Launch Tests
@@ -659,8 +659,8 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
             onClick={() => setHistoryTab('history')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               historyTab === 'history'
-                ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby'
-                : 'text-neutral-400 hover:text-white bg-[#14060d]'
+                ? 'bg-[#1e3a5f] text-white shadow-soft'
+                : 'text-slate-500 hover:text-slate-900 bg-white'
             }`}
           >
             Attempt History ({pastResults.length})
@@ -671,16 +671,16 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
       {historyTab === 'launcher' ? (
         <div className="space-y-6">
           {/* Preset 1: Full-Length All-India Mock Test */}
-          <div className="p-6 rounded-3xl bg-gradient-to-br from-[#1e0714] via-[#14050e] to-[#0c0208] border border-[#3a0d20] shadow-xl space-y-4">
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-[#1e0714] via-[#14050e] to-[#0c0208] border border-slate-200 shadow-xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-950 text-rose-300 border border-rose-800/40">
                   Full-Length Simulator
                 </span>
-                <h3 className="text-xl font-black text-white mt-1">
+                <h3 className="text-xl font-bold text-slate-900 mt-1">
                   Comprehensive All-India GK Mock Test (60 Qs)
                 </h3>
-                <p className="text-xs text-neutral-300 mt-1 max-w-2xl leading-relaxed">
+                <p className="text-xs text-slate-700 mt-1 max-w-2xl leading-relaxed">
                   Full 60-question competitive examination simulator randomly drawn across all 9 core syllabus subjects: National Parks, Current Affairs, Banking, Cabinet, Ramsar, UNESCO, Dance, and Sixth Schedule.
                 </p>
               </div>
@@ -697,14 +697,14 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                     negativeMarkingRatio: 0.25
                   })
                 }
-                className="px-6 py-3 min-h-[44px] rounded-2xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs sm:text-sm font-bold transition-all shadow-ruby flex items-center justify-center gap-2 cursor-pointer border border-[#ff3366]/40 shrink-0"
+                className="px-6 py-3 min-h-[44px] rounded-2xl bg-[#1e3a5f] hover:bg-[#102a43] text-white text-xs sm:text-sm font-bold transition-all shadow-soft flex items-center justify-center gap-2 cursor-pointer border border-[#1e3a5f]/30 shrink-0"
               >
                 <Play className="w-4 h-4 fill-white" />
                 <span>Start Full Mock (45 Mins) →</span>
               </button>
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-neutral-400 pt-2 border-t border-[#260c18]">
+            <div className="flex items-center gap-4 text-xs text-slate-500 pt-2 border-t border-slate-200">
               <span>60 Questions</span>
               <span>•</span>
               <span>45 Minutes</span>
@@ -717,8 +717,8 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
 
           {/* Preset 2: Sectional Subject-Wise Tests */}
           <div className="space-y-3">
-            <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#ff3366]" />
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#1e3a5f]" />
               <span>Sectional Subject-Wise Timed Tests (20 Questions / 15 Mins)</span>
             </h3>
 
@@ -726,16 +726,16 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
               {topics.map(topic => (
                 <div
                   key={topic.id}
-                  className="p-5 rounded-2xl bg-[#14060d] border border-[#2b0c18] hover:border-[#ff3366]/40 transition-all flex flex-col justify-between space-y-3 shadow-md"
+                  className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#1e3a5f]/30 transition-all flex flex-col justify-between space-y-3 shadow-md"
                 >
                   <div className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[#ff8099]">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#800020]">
                       Sectional Practice
                     </span>
-                    <h4 className="text-sm font-extrabold text-white">
+                    <h4 className="text-sm font-bold text-slate-900">
                       {topic.title}
                     </h4>
-                    <p className="text-xs text-neutral-400 line-clamp-2">
+                    <p className="text-xs text-slate-500 line-clamp-2">
                       {topic.description}
                     </p>
                   </div>
@@ -754,9 +754,9 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
                           negativeMarkingRatio: 0.25
                         })
                       }
-                      className="w-full py-2.5 px-4 min-h-[44px] rounded-xl bg-[#200713] hover:bg-[#330c1f] text-white text-xs font-bold transition-all border border-[#52102c] flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2.5 px-4 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-white text-xs font-bold transition-all border border-slate-200 flex items-center justify-center gap-1.5 cursor-pointer"
                     >
-                      <Play className="w-3.5 h-3.5 text-[#ff8099]" />
+                      <Play className="w-3.5 h-3.5 text-[#800020]" />
                       <span>Start Sectional (15m) →</span>
                     </button>
                   </div>
@@ -769,7 +769,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
         /* History Tab */
         <div className="space-y-3">
           {pastResults.length === 0 ? (
-            <div className="text-center py-16 px-4 rounded-3xl bg-[#14060d] border border-[#2b0c18] text-xs text-neutral-400 space-y-2">
+            <div className="text-center py-16 px-4 rounded-3xl bg-white border border-slate-200 text-xs text-slate-500 space-y-2">
               <Award className="w-8 h-8 text-neutral-600 mx-auto" />
               <p>No past mock examination records found. Launch a test above to record your competitive score report.</p>
             </div>
@@ -778,20 +778,20 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
               {pastResults.map(res => (
                 <div
                   key={res.id}
-                  className="p-5 rounded-2xl bg-[#14060d] border border-[#2b0c18] hover:border-[#ff3366]/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#1e3a5f]/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#220713] text-[#ff8099]">
+                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-[#800020]">
                         {res.mode}
                       </span>
-                      <span className="text-xs text-neutral-400">
+                      <span className="text-xs text-slate-500">
                         {new Date(res.completedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <h4 className="text-sm font-extrabold text-white">{res.title}</h4>
-                    <div className="flex items-center gap-3 text-xs text-neutral-400">
-                      <span>Score: <strong className="text-white">{res.score}/{res.maxScore}</strong></span>
+                    <h4 className="text-sm font-bold text-slate-900">{res.title}</h4>
+                    <div className="flex items-center gap-3 text-xs text-slate-500">
+                      <span>Score: <strong className="text-slate-900">{res.score}/{res.maxScore}</strong></span>
                       <span>•</span>
                       <span>Accuracy: <strong className="text-emerald-400">{res.percentage}%</strong></span>
                       <span>•</span>
@@ -801,7 +801,7 @@ export const MockExamPortal: React.FC<MockExamPortalProps> = ({
 
                   <button
                     onClick={() => setActiveResult(res)}
-                    className="px-4 py-2 min-h-[44px] rounded-xl bg-[#200713] hover:bg-[#330c1f] text-white text-xs font-bold transition-all border border-[#52102c] cursor-pointer self-start sm:self-center"
+                    className="px-4 py-2 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-white text-xs font-bold transition-all border border-slate-200 cursor-pointer self-start sm:self-center"
                   >
                     View Solutions →
                   </button>
