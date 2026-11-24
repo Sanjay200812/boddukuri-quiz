@@ -16,6 +16,7 @@ import type { QuizAttempt } from '../types/quiz';
 import { getAllAttempts } from '../utils/storage';
 import { DAILY_SCHEDULE } from '../utils/schedule';
 import { getQuizForDay } from '../data/quizzes';
+import { getQuizById } from '../data/topics';
 
 interface MyAttemptsProps {
   onViewResult: (attempt: QuizAttempt) => void;
@@ -46,6 +47,39 @@ export const MyAttempts: React.FC<MyAttemptsProps> = ({
     };
   });
 
+  // Group topic and multi-quiz attempts
+  const topicAttempts = attempts.filter(
+    a => !DAILY_SCHEDULE.some(s => s.quizId === a.quizId || s.dayNumber === a.dayNumber)
+  );
+
+  const topicQuizMap = new Map<string, QuizAttempt[]>();
+  topicAttempts.forEach(att => {
+    const qid = att.quizId || 'topic-quiz';
+    if (!topicQuizMap.has(qid)) topicQuizMap.set(qid, []);
+    topicQuizMap.get(qid)!.push(att);
+  });
+
+  const topicGroups = Array.from(topicQuizMap.entries()).map(([qid, qAttempts]) => {
+    const quiz = getQuizById(qid);
+    const title = quiz?.title || qid;
+    return {
+      scheduleItem: {
+        quizId: qid,
+        dayNumber: 10,
+        title,
+        dateStr: '24-11-2026',
+        displayDate: qAttempts[0]?.formattedDate || 'Topic Quiz',
+        unlockIsoUTC: '',
+        states: quiz?.statesCovered || ['General Knowledge'],
+        newStates: [],
+        totalQuestions: quiz?.totalQuestions || qAttempts[0]?.totalQuestions || 10,
+        isSpecialTest: false
+      },
+      quiz: quiz || getQuizForDay(qid),
+      attempts: qAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    };
+  });
+
   const totalSubmissions = attempts.length;
   const bestScore = attempts.length > 0 ? Math.max(...attempts.map(a => a.percentage)) : 0;
   const avgScore =
@@ -53,8 +87,7 @@ export const MyAttempts: React.FC<MyAttemptsProps> = ({
       ? Math.round(attempts.reduce((sum, a) => sum + a.percentage, 0) / attempts.length)
       : 0;
 
-  // Filtered day groups
-  const dailyGroups = dayGroups.filter(g => !g.scheduleItem.isSpecialTest);
+  // Filtered championship groups
   const specialGroups = dayGroups.filter(g => g.scheduleItem.isSpecialTest);
 
   const renderGroupCard = (group: typeof dayGroups[0]) => {
@@ -376,19 +409,28 @@ export const MyAttempts: React.FC<MyAttemptsProps> = ({
         </motion.div>
       ) : (
         <div className="space-y-8">
-          {/* Section 1: Daily Curriculum Attempts */}
+          {/* Section 1: Topic Learning Workspace Attempts */}
           {(selectedDayFilter === 'all' || selectedDayFilter === 'daily-only' || !['semi-final', 'grand-final', 'special-only'].includes(selectedDayFilter)) && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-extrabold text-[#ff8099] uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-4 h-4 text-[#ff3366]" />
-                  <span>Daily Curriculum Attempts (Days 01 – 07)</span>
+                  <span>Topic & Multi-Quiz Attempts</span>
                 </h3>
+                <span className="text-xs text-neutral-400">
+                  {topicAttempts.length} Submissions
+                </span>
               </div>
               <div className="space-y-4">
-                {dailyGroups
-                  .filter(g => selectedDayFilter === 'all' || selectedDayFilter === 'daily-only' || g.scheduleItem.quizId === selectedDayFilter)
-                  .map(group => renderGroupCard(group))}
+                {topicGroups.length === 0 ? (
+                  <div className="p-6 rounded-2xl bg-[#0f090e]/85 border border-white/[0.08] text-center text-xs text-neutral-400">
+                    No topic quiz attempts recorded yet.
+                  </div>
+                ) : (
+                  topicGroups
+                    .filter(g => selectedDayFilter === 'all' || selectedDayFilter === 'daily-only' || g.scheduleItem.quizId === selectedDayFilter)
+                    .map(group => renderGroupCard(group))
+                )}
               </div>
             </div>
           )}

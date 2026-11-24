@@ -81,6 +81,9 @@ import { Card3D } from './ui/Card3D';
 import { MultiStudentHub } from './admin/MultiStudentHub';
 import { PdfQuestionStudio } from './admin/PdfQuestionStudio';
 import { TopicsChampionshipManager } from './admin/TopicsChampionshipManager';
+import { PlatformSettingsManager } from './admin/PlatformSettingsManager';
+import { AdminAnalyticsCentre } from './admin/AdminAnalyticsCentre';
+import { QuestionImportExportModal } from './admin/QuestionImportExportModal';
 
 interface AdminDashboardProps {
   adminProfile: UserProfile;
@@ -148,7 +151,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handler for isolated student progress reset
   const handleResetStudent = async (studentId: string, studentName: string, quizId?: string) => {
     try {
-      const res = await adminResetStudentProgressCloud(studentId, quizId);
+      const res = await adminResetStudentProgressCloud(studentId, quizId, studentName);
       await logAdminActionCloud('reset_student_progress', studentId, { studentName, quizId, resetVersion: res.resetVersion });
       broadcastQuizEvent('progress_reset', {
         quizId,
@@ -659,7 +662,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
                 <div>
                   <h1 className="text-sm sm:text-base font-extrabold tracking-tight text-white flex items-center gap-2">
-                    Quiz by Spideyy Portal
+                    Spideyy Quiz Portal
                   </h1>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#2a0b16] text-[#ff8099] border border-[#52142a]">
                     Admin Panel
@@ -777,8 +780,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             { id: 'attempts', label: `Attempts (${attempts.length})`, icon: FileText },
             { id: 'retake-requests', label: `Retakes (${stats.pendingRetakes})`, icon: RotateCcw, badge: stats.pendingRetakes },
             { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
-            { id: 'schedule', label: 'Quiz Schedule', icon: Calendar },
-            { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+            { id: 'schedule', label: 'Topics & Championship', icon: Calendar },
+            { id: 'analytics', label: 'Analytics Centre', icon: TrendingUp },
+            { id: 'platform-settings', label: 'Platform Controls', icon: SettingsIcon },
+            { id: 'import-export', label: 'Import / Export', icon: Download },
             { id: 'inbox', label: `Inbox`, icon: InboxIcon, badge: unreadInboxCount },
             { id: 'notifications', label: 'WhatsApp', icon: MessageCircle },
             { id: 'settings', label: 'Settings', icon: SettingsIcon }
@@ -2125,10 +2130,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {activeTab === 'analytics' && (
             <div className="space-y-6 animate-fadeIn">
 
+              {/* Comprehensive Database-Backed Analytics Centre */}
+              <AdminAnalyticsCentre onRefreshData={refreshAllData} />
+
               <div className="pb-2 border-b border-slate-800">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-red-600" />
-                  Learning Analytics & State Performance
+                  National Parks State Performance Breakdown
                 </h2>
                 <p className="text-xs text-slate-400">
                   Performance breakdown across states and national park categories
@@ -2392,13 +2400,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   WhatsApp Result Dispatch Pipeline
                 </h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Upon quiz submission, Quiz by Spideyy creates an inbox notification and prepares the WhatsApp message payload using the exact formatted template for <strong>+91 70759 20852</strong>.
+                  Upon quiz submission, Spideyy Quiz creates an inbox notification and prepares the WhatsApp message payload using the exact formatted template for <strong>+91 70759 20852</strong>.
                 </p>
 
                 <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                   <div className="text-[11px] font-mono text-slate-400 uppercase">Live Template Preview:</div>
                   <pre className="text-xs font-mono text-red-400 whitespace-pre-wrap leading-relaxed">
-                    {attempts.length > 0 ? formatWhatsAppMessage(attempts[0]) : `⚡ QUIZ BY SPIDEEYY — RESULT NOTIFICATION
+                    {attempts.length > 0 ? formatWhatsAppMessage(attempts[0]) : `⚡ SPIDEYY QUIZ — RESULT NOTIFICATION
 Student: Mahi
 Quiz: Day 01
 Date: 09 November 2026
@@ -2538,6 +2546,34 @@ Performance: Outstanding`}
           )}
 
           {/* ========================================================================= */}
+          {/* TAB: PLATFORM SETTINGS & CONTROLS */}
+          {/* ========================================================================= */}
+          {activeTab === 'platform-settings' && (
+            <div className="space-y-6 animate-fadeIn">
+              <PlatformSettingsManager
+                adminName={adminProfile.fullName || 'Sanju'}
+                onRefreshData={refreshAllData}
+              />
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB: IMPORT & EXPORT STUDIO */}
+          {/* ========================================================================= */}
+          {activeTab === 'import-export' && (
+            <div className="space-y-6 animate-fadeIn">
+              <QuestionImportExportModal
+                isOpen={true}
+                onClose={() => setActiveTab('overview')}
+                onImportQuestions={async (imported) => {
+                  setStatusMessage(`Imported ${imported.length} questions in draft state.`);
+                  await refreshAllData();
+                }}
+              />
+            </div>
+          )}
+
+          {/* ========================================================================= */}
           {/* TAB: HELP & ABOUT */}
           {/* ========================================================================= */}
           {activeTab === 'help' && (
@@ -2545,7 +2581,7 @@ Performance: Outstanding`}
               <div className="pb-2 border-b border-slate-800">
                 <h2 className="text-xl font-black text-white flex items-center gap-2">
                   <HelpCircle className="w-5 h-5 text-red-600" />
-                  Quiz by Spideyy System Architecture & Guide
+                  Spideyy Quiz System Architecture & Guide
                 </h2>
                 <p className="text-xs text-slate-400">
                   Role specifications, access codes, and syllabus schedule reference

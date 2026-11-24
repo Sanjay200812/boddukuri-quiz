@@ -24,7 +24,6 @@ interface SettingsModalProps {
   syncStatus?: 'synced' | 'offline' | 'pending';
   onSyncNow?: () => void;
   onSignOut?: () => void;
-  onReplayMotivation?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({

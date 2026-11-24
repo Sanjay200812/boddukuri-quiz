@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DAILY_QUIZZES, getQuizForDay } from './data/quizzes';
-import { getQuizForTopic, getTopicById } from './data/topics';
+import { getQuizForTopic, getTopicById, getQuizById } from './data/topics';
 import type {
   QuizAttempt,
   DailyQuiz,
@@ -34,24 +34,44 @@ import { ProgressHistory } from './components/ProgressHistory';
 import { StudyGuide } from './components/StudyGuide';
 import { SettingsModal } from './components/SettingsModal';
 import { BadgesModal } from './components/BadgesModal';
-import { OpeningMotivation } from './components/OpeningMotivation';
 import { LoginScreen } from './components/LoginScreen';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Sidebar, type StudentNavView } from './components/Sidebar';
 import { StudentNotifications } from './components/StudentNotifications';
+import { PersonalLearningDashboard } from './components/student/PersonalLearningDashboard';
+import { MistakeNotebook } from './components/student/MistakeNotebook';
+import { SmartRevisionCentre } from './components/student/SmartRevisionCentre';
+import { MockExamPortal } from './components/student/MockExamPortal';
+import { WeakAreaAnalysisView } from './components/student/WeakAreaAnalysisView';
+import { StudyPlannerModal } from './components/student/StudyPlannerModal';
+import { BookmarksNotesView } from './components/student/BookmarksNotesView';
+import { CurrentAffairsCentre } from './components/student/CurrentAffairsCentre';
+import { FlashcardsDeck } from './components/student/FlashcardsDeck';
+import { StudentSupportModal } from './components/student/StudentSupportModal';
 import { getUnreadNotificationCount, resetAllData } from './utils/storage';
 import { subscribeToQuizRealtime } from './utils/realtime';
 import { supabase, loadCloudProgress, saveCloudProgress, submitStudentQuizAttemptCloud, getUserProfile, getLocalAuthSession, clearLocalAuthSession, MAHI_STUDENT_ID, SANJU_ADMIN_ID } from './utils/supabase';
 import { Sparkles, ShieldCheck, ArrowLeft } from 'lucide-react';
 
-export const App: React.FC = () => {
-  // Opening Motivation state (once per session, replayable from Settings)
-  const [hasSeenMotivation, setHasSeenMotivation] = useState<boolean>(() => {
-    // The public entry point should land on authentication immediately.
-    // Motivation remains available through Settings → Replay Motivation.
-    return true;
-  });
+export type AppView =
+  | 'dashboard'
+  | 'my-quizzes'
+  | 'my-attempts'
+  | 'progress'
+  | 'study'
+  | 'quiz'
+  | 'result'
+  | 'review'
+  | 'notifications'
+  | 'mistake-notebook'
+  | 'smart-revision'
+  | 'mock-exam'
+  | 'weak-areas'
+  | 'bookmarks'
+  | 'current-affairs'
+  | 'flashcards';
 
+export const App: React.FC = () => {
   // Supabase Auth session gate
   const [sessionChecked, setSessionChecked] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -65,8 +85,10 @@ export const App: React.FC = () => {
     typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'synced'
   );
 
-  // Views: 'dashboard' | 'my-quizzes' | 'my-attempts' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'
-  const [currentView, setCurrentView] = useState<'dashboard' | 'my-quizzes' | 'my-attempts' | 'progress' | 'study' | 'quiz' | 'result' | 'review' | 'notifications'>('dashboard');
+  const [currentView, setCurrentView] = useState<AppView>('dashboard');
+  const [dashboardMode, setDashboardMode] = useState<'learning' | 'daily'>('learning');
+  const [isStudyPlannerOpen, setIsStudyPlannerOpen] = useState<boolean>(false);
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState<boolean>(false);
   const [activeQuizId, setActiveQuizId] = useState<string>(DAILY_QUIZZES[0].id);
   const [activeAttempt, setActiveAttempt] = useState<QuizAttempt | null>(null);
   const [studyGuideInitialState, setStudyGuideInitialState] = useState<string | undefined>(undefined);
@@ -262,8 +284,12 @@ export const App: React.FC = () => {
     };
   }, [refreshProgress, userId, performCloudSync]);
 
-  // Current active quiz object (supports Topics and Championship Tests)
+  // Current active quiz object (supports Multi-Quizzes, Topics and Championship Tests)
   const currentQuiz: DailyQuiz = (() => {
+    const topicQuiz = getQuizById(activeQuizId);
+    if (topicQuiz) {
+      return topicQuiz;
+    }
     const topic = getTopicById(activeQuizId);
     if (topic) {
       return getQuizForTopic(activeQuizId);
@@ -278,8 +304,9 @@ export const App: React.FC = () => {
 
   // Handler: Start or resume a quiz (Strict locking guard)
   const handleStartQuiz = (quizId: string) => {
+    const topicQuiz = getQuizById(quizId);
     const topic = getTopicById(quizId);
-    if (!topic) {
+    if (!topicQuiz && !topic) {
       const completedDayIds = getCompletedDayIds();
       const isUnlocked = isDayUnlocked(quizId, completedDayIds);
       if (!isUnlocked && userRole !== 'admin') {
@@ -393,6 +420,33 @@ export const App: React.FC = () => {
       case 'help':
         setCurrentView('study');
         break;
+      case 'mistake-notebook':
+        setCurrentView('mistake-notebook');
+        break;
+      case 'smart-revision':
+        setCurrentView('smart-revision');
+        break;
+      case 'mock-exam':
+        setCurrentView('mock-exam');
+        break;
+      case 'weak-areas':
+        setCurrentView('weak-areas');
+        break;
+      case 'bookmarks':
+        setCurrentView('bookmarks');
+        break;
+      case 'current-affairs':
+        setCurrentView('current-affairs');
+        break;
+      case 'flashcards':
+        setCurrentView('flashcards');
+        break;
+      case 'study-planner':
+        setIsStudyPlannerOpen(true);
+        break;
+      case 'support':
+        setIsSupportModalOpen(true);
+        break;
       case 'review-mistakes': {
         const attempts = getAllAttempts();
         if (attempts.length > 0) {
@@ -438,34 +492,24 @@ export const App: React.FC = () => {
   // GATES: MOTIVATION & AUTHENTICATION
   // -------------------------------------------------------------
 
-  // 1. Show Opening Motivation if not seen this session
-  if (!hasSeenMotivation) {
-    return (
-      <OpeningMotivation
-        onComplete={() => {
-          sessionStorage.setItem('mahi_motivation_seen', 'true');
-          setHasSeenMotivation(true);
-        }}
-      />
-    );
-  }
-
-  // 2. Loading splash while verifying persistent Supabase session
+  // 1. Loading splash while verifying persistent Supabase session
   if (!sessionChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#072415] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#070508] text-white">
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-red-900/60 border border-red-700/40 shadow-xl shadow-red-950/50 animate-bounce">
-            <Sparkles className="w-8 h-8 text-red-300" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-[#9e1030] to-[#5a0618] border border-[#ff3366]/30 shadow-ruby animate-pulse">
+            <Sparkles className="w-8 h-8 text-rose-200" />
           </div>
-          <h2 className="text-xl font-bold tracking-tight">Boddukuri's Quiz #Mahi</h2>
-          <p className="text-xs text-red-300/70">Connecting to learning portal…</p>
+          <h2 className="text-2xl font-black tracking-tight text-white">
+            <span>Spideyy</span> <span className="text-[#ff3366]">Quiz</span>
+          </h2>
+          <p className="text-xs text-rose-300/80">Connecting to learning portal…</p>
         </div>
       </div>
     );
   }
 
-  // 3. Authentication Gate: If not logged in, render mobile-first LoginScreen
+  // 2. Authentication Gate: If not logged in, render mobile-first LoginScreen
   if (!userEmail) {
     return (
       <LoginScreen
@@ -489,9 +533,6 @@ export const App: React.FC = () => {
               }
             }
           }
-        }}
-        onReplayMotivation={() => {
-          setHasSeenMotivation(false);
         }}
       />
     );
@@ -594,30 +635,148 @@ export const App: React.FC = () => {
         {/* Main Body Content View */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
-          {/* VIEW 1: DASHBOARD */}
+          {/* VIEW 1: DASHBOARD (Dual Mode: Learning Analytics / Daily Quizzes) */}
           {currentView === 'dashboard' && (
-            <Dashboard
-              quizzes={DAILY_QUIZZES}
-              overallProgress={overallProgress}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="inline-flex p-1 rounded-2xl bg-stone-100 border border-stone-200">
+                  <button
+                    onClick={() => setDashboardMode('learning')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition min-h-[40px] ${
+                      dashboardMode === 'learning'
+                        ? 'bg-[#800020] text-white shadow-sm'
+                        : 'text-stone-600 hover:text-stone-900'
+                    }`}
+                  >
+                    📊 Learning Dashboard
+                  </button>
+                  <button
+                    onClick={() => setDashboardMode('daily')}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition min-h-[40px] ${
+                      dashboardMode === 'daily'
+                        ? 'bg-[#800020] text-white shadow-sm'
+                        : 'text-stone-600 hover:text-stone-900'
+                    }`}
+                  >
+                    📅 Daily Quizzes & Badges
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsStudyPlannerOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#ebd4d9] text-xs font-bold text-[#800020] hover:bg-rose-50 transition min-h-[40px]"
+                  >
+                    Study Planner
+                  </button>
+                  <button
+                    onClick={() => setIsSupportModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#ebd4d9] text-xs font-bold text-[#800020] hover:bg-rose-50 transition min-h-[40px]"
+                  >
+                    Support & Guidance
+                  </button>
+                </div>
+              </div>
+
+              {dashboardMode === 'learning' ? (
+                <PersonalLearningDashboard
+                  studentId={userId || 'mahi_student'}
+                  studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+                  onNavigate={(v) => handleStudentNav(v as StudentNavView)}
+                  onStartQuiz={handleStartQuiz}
+                />
+              ) : (
+                <Dashboard
+                  quizzes={DAILY_QUIZZES}
+                  overallProgress={overallProgress}
+                  onStartQuiz={handleStartQuiz}
+                  onViewResult={handleViewResult}
+                  onInspectAnswers={handleReviewAnswers}
+                  onOpenStudyGuide={handleOpenStudyGuide}
+                  onNavigateToQuizzes={() => {
+                    setCurrentView('my-quizzes');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onNavigateToAttempts={() => {
+                    setCurrentView('my-attempts');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onNavigateToProgress={() => {
+                    setCurrentView('progress');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onOpenBadges={() => setIsBadgesModalOpen(true)}
+                  userEmail={userEmail}
+                  userName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+                />
+              )}
+            </div>
+          )}
+
+          {/* VIEW: MISTAKE NOTEBOOK */}
+          {currentView === 'mistake-notebook' && (
+            <MistakeNotebook
+              studentId={userId || 'mahi_student'}
+              studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+              onGoBack={() => setCurrentView('dashboard')}
               onStartQuiz={handleStartQuiz}
-              onViewResult={handleViewResult}
-              onInspectAnswers={handleReviewAnswers}
-              onOpenStudyGuide={handleOpenStudyGuide}
-              onNavigateToQuizzes={() => {
-                setCurrentView('my-quizzes');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onNavigateToAttempts={() => {
-                setCurrentView('my-attempts');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onNavigateToProgress={() => {
-                setCurrentView('progress');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onOpenBadges={() => setIsBadgesModalOpen(true)}
-              userEmail={userEmail}
-              userName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+            />
+          )}
+
+          {/* VIEW: SMART REVISION */}
+          {currentView === 'smart-revision' && (
+            <SmartRevisionCentre
+              studentId={userId || 'mahi_student'}
+              studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+              onGoBack={() => setCurrentView('dashboard')}
+              onStartQuiz={handleStartQuiz}
+            />
+          )}
+
+          {/* VIEW: MOCK EXAM MODE */}
+          {currentView === 'mock-exam' && (
+            <MockExamPortal
+              studentId={userId || 'mahi_student'}
+              studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+              onExitExam={() => setCurrentView('dashboard')}
+            />
+          )}
+
+          {/* VIEW: WEAK AREA ANALYSIS */}
+          {currentView === 'weak-areas' && (
+            <WeakAreaAnalysisView
+              studentId={userId || 'mahi_student'}
+              studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+              onGoBack={() => setCurrentView('dashboard')}
+              onStartQuiz={handleStartQuiz}
+              onOpenRevision={() => setCurrentView('smart-revision')}
+            />
+          )}
+
+          {/* VIEW: BOOKMARKS & NOTES */}
+          {currentView === 'bookmarks' && (
+            <BookmarksNotesView
+              studentId={userId || 'mahi_student'}
+              studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+              onGoBack={() => setCurrentView('dashboard')}
+            />
+          )}
+
+          {/* VIEW: CURRENT AFFAIRS CENTRE */}
+          {currentView === 'current-affairs' && (
+            <CurrentAffairsCentre
+              onGoBack={() => setCurrentView('dashboard')}
+              onStartQuiz={handleStartQuiz}
+            />
+          )}
+
+          {/* VIEW: RAPID FLASHCARDS */}
+          {currentView === 'flashcards' && (
+            <FlashcardsDeck
+              studentId={userId || 'mahi_student'}
+              studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+              onGoBack={() => setCurrentView('dashboard')}
+              onOpenRevision={() => setCurrentView('smart-revision')}
             />
           )}
 
@@ -761,7 +920,6 @@ export const App: React.FC = () => {
         syncStatus={syncStatus}
         onSyncNow={() => userId && performCloudSync(userId)}
         onSignOut={handleSignOut}
-        onReplayMotivation={() => setHasSeenMotivation(false)}
       />
 
       {/* Badges & Achievements Modal */}
@@ -769,6 +927,22 @@ export const App: React.FC = () => {
         isOpen={isBadgesModalOpen}
         onClose={() => setIsBadgesModalOpen(false)}
         badges={evaluateBadges(getAllAttempts(), overallProgress.currentStreak)}
+      />
+
+      {/* Study Planner Modal */}
+      <StudyPlannerModal
+        isOpen={isStudyPlannerOpen}
+        onClose={() => setIsStudyPlannerOpen(false)}
+        studentId={userId || 'mahi_student'}
+        studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
+      />
+
+      {/* Student Support & Guidelines Modal */}
+      <StudentSupportModal
+        isOpen={isSupportModalOpen}
+        onClose={() => setIsSupportModalOpen(false)}
+        studentId={userId || 'mahi_student'}
+        studentName={userProfile?.displayName || userProfile?.fullName || 'Mahi'}
       />
 
     </div>

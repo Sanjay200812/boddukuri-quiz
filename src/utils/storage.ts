@@ -2,7 +2,10 @@ import type { QuizAttempt, InProgressQuiz, OverallProgress, UserSettings, DailyQ
 import { DEFAULT_SANJU_WHATSAPP_NUMBER } from './whatsapp.ts';
 import { evaluateBadges } from './achievements.ts';
 import { getQuizForDay } from '../data/quizzes.ts';
+import { resolveQuizId } from '../data/topics.ts';
 import { broadcastQuizEvent } from './realtime.ts';
+import { recordStudentMistake, logDailyStudyActivity } from './studentLearning.ts';
+export * from './studentLearning.ts';
 
 const STORAGE_KEYS = {
   ATTEMPTS: 'mahi_quiz_attempts_v1',
@@ -321,7 +324,12 @@ export function getAllAttempts(): QuizAttempt[] {
 }
 
 export function getAttemptsForQuiz(quizId: string): QuizAttempt[] {
-  return getAllAttempts().filter(att => att.quizId === quizId);
+  const normTarget = resolveQuizId(quizId);
+  return getAllAttempts().filter(att => {
+    if (att.quizId === quizId) return true;
+    if (att.quizId && resolveQuizId(att.quizId) === normTarget) return true;
+    return false;
+  });
 }
 
 export function getLatestAttempt(quizId: string): QuizAttempt | null {
@@ -509,6 +517,46 @@ export function saveQuizAttempt(attempt: QuizAttempt): void {
 
   markProgressChanged();
 
+  // Automatically record student mistakes and log study activity
+  try {
+    const questions = enrichedAttempt.questionsSnapshot || [];
+    if (questions.length > 0) {
+      for (const q of questions) {
+        const selected = enrichedAttempt.answers[q.id];
+        if (selected !== q.correctAnswer) {
+          recordStudentMistake(enrichedAttempt.studentId || 'mahi_student', {
+            questionId: q.id,
+            topicId: q.state || 'General',
+            quizId: enrichedAttempt.quizId,
+            question: {
+              id: q.id,
+              topicId: q.state || 'General',
+              quizId: enrichedAttempt.quizId,
+              subtopicId: q.parkName || 'general',
+              question: q.question,
+              options: q.options as [string, string, string, string],
+              correctAnswer: q.correctAnswer,
+              explanation: q.explanation || '',
+              difficulty: q.difficulty || 'medium',
+              status: 'published'
+            },
+            selectedAnswer: selected,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation || ''
+          });
+        }
+      }
+    }
+    logDailyStudyActivity(
+      enrichedAttempt.studentId || 'mahi_student',
+      enrichedAttempt.totalQuestions,
+      1,
+      Math.ceil((enrichedAttempt.timeTakenSeconds || 60) / 60)
+    );
+  } catch (err) {
+    console.warn('Non-blocking: Failed to auto-record mistakes for attempt:', err);
+  }
+
   // Broadcast Realtime submission event
   void broadcastQuizEvent('quiz_submitted', {
     attempt: enrichedAttempt,
@@ -532,7 +580,10 @@ export function getCompletedDayIds(): string[] {
 }
 
 export function isQuizCompleted(quizId: string): boolean {
-  return getCompletedDayIds().includes(quizId);
+  const completed = getCompletedDayIds();
+  if (completed.includes(quizId)) return true;
+  const normTarget = resolveQuizId(quizId);
+  return completed.some(id => resolveQuizId(id) === normTarget);
 }
 
 // -------------------------------------------------------------

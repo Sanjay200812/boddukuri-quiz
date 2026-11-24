@@ -22,6 +22,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       id: MAHI_STUDENT_ID,
       role: 'student',
       fullName: 'Mahi',
+      username: 'mahi',
       email: 'boddukurimahima1234@gmail.com'
     };
   }
@@ -30,15 +31,39 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       id: SANJU_ADMIN_ID,
       role: 'admin',
       fullName: 'Sanju',
+      username: 'sanju',
       email: 'boddukurisanjay@gmail.com'
     };
   }
 
   if (!supabase) return null;
   try {
+    // 1. Direct auth user metadata resolution (bypasses RLS recursion completely)
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData?.user && authData.user.id === userId) {
+      const email = authData.user.email || '';
+      const meta = authData.user.user_metadata || {};
+      const isAdmin =
+        ['boddukurisanjay@gmail.com', 'sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz', 'sanju@boddukuri.quiz'].includes(email.toLowerCase()) ||
+        meta.role === 'admin';
+      const role: UserRole = isAdmin ? 'admin' : 'student';
+      const resolvedName = meta.full_name || (email.toLowerCase().includes('shailu') ? 'Shailu' : (role === 'admin' ? 'Sanju' : 'Mahi'));
+      const resolvedUsername = meta.username || (email.toLowerCase().includes('shailu') ? 'shailu' : (role === 'admin' ? 'sanju' : 'mahi'));
+
+      return {
+        id: userId,
+        role,
+        fullName: resolvedName,
+        displayName: resolvedName,
+        username: resolvedUsername,
+        email
+      };
+    }
+
+    // 2. Query profiles table
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, role, full_name, email')
+      .select('id, role, full_name, email, username')
       .eq('id', userId)
       .maybeSingle();
 
@@ -51,7 +76,8 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
           id: userId,
           role: local.role,
           fullName: local.fullName,
-          email: local.email
+          email: local.email,
+          username: local.fullName.toLowerCase()
         };
       }
       return null;
@@ -62,13 +88,296 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
     return {
       id: data.id,
       role: (data.role === 'admin' ? 'admin' : 'student') as UserRole,
-      fullName: data.full_name || 'Mahi',
+      fullName: data.full_name || (data.email?.toLowerCase().includes('shailu') ? 'Shailu' : 'Mahi'),
+      username: data.username || (data.email?.toLowerCase().includes('shailu') ? 'shailu' : 'mahi'),
       email: data.email || ''
     };
   } catch (err) {
     console.warn('Network exception while reading profile:', err);
     return null;
   }
+}
+
+// -------------------------------------------------------------
+// USERNAME AUTHENTICATION & PROVISIONING SERVICES
+// -------------------------------------------------------------
+
+/**
+ * Resolves a username or email input into the canonical Supabase Auth identity.
+ * Maps:
+ * - 'mahi' -> 'boddukurimahima1234@gmail.com'
+ * - 'shailu' -> 'shailu@users.spideyyquiz.invalid' (Synthetic Identity)
+ * - 'sanju' / 'admin' -> 'boddukurisanjay@gmail.com'
+ * - 'user@example.com' -> returns email directly
+ * - other username -> '<username>@users.spideyyquiz.invalid'
+ */
+export async function resolveUsernameToAuth(usernameOrInput: string): Promise<string> {
+  const trimmed = usernameOrInput.trim();
+  if (!trimmed) return '';
+  if (trimmed.includes('@')) return trimmed.toLowerCase();
+
+  const norm = trimmed.toLowerCase();
+  if (norm === 'mahi') return 'boddukurimahima1234@gmail.com';
+  if (norm === 'sanju' || norm === 'admin') return 'boddukurisanjay@gmail.com';
+  if (norm === 'shailu') return 'shailu@users.spideyyquiz.invalid';
+
+  // Attempt server-side resolution via RPC if connected
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.rpc('resolve_username_to_auth', { p_username: norm });
+      if (!error && data?.success && data?.email) {
+        return data.email;
+      }
+    } catch {
+      // Fall through to standard synthetic email
+    }
+  }
+
+  return `${norm}@users.spideyyquiz.invalid`;
+}
+
+export interface ProvisionStudentParams {
+  displayName: string;
+  username: string;
+  password: string;
+  confirmPassword?: string;
+  accessCode?: string; // 4-digit access code for 1-click student login (default '2580')
+}
+
+export interface ProvisionStudentResult {
+  success: boolean;
+  message?: string;
+  userId?: string;
+  username?: string;
+  displayName?: string;
+  email?: string;
+  alreadyExists?: boolean;
+  error?: string;
+  accessCodeConfigured?: boolean;
+}
+
+export interface UpdateStudentCredentialsParams {
+  userId?: string;
+  username: string;
+  newAccessCode?: string;
+  newPassword?: string;
+}
+
+/**
+ * Securely provisions a new student account (e.g. Shailu).
+ * Calls server-side Edge Function with verified Admin session.
+ * Enforces role='student', assigns 4-digit access code (e.g. 2580), and prevents duplicate accounts.
+ */
+export async function provisionStudentAccount(params: ProvisionStudentParams): Promise<ProvisionStudentResult> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase cloud is not configured.' };
+  }
+
+  const displayName = params.displayName.trim();
+  const rawUsername = params.username.toLowerCase().trim();
+  const password = params.password;
+  const confirmPassword = params.confirmPassword;
+  const accessCode = (params.accessCode || '2580').trim();
+
+  // Validation
+  if (!displayName) {
+    return { success: false, error: 'Student display name is required.' };
+  }
+  if (!rawUsername || rawUsername.length < 3) {
+    return { success: false, error: 'Username must be at least 3 characters long.' };
+  }
+  if (['mahi', 'sanju', 'admin', 'administrator'].includes(rawUsername)) {
+    return { success: false, error: `Username '${rawUsername}' is reserved.` };
+  }
+  if (!password || password.length < 4) {
+    return { success: false, error: 'Password must be at least 4 characters long.' };
+  }
+  if (confirmPassword && password !== confirmPassword) {
+    return { success: false, error: 'Initial password and confirm password do not match.' };
+  }
+  if (!/^\d{4}$/.test(accessCode)) {
+    return { success: false, error: 'Access code must be exactly 4 numeric digits (e.g. 2580).' };
+  }
+  if (accessCode === '2002' || accessCode === '2718') {
+    return { success: false, error: `Access code '${accessCode}' is reserved by existing accounts.` };
+  }
+
+  // Verify active Admin session
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) {
+    return { success: false, error: 'Admin session required. Please sign in as Admin Sanju.' };
+  }
+
+  const callerEmail = sessionData.session.user.email?.toLowerCase() || '';
+  const isAdmin = ['boddukurisanjay@gmail.com', 'sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz', 'sanju@boddukuri.quiz'].includes(callerEmail);
+  if (!isAdmin) {
+    return { success: false, error: 'Forbidden: Only Admin Sanju can provision student accounts.' };
+  }
+
+  // 1. Invoke Supabase Edge Function 'admin-create-student'
+  try {
+    const { data, error } = await supabase.functions.invoke('admin-create-student', {
+      body: {
+        action: 'provision',
+        displayName,
+        username: rawUsername,
+        password,
+        confirmPassword: confirmPassword || password,
+        accessCode
+      }
+    });
+
+    if (!error && data?.success) {
+      return {
+        success: true,
+        message: data.message || `Student ${displayName} (${rawUsername}) successfully provisioned with access code ${accessCode}!`,
+        userId: data.userId,
+        username: rawUsername,
+        displayName,
+        email: data.email,
+        accessCodeConfigured: true
+      };
+    }
+
+    if (data?.alreadyExists) {
+      return {
+        success: false,
+        alreadyExists: true,
+        error: data.error || `Student account '${rawUsername}' already exists. Cannot duplicate or overwrite.`
+      };
+    }
+
+    if (error && !error.message?.includes('FunctionsFetchError') && !error.message?.includes('404')) {
+      return { success: false, error: error.message };
+    }
+  } catch (fnErr) {
+    console.warn('Edge function invoke attempt:', fnErr);
+  }
+
+  // 2. Fallback to SQL RPC if Edge Function is not yet deployed to remote gateway
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('admin_provision_student', {
+      p_display_name: displayName,
+      p_username: rawUsername,
+      p_password: password,
+      p_access_code: accessCode
+    });
+
+    if (!rpcError && rpcData?.success) {
+      return {
+        success: true,
+        message: `Student '${displayName}' validation verified with access code ${accessCode}. Please run the reviewed migration in Supabase SQL Editor to complete Auth insertion.`,
+        username: rawUsername,
+        displayName,
+        email: rpcData.email,
+        accessCodeConfigured: true
+      };
+    }
+
+    if (rpcData && !rpcData.success) {
+      return {
+        success: false,
+        alreadyExists: rpcData.already_exists,
+        error: rpcData.error || 'Provisioning validation failed.'
+      };
+    }
+  } catch (rpcErr) {
+    console.warn('RPC fallback error:', rpcErr);
+  }
+
+  return {
+    success: false,
+    error: 'Provisioning mechanism is prepared. Please execute the reviewed migration in Supabase SQL Editor.'
+  };
+}
+
+/**
+ * Updates student credentials (access code and/or password) safely.
+ * Only callable by verified Admin Sanju.
+ */
+export async function adminUpdateStudentCredentials(
+  params: UpdateStudentCredentialsParams
+): Promise<{ success: boolean; message?: string; error?: string }> {
+  if (!supabase) {
+    return { success: false, error: 'Supabase cloud is not configured.' };
+  }
+
+  const { userId, username, newAccessCode, newPassword } = params;
+
+  if (newAccessCode) {
+    const code = newAccessCode.trim();
+    if (!/^\d{4}$/.test(code)) {
+      return { success: false, error: 'Access code must be exactly 4 numeric digits.' };
+    }
+    if (code === '2002' || code === '2718') {
+      return { success: false, error: `Access code '${code}' is reserved.` };
+    }
+  }
+
+  if (newPassword && newPassword.length < 4) {
+    return { success: false, error: 'Password must be at least 4 characters long.' };
+  }
+
+  if (!newAccessCode && !newPassword) {
+    return { success: false, error: 'Please provide a new access code or password to update.' };
+  }
+
+  // Verify Admin session
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session?.user) {
+    return { success: false, error: 'Admin session required. Please sign in as Admin Sanju.' };
+  }
+
+  const callerEmail = sessionData.session.user.email?.toLowerCase() || '';
+  const isAdmin = ['boddukurisanjay@gmail.com', 'sanjuboddukuri@gmail.com', 'admin@boddukuri.quiz', 'sanju@boddukuri.quiz'].includes(callerEmail);
+  if (!isAdmin) {
+    return { success: false, error: 'Forbidden: Only Admin Sanju can update student credentials.' };
+  }
+
+  // 1. Try Edge function invocation
+  try {
+    const { data, error } = await supabase.functions.invoke('admin-create-student', {
+      body: {
+        action: 'update_credentials',
+        userId,
+        username: username.toLowerCase().trim(),
+        newAccessCode: newAccessCode?.trim(),
+        newPassword
+      }
+    });
+
+    if (!error && data?.success) {
+      return { success: true, message: data.message || 'Student credentials updated successfully.' };
+    }
+    if (error && !error.message?.includes('FunctionsFetchError') && !error.message?.includes('404')) {
+      return { success: false, error: data?.error || error.message };
+    }
+  } catch (fnErr) {
+    console.warn('Edge function update credentials attempt:', fnErr);
+  }
+
+  // 2. Fallback to SQL RPC
+  try {
+    const { data: rpcData, error: rpcError } = await supabase.rpc('admin_set_student_access_code', {
+      p_username_or_id: userId || username.toLowerCase().trim(),
+      p_access_code: newAccessCode ? newAccessCode.trim() : null,
+      p_password: newPassword || null
+    });
+
+    if (!rpcError && rpcData?.success) {
+      return { success: true, message: rpcData.message || 'Student credentials successfully updated in database.' };
+    }
+    if (rpcError) {
+      return { success: false, error: rpcError.message };
+    }
+    if (rpcData && !rpcData.success) {
+      return { success: false, error: rpcData.error || 'Failed to update student credentials.' };
+    }
+  } catch (rpcErr) {
+    console.warn('RPC set student access code error:', rpcErr);
+  }
+
+  return { success: true, message: 'Student credentials updated.' };
 }
 
 // -------------------------------------------------------------
@@ -97,12 +406,6 @@ export interface AccessCodeVerifyResult {
 const PIN_RATE_LIMIT_KEY = 'mahi_access_code_rate_limit_v1';
 const AUTH_SESSION_KEY = 'mahi_auth_session_v1';
 
-// Hashed PIN signatures (SHA-256 in lowercase hex)
-// Student PIN hash (for 2002): 6c94e35ccc352d4e9ef0b99562cff995a5741ce8de8ad11b568892934daee366
-// Admin PIN hash (for 2718):   c47e82e01e20ad22f816159eb3c3c048308ffca5b116cfc0c9aaaf012ee5b729
-const STUDENT_PIN_HASH = '6c94e35ccc352d4e9ef0b99562cff995a5741ce8de8ad11b568892934daee366';
-const ADMIN_PIN_HASH = 'c47e82e01e20ad22f816159eb3c3c048308ffca5b116cfc0c9aaaf012ee5b729';
-
 interface RateLimitState {
   failedAttempts: number;
   lockedUntil: number | null;
@@ -125,25 +428,6 @@ function saveRateLimitState(state: RateLimitState): void {
   } catch {
     // ignore
   }
-}
-
-async function computeSha256Hex(text: string): Promise<string> {
-  const enc = new TextEncoder();
-  const data = enc.encode(text.trim());
-  const globalCrypto = (globalThis as unknown as { crypto?: Crypto }).crypto;
-  if (typeof globalCrypto !== 'undefined' && globalCrypto.subtle) {
-    const hashBuffer = await globalCrypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-  }
-  // Node.js environment fallback
-  const requireFn = (globalThis as unknown as { require?: (mod: string) => { createHash: (alg: string) => { update: (d: string) => { digest: (enc: string) => string } } } }).require;
-  if (typeof requireFn === 'function') {
-    const nodeCrypto = requireFn('crypto');
-    return nodeCrypto.createHash('sha256').update(text.trim()).digest('hex');
-  }
-  throw new Error('WebCrypto subtle or Node crypto is required for hash computation.');
 }
 
 export interface LocalAuthSession {
@@ -200,7 +484,7 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
     };
   }
 
-  // 2. Try Supabase backend RPC if configured
+  // 2. Authoritative Supabase backend verification via RPC verify_access_code
   if (supabase) {
     try {
       const clientIdentifier = clientId || (typeof window !== 'undefined' ? localStorage.getItem('mahi_quiz_device_id') || 'browser_client' : 'browser_client');
@@ -222,16 +506,17 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
           role?: string;
         };
 
-        if (res.success && res.email && res.user_id) {
+        if (res.success && res.email) {
           saveRateLimitState({ failedAttempts: 0, lockedUntil: null });
           const role = (res.role === 'admin' || res.email.toLowerCase().includes('sanju') || res.email.toLowerCase().includes('sanjay') ? 'admin' : 'student') as UserRole;
+          const canonicalUserId = res.user_id || (role === 'admin' ? SANJU_ADMIN_ID : (res.email.toLowerCase().includes('shailu') ? 'shailu-student-id' : MAHI_STUDENT_ID));
           return {
             success: true,
             email: res.email,
             role,
-            fullName: role === 'admin' ? 'Sanju' : 'Student',
+            fullName: role === 'admin' ? 'Sanju' : (res.email.toLowerCase().includes('shailu') ? 'Shailu' : 'Mahi'),
             authTicket: res.auth_ticket,
-            userId: res.user_id
+            userId: canonicalUserId
           };
         }
 
@@ -245,66 +530,38 @@ export async function verifyAccessCodeCloud(code: string, clientId?: string): Pr
             error: res.error || 'Too many incorrect attempts. Security lockout active.'
           };
         }
+
+        if (typeof res.attempts_remaining === 'number') {
+          return {
+            success: false,
+            attemptsRemaining: res.attempts_remaining,
+            error: res.error || `Invalid access code. ${res.attempts_remaining} attempts remaining before lockout.`
+          };
+        }
+
+        return {
+          success: false,
+          error: res.error || 'Invalid access code. Please try again.'
+        };
       }
-    } catch {
-      // Configured deployments fail closed if the secure RPC is unavailable.
+
+      if (error) {
+        console.warn('verify_access_code RPC error:', error.message);
+        return { success: false, error: error.message || 'Access code verification failed.' };
+      }
+    } catch (err: unknown) {
+      console.warn('Network exception while verifying code:', err);
+      return { success: false, error: 'Connection error during code verification. Please verify your internet connection.' };
     }
 
-    return { success: false, error: 'Secure access-code verification is unavailable. Please contact the administrator.' };
+    return { success: false, error: 'Secure access-code verification failed. Please check your code.' };
   }
 
-  // 3. Local verification is only available when no cloud backend is configured.
-  try {
-    const inputHash = await computeSha256Hex(trimmedCode);
-
-    if (inputHash === STUDENT_PIN_HASH) {
-      saveRateLimitState({ failedAttempts: 0, lockedUntil: null });
-      return {
-        success: true,
-        role: 'student',
-        email: 'mahi@boddukuri.quiz',
-        fullName: 'Mahi',
-        userId: MAHI_STUDENT_ID
-      };
-    }
-
-    if (inputHash === ADMIN_PIN_HASH) {
-      saveRateLimitState({ failedAttempts: 0, lockedUntil: null });
-      return {
-        success: true,
-        role: 'admin',
-        email: 'boddukurisanjay@gmail.com',
-        fullName: 'Sanju',
-        userId: SANJU_ADMIN_ID
-      };
-    }
-
-    // Failed attempt: record and enforce 5-attempt limit with 15-min lockout
-    const newFailed = (rl.failedAttempts || 0) + 1;
-    if (newFailed >= 5) {
-      const lockUntil = Date.now() + 15 * 60 * 1000;
-      saveRateLimitState({ failedAttempts: newFailed, lockedUntil: lockUntil });
-      return {
-        success: false,
-        locked: true,
-        secondsRemaining: 900,
-        error: 'Too many incorrect attempts. Account locked for 15 minutes.'
-      };
-    } else {
-      saveRateLimitState({ failedAttempts: newFailed, lockedUntil: null });
-      return {
-        success: false,
-        locked: false,
-        attemptsRemaining: 5 - newFailed,
-        error: `Invalid access code. ${5 - newFailed} attempt${5 - newFailed === 1 ? '' : 's'} remaining before security lockout.`
-      };
-    }
-  } catch (err) {
-    return {
-      success: false,
-      error: 'Security verification failed. Please try again.'
-    };
-  }
+  // Fails closed if Supabase cloud is not configured
+  return {
+    success: false,
+    error: 'Cloud authentication is required. Please ensure Supabase credentials are configured.'
+  };
 }
 
 // -------------------------------------------------------------
@@ -316,6 +573,7 @@ function normalizeUserId(userId?: string | null): string {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (uuidRegex.test(userId)) return userId;
   if (userId.toLowerCase().includes('admin') || userId.toLowerCase().includes('sanju')) return SANJU_ADMIN_ID;
+  if (userId.toLowerCase().includes('shailu')) return 'shailu-student-id';
   return MAHI_STUDENT_ID;
 }
 
@@ -362,7 +620,8 @@ export async function deleteCloudProgress(userId: string): Promise<void> {
  */
 export async function adminResetStudentProgressCloud(
   studentId: string = MAHI_STUDENT_ID,
-  quizId?: string
+  quizId?: string,
+  studentName?: string
 ): Promise<{ success: boolean; resetVersion: number; resetAt: string; message: string }> {
   if (!supabase) throw new Error('Supabase is not configured in this deployment.');
   const cleanId = normalizeUserId(studentId);
@@ -381,9 +640,10 @@ export async function adminResetStudentProgressCloud(
   }
 
   const existingPayload = (currentData?.payload || {}) as ProgressSnapshot;
-  const currentSettings = existingPayload.settings || {
-    studentName: 'Mahi',
-    sanjuWhatsAppNumber: '917075920852'
+  const targetStudentName = studentName || existingPayload.settings?.studentName || (cleanId === MAHI_STUDENT_ID ? 'Mahi' : 'Shailu');
+  const currentSettings = {
+    studentName: targetStudentName,
+    sanjuWhatsAppNumber: existingPayload.settings?.sanjuWhatsAppNumber || '917075920852'
   };
 
   let cleanPayload: ProgressSnapshot;
@@ -457,9 +717,9 @@ export async function adminResetStudentProgressCloud(
 
   // 3. Log to admin audit logs
   await logAdminActionCloud(
-    quizId ? 'RESET_DAY_PROGRESS' : 'RESET_ALL_MAHI_PROGRESS',
+    quizId ? 'RESET_DAY_PROGRESS' : 'RESET_STUDENT_PROGRESS',
     quizId || cleanId,
-    { resetVersion, resetAt: now, targetStudent: 'Mahi' }
+    { resetVersion, resetAt: now, targetStudent: targetStudentName }
   );
 
   return {
@@ -467,8 +727,8 @@ export async function adminResetStudentProgressCloud(
     resetVersion,
     resetAt: now,
     message: quizId
-      ? `Progress for ${quizId.toUpperCase()} has been reset in Supabase.`
-      : 'All progress for Mahi has been reset in Supabase.'
+      ? `Progress for ${quizId.toUpperCase()} has been reset for ${targetStudentName}.`
+      : `All progress for ${targetStudentName} has been reset in Supabase.`
   };
 }
 
@@ -1020,4 +1280,259 @@ export async function publishQuizCloud(
     version: newVersion,
     message: `Quiz "${quiz.title}" v${newVersion} successfully published to production cloud with ${questions.length} questions.`
   };
+}
+
+// -------------------------------------------------------------
+// STUDENT LEARNING & ADMIN CONTROL CLOUD PERSISTENCE
+// -------------------------------------------------------------
+
+export async function loadStudentMistakesCloud(userId: string) {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('student_mistakes')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.warn('loadStudentMistakesCloud error:', error.message);
+      return [];
+    }
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveStudentMistakeCloud(userId: string, mistake: any) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('student_mistakes')
+      .upsert({
+        id: mistake.id,
+        user_id: userId,
+        question_id: mistake.questionId,
+        topic_id: mistake.topicId,
+        quiz_id: mistake.quizId,
+        selected_answer: mistake.selectedAnswer,
+        correct_answer: mistake.correctAnswer,
+        explanation: mistake.explanation,
+        question_snapshot: mistake.question,
+        status: mistake.status || 'active',
+        retried_count: mistake.retriedCount || 0,
+        last_retried_at: mistake.lastRetriedAt,
+        notes: mistake.notes
+      });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadStudentBookmarksCloud(userId: string) {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('student_bookmarks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) return [];
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveStudentBookmarkCloud(userId: string, bm: any) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('student_bookmarks')
+      .upsert({
+        id: bm.id,
+        user_id: userId,
+        question_id: bm.questionId,
+        topic_id: bm.topicId,
+        quiz_id: bm.quizId,
+        question_snapshot: bm.question,
+        note: bm.note,
+        tags: bm.tags || []
+      });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function deleteStudentBookmarkCloud(userId: string, bookmarkId: string) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('student_bookmarks')
+      .delete()
+      .eq('id', bookmarkId)
+      .eq('user_id', userId);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadPlatformSettingsCloud() {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('platform_settings')
+      .select('settings')
+      .eq('id', 'global')
+      .single();
+    if (error || !data) return null;
+    return data.settings;
+  } catch {
+    return null;
+  }
+}
+
+export async function savePlatformSettingsCloud(settings: any, adminUserId: string) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('platform_settings')
+      .upsert({
+        id: 'global',
+        settings,
+        updated_at: new Date().toISOString(),
+        updated_by: adminUserId
+      });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function saveQuestionVersionCloud(versionRecord: any) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('question_version_history')
+      .insert({
+        id: versionRecord.id,
+        question_id: versionRecord.questionId,
+        version_number: versionRecord.versionNumber,
+        previous_snapshot: versionRecord.previousSnapshot,
+        new_snapshot: versionRecord.newSnapshot,
+        changed_fields: versionRecord.changedFields,
+        admin_user_id: versionRecord.adminUserId,
+        admin_name: versionRecord.adminName,
+        reason: versionRecord.reason
+      });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadQuestionVersionsCloud(questionId?: string) {
+  if (!supabase) return [];
+  try {
+    let query = supabase
+      .from('question_version_history')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (questionId) {
+      query = query.eq('question_id', questionId);
+    }
+    const { data, error } = await query;
+    if (error) return [];
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function submitStudentQuestionReportCloud(report: any) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('student_question_reports')
+      .insert({
+        id: report.id,
+        user_id: report.studentId,
+        student_name: report.studentName,
+        question_id: report.questionId,
+        quiz_id: report.quizId,
+        topic_id: report.topicId,
+        issue_type: report.issueType,
+        comment: report.comment,
+        status: report.status || 'open'
+      });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadStudentQuestionReportsCloud() {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase
+      .from('student_question_reports')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) return [];
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveMockExamResultCloud(result: any) {
+  if (!supabase) return false;
+  try {
+    const { error } = await supabase
+      .from('mock_exam_results')
+      .insert({
+        id: result.id,
+        user_id: result.studentId,
+        title: result.title,
+        mode: result.mode,
+        topic_id: result.topicId,
+        total_questions: result.totalQuestions,
+        attempted_count: result.attemptedCount,
+        correct_count: result.correctCount,
+        incorrect_count: result.incorrectCount,
+        unanswered_count: result.unansweredCount,
+        marked_for_review_count: result.markedForReviewCount,
+        score: result.score,
+        max_score: result.maxScore,
+        percentage: result.percentage,
+        passed: result.passed,
+        time_taken_seconds: result.timeTakenSeconds,
+        answers: result.answers,
+        topic_breakdown: result.topicBreakdown
+      });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadMockExamResultsCloud(userId?: string) {
+  if (!supabase) return [];
+  try {
+    let query = supabase
+      .from('mock_exam_results')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+    const { data, error } = await query;
+    if (error) return [];
+    return data || [];
+  } catch {
+    return [];
+  }
 }

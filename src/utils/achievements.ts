@@ -1,7 +1,7 @@
 import type { QuizAttempt, AchievementBadge } from '../types/quiz';
 
 /**
- * Master catalog of Achievement Badges for Quiz by Spideyy
+ * Master catalog of Achievement Badges for Spideyy Quiz
  */
 export function evaluateBadges(attempts: QuizAttempt[], streak: number = 0): AchievementBadge[] {
   const totalAttempts = attempts.length;

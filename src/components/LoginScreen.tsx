@@ -4,6 +4,7 @@ import {
   supabase,
   supabaseConfigured,
   verifyAccessCodeCloud,
+  resolveUsernameToAuth,
   getUserProfile,
   saveLocalAuthSession
 } from '../utils/supabase';
@@ -11,7 +12,6 @@ import type { UserRole } from '../types/quiz';
 import {
   Sparkles,
   Lock,
-  Mail,
   Eye,
   EyeOff,
   AlertCircle,
@@ -21,25 +21,23 @@ import {
   KeyRound,
   ShieldAlert,
   Clock,
-  Play
+  Mail
 } from 'lucide-react';
 import { BackgroundCubesGrid } from './ui/background-cubes-grid';
 
 interface LoginScreenProps {
   onLoginSuccess: (userEmail: string, role?: UserRole, userId?: string) => void;
-  onReplayMotivation?: () => void;
 }
 
 const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onLoginSuccess,
-  onReplayMotivation,
 }) => {
-  const [authMethod, setAuthMethod] = useState<'code' | 'password'>('code');
+  const [authMethod, setAuthMethod] = useState<'code' | 'username'>('code');
 
-  // Password login state
-  const [email, setEmail] = useState('');
+  // Username/Password login state
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -71,11 +69,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     return () => clearInterval(interval);
   }, [lockoutSeconds]);
 
-  // Handle standard Email & Password Sign In
-  const handleEmailPasswordSignIn = async (e: React.FormEvent) => {
+  // Handle Username/Email & Password Sign In
+  const handleUsernamePasswordSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setAttemptsRemaining(null);
+
+    if (lockoutSeconds && lockoutSeconds > 0) {
+      setErrorMessage(`Access temporarily locked. Please wait ${Math.ceil(lockoutSeconds / 60)} more minutes.`);
+      return;
+    }
+
+    if (!usernameOrEmail.trim()) {
+      setErrorMessage('Please enter your username or email address.');
+      return;
+    }
+
+    if (!password) {
+      setErrorMessage('Please enter your password.');
+      return;
+    }
 
     if (!isOnline) {
       setErrorMessage('You are currently offline. Please connect to Wi-Fi or mobile data to sign in.');
@@ -90,22 +103,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setLoading(true);
 
     try {
+      // Server-side mapped resolution (mahi -> actual email, shailu -> synthetic identity, sanju -> admin email)
+      const resolvedEmail = await resolveUsernameToAuth(usernameOrEmail.trim());
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: resolvedEmail,
         password: password,
       });
 
       if (error) {
-        if (
-          error.message.toLowerCase().includes('invalid login credentials') ||
-          error.message.toLowerCase().includes('invalid grant')
-        ) {
-          setErrorMessage('Invalid email or password. Please check your credentials and try again.');
+        // Enforce brute-force rate-limiting locally
+        const currentFailed = (parseInt(localStorage.getItem('spideyy_login_failed_count') || '0', 10) || 0) + 1;
+        localStorage.setItem('spideyy_login_failed_count', String(currentFailed));
+
+        if (currentFailed >= 5) {
+          setLockoutSeconds(900);
+          setErrorMessage('Too many failed sign-in attempts. Account temporarily locked for 15 minutes.');
         } else {
-          setErrorMessage(error.message);
+          setAttemptsRemaining(5 - currentFailed);
+          // Generic error message to prevent username enumeration
+          setErrorMessage('Invalid username or password. Please verify your credentials and try again.');
         }
         return;
       }
+
+      // Reset failure counter on success
+      localStorage.removeItem('spideyy_login_failed_count');
 
       if (data.user?.email) {
         const profile = await getUserProfile(data.user.id);
@@ -114,16 +137,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           (data.user.email.toLowerCase().includes('sanju') || data.user.email.toLowerCase().includes('sanjay')
             ? 'admin'
             : 'student');
+
+        const resolvedFullName =
+          profile?.fullName ||
+          (data.user.email.toLowerCase().includes('shailu')
+            ? 'Shailu'
+            : (resolvedRole === 'admin' ? 'Sanju' : 'Mahi'));
+
         saveLocalAuthSession({
           email: data.user.email,
           role: resolvedRole,
-          fullName: profile?.fullName || (resolvedRole === 'admin' ? 'Sanju' : 'Mahi'),
+          fullName: resolvedFullName,
           userId: data.user.id,
           loggedInAt: new Date().toISOString()
         });
+
+        // Redirect directly to the appropriate dashboard
         onLoginSuccess(data.user.email, resolvedRole, data.user.id);
       } else {
-        setErrorMessage('Sign in succeeded, but no user email was returned.');
+        setErrorMessage('Sign in succeeded, but no user identity was returned.');
       }
     } catch (err: unknown) {
       setErrorMessage(err instanceof Error ? err.message : 'Unable to sign in. Please try again.');
@@ -247,8 +279,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center gap-2">
-            <span>Quiz by</span>
-            <span className="text-[#ff3366]">Spideyy</span>
+            <span>Spideyy</span>
+            <span className="text-[#ff3366]">Quiz</span>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-[#9e1030]/20 text-[#ff8099] border border-[#ff3366]/30">
               GK Portal
             </span>
@@ -276,8 +308,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </p>
           </div>
 
-          {/* Auth Method Tabs with Smooth Animated Pill */}
+          {/* Auth Method Tabs: First Access Code, Beside it Mail & PW */}
           <div className="grid grid-cols-2 gap-1 p-1 bg-[#150e13] rounded-2xl border border-white/[0.06] relative">
+            {/* 1. Access Code (First) */}
             <button
               type="button"
               onClick={() => {
@@ -299,17 +332,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               <span>Access Code</span>
             </button>
 
+            {/* 2. Mail & PW (Beside it) */}
             <button
               type="button"
               onClick={() => {
-                setAuthMethod('password');
+                setAuthMethod('username');
                 setErrorMessage(null);
               }}
               className={`relative z-10 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 ${
-                authMethod === 'password' ? 'text-white' : 'text-neutral-400 hover:text-white'
+                authMethod === 'username' ? 'text-white' : 'text-neutral-400 hover:text-white'
               }`}
             >
-              {authMethod === 'password' && (
+              {authMethod === 'username' && (
                 <motion.div
                   layoutId="authTabIndicator"
                   className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] shadow-ruby border border-[#ff3366]/30 -z-10"
@@ -317,7 +351,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 />
               )}
               <Mail className="w-3.5 h-3.5" />
-              <span>Email & Password</span>
+              <span>Mail & PW</span>
             </button>
           </div>
 
@@ -377,81 +411,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             )}
           </AnimatePresence>
 
-          {/* FORM 1: EMAIL & PASSWORD */}
-          {authMethod === 'password' && (
-            <form onSubmit={handleEmailPasswordSignIn} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-neutral-300">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    inputMode="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-white/[0.08] bg-[#120a10] text-white placeholder:text-neutral-500 focus:border-[#9e1030] focus:ring-2 focus:ring-[#9e1030]/30 text-sm font-medium transition-all outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-neutral-300">
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/[0.08] bg-[#120a10] text-white placeholder:text-neutral-500 focus:border-[#9e1030] focus:ring-2 focus:ring-[#9e1030]/30 text-sm font-medium transition-all outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-white transition-colors"
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={loading || !isOnline}
-                className="w-full min-h-[48px] px-5 py-3.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white font-bold text-sm shadow-ruby border border-[#ff3366]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Signing In…</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In to Learning Portal</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </motion.button>
-            </form>
-          )}
-
-          {/* FORM 2: ACCESS CODE */}
+          {/* FORM 1: ACCESS CODE (First) */}
           {authMethod === 'code' && (
             <form onSubmit={handleAccessCodeSignIn} className="space-y-4">
               <div className="space-y-1.5">
@@ -507,6 +467,82 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </form>
           )}
 
+          {/* FORM 2: EMAIL / USERNAME & PASSWORD (Beside it) */}
+          {authMethod === 'username' && (
+            <form onSubmit={handleUsernamePasswordSignIn} className="space-y-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-neutral-300">
+                    Email / Username or Email
+                  </label>
+                  <span className="text-[10px] text-rose-300/80 font-mono">shailu • mahi • sanju</span>
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                    <Mail className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    autoComplete="username"
+                    value={usernameOrEmail}
+                    onChange={e => setUsernameOrEmail(e.target.value)}
+                    placeholder="Enter email (e.g. mahi@...) or username"
+                    className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-white/[0.08] bg-[#120a10] text-white placeholder:text-neutral-500 focus:border-[#9e1030] focus:ring-2 focus:ring-[#9e1030]/30 text-sm font-medium transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-semibold text-neutral-300">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-500">
+                    <Lock className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-white/[0.08] bg-[#120a10] text-white placeholder:text-neutral-500 focus:border-[#9e1030] focus:ring-2 focus:ring-[#9e1030]/30 text-sm font-medium transition-all outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-500 hover:text-white transition-colors"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                disabled={loading || !isOnline}
+                className="w-full min-h-[48px] px-5 py-3.5 rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white font-bold text-sm shadow-ruby border border-[#ff3366]/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Signing In…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In to Learning Portal</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </motion.button>
+            </form>
+          )}
+
           {/* Session Persistence Note */}
           <div className="pt-2 border-t border-white/[0.06] flex items-start gap-2 text-[11px] text-neutral-400">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -514,20 +550,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               Session persists securely across browser restarts until you sign out.
             </span>
           </div>
-
-          {/* Replay motivation animation shortcut */}
-          {onReplayMotivation && (
-            <div className="text-center pt-1">
-              <button
-                type="button"
-                onClick={onReplayMotivation}
-                className="text-xs text-neutral-400 hover:text-white font-medium inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Play className="w-3 h-3 text-[#ff8099]" />
-                <span>Replay Opening Motivation</span>
-              </button>
-            </div>
-          )}
         </div>
       </motion.div>
 
@@ -538,7 +560,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         transition={{ delay: 0.3 }}
         className="relative z-10 max-w-md w-full mx-auto text-center text-[11px] text-neutral-500 pt-4"
       >
-        Quiz by Spideyy • Shared GK Learning Workspace for Mahi & Shailu • Supabase Cloud Verified
+        Spideyy Quiz • Shared GK Learning Workspace for Mahi & Shailu • Supabase Cloud Verified
       </motion.div>
     </div>
   );

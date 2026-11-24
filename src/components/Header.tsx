@@ -76,10 +76,10 @@ export const Header: React.FC<HeaderProps> = ({
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-base sm:text-lg font-black tracking-tight text-white group-hover:text-[#ff8099] transition-colors">
-                    Quiz by
+                    Spideyy
                   </span>
                   <span className="text-base sm:text-lg font-black tracking-tight text-[#ff3366] group-hover:text-[#ff8099] transition-colors">
-                    Spideyy
+                    Quiz
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-[#2b0c18] text-[#ff8099] border border-[#52142a]">
                     GK Portal

@@ -6,17 +6,21 @@ import {
   AlertTriangle,
   ArrowRight,
   TrendingUp,
-  Mail,
-  Key,
   Layers,
   X,
   BookOpen,
-  Check
+  Check,
+  User,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Lock,
+  KeyRound
 } from 'lucide-react';
 import type { QuizAttempt } from '../../types/quiz';
-import { TOPIC_CATEGORIES } from '../../data/topics';
+import { TOPIC_CATEGORIES, calculateTopicProgress } from '../../data/topics';
 import { Card3D } from '../ui/Card3D';
-import { MAHI_STUDENT_ID } from '../../utils/supabase';
+import { MAHI_STUDENT_ID, provisionStudentAccount, adminUpdateStudentCredentials } from '../../utils/supabase';
 
 interface MultiStudentHubProps {
   attempts: QuizAttempt[];
@@ -24,6 +28,15 @@ interface MultiStudentHubProps {
   onResetStudent: (studentId: string, studentName: string, quizId?: string) => Promise<void>;
   onViewAnswerSheet: (attempt: QuizAttempt) => void;
   onRefreshData: () => Promise<void>;
+}
+
+interface StoredStudentAccount {
+  email: string;
+  username: string;
+  displayName: string;
+  onboarded: boolean;
+  userId?: string;
+  accessCode?: string;
 }
 
 export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
@@ -35,10 +48,26 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
 }) => {
   const [selectedStudentTab, setSelectedStudentTab] = useState<'all' | 'mahi' | 'shailu'>('all');
   const [showOnboardModal, setShowOnboardModal] = useState(false);
-  const [shailuEmail, setShailuEmail] = useState('');
-  const [shailuPassword, setShailuPassword] = useState('2026');
-  const [shailuRole, setShailuRole] = useState<'student' | 'admin'>('student');
+
+  // Student Provisioning Form State (strictly enforced for Shailu)
+  const [displayName, setDisplayName] = useState('Shailu');
+  const [username, setUsername] = useState('shailu');
+  const [accessCode, setAccessCode] = useState('2580');
+  const [initialPassword, setInitialPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [provisionLoading, setProvisionLoading] = useState(false);
+  const [provisionError, setProvisionError] = useState<string | null>(null);
   const [onboardSuccessMessage, setOnboardSuccessMessage] = useState<string | null>(null);
+
+  // Manage Credentials Modal State (for updating access code or password)
+  const [showManageCredsModal, setShowManageCredsModal] = useState(false);
+  const [manageAccessCode, setManageAccessCode] = useState('2580');
+  const [managePassword, setManagePassword] = useState('');
+  const [manageConfirmPw, setManageConfirmPw] = useState('');
+  const [manageLoading, setManageLoading] = useState(false);
+  const [manageError, setManageError] = useState<string | null>(null);
+  const [showManagePw, setShowManagePw] = useState(false);
 
   // Independent Reset Modal state
   const [resetModalOpen, setResetModalOpen] = useState(false);
@@ -47,15 +76,21 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
   const [resetConfirmWord, setResetConfirmWord] = useState('');
   const [isResetting, setIsResetting] = useState(false);
 
-  // Stored onboarding state for Shailu
-  const [shailuConfig, setShailuConfig] = useState<{ email: string; code: string; onboarded: boolean }>(() => {
+  // Stored state for Shailu
+  const [shailuConfig, setShailuConfig] = useState<StoredStudentAccount>(() => {
     if (typeof localStorage !== 'undefined') {
       try {
         const saved = localStorage.getItem('spideyy_shailu_account');
         if (saved) return JSON.parse(saved);
       } catch {}
     }
-    return { email: '', code: '2026', onboarded: false };
+    return {
+      email: 'shailu@users.spideyyquiz.invalid',
+      username: 'shailu',
+      displayName: 'Shailu',
+      onboarded: false,
+      accessCode: '2580'
+    };
   });
 
   // Split attempts by student
@@ -89,29 +124,142 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
   const mahiStats = getStudentStats(mahiAttempts);
   const shailuStats = getStudentStats(shailuAttempts);
 
-  // Handle Shailu Onboarding
-  const handleSaveShailuAccount = (e: React.FormEvent) => {
+  // Handle Explicit Student Account Provisioning by Admin Sanju
+  const handleProvisionStudentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shailuEmail.trim() || !shailuEmail.includes('@')) {
-      alert('Please enter a valid email address for Shailu.');
+    setProvisionError(null);
+
+    const cleanDisplay = displayName.trim();
+    const cleanUsername = username.toLowerCase().trim();
+
+    if (!cleanDisplay) {
+      setProvisionError('Student display name is required.');
       return;
     }
-    const newConfig = {
-      email: shailuEmail.trim(),
-      code: shailuPassword.trim() || '2026',
-      onboarded: true
-    };
-    setShailuConfig(newConfig);
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('spideyy_shailu_account', JSON.stringify(newConfig));
+    if (!cleanUsername || cleanUsername.length < 3) {
+      setProvisionError('Username must be at least 3 characters.');
+      return;
     }
-    setOnboardSuccessMessage(`Shailu's account has been configured with email: ${newConfig.email} and access code: ${newConfig.code}.`);
-    setShowOnboardModal(false);
+    if (['mahi', 'sanju', 'admin'].includes(cleanUsername)) {
+      setProvisionError(`Username '${cleanUsername}' is reserved.`);
+      return;
+    }
+    if (!initialPassword || initialPassword.length < 4) {
+      setProvisionError('Password must be at least 4 characters.');
+      return;
+    }
+    if (initialPassword !== confirmPassword) {
+      setProvisionError('Initial password and confirm password do not match.');
+      return;
+    }
+
+    const cleanAccessCode = accessCode.trim();
+    if (!/^\d{4}$/.test(cleanAccessCode)) {
+      setProvisionError('Access code must be exactly 4 numeric digits (e.g. 2580).');
+      return;
+    }
+    if (cleanAccessCode === '2002' || cleanAccessCode === '2718') {
+      setProvisionError(`Access code '${cleanAccessCode}' is reserved by another account.`);
+      return;
+    }
+
+    setProvisionLoading(true);
+
+    try {
+      const res = await provisionStudentAccount({
+        displayName: cleanDisplay,
+        username: cleanUsername,
+        password: initialPassword,
+        confirmPassword,
+        accessCode: cleanAccessCode
+      });
+
+      if (res.success) {
+        const updatedConfig: StoredStudentAccount = {
+          email: res.email || `${cleanUsername}@users.spideyyquiz.invalid`,
+          displayName: cleanDisplay,
+          username: cleanUsername,
+          userId: res.userId,
+          onboarded: true,
+          accessCode: cleanAccessCode
+        };
+        setShailuConfig(updatedConfig);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('spideyy_shailu_account', JSON.stringify(updatedConfig));
+        }
+        setOnboardSuccessMessage(res.message || `Student '${cleanDisplay}' successfully provisioned with username: ${cleanUsername} and access code: ${cleanAccessCode}.`);
+        setShowOnboardModal(false);
+        setInitialPassword('');
+        setConfirmPassword('');
+        await onRefreshData();
+      } else {
+        setProvisionError(res.error || 'Failed to provision student account.');
+      }
+    } catch (err) {
+      setProvisionError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setProvisionLoading(false);
+    }
   };
 
-  const generateRandomCode = () => {
-    const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
-    setShailuPassword(randomCode);
+  // Handle Admin Securely Changing Shailu's Access Code or Password
+  const handleUpdateCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setManageError(null);
+
+    const cleanCode = manageAccessCode.trim();
+    if (cleanCode && !/^\d{4}$/.test(cleanCode)) {
+      setManageError('Access code must be exactly 4 numeric digits.');
+      return;
+    }
+    if (cleanCode && (cleanCode === '2002' || cleanCode === '2718')) {
+      setManageError(`Access code '${cleanCode}' is reserved.`);
+      return;
+    }
+    if (managePassword && managePassword.length < 4) {
+      setManageError('Password must be at least 4 characters long.');
+      return;
+    }
+    if (managePassword && managePassword !== manageConfirmPw) {
+      setManageError('New password and confirm password do not match.');
+      return;
+    }
+    if (!cleanCode && !managePassword) {
+      setManageError('Please enter a new access code or password.');
+      return;
+    }
+
+    setManageLoading(true);
+    try {
+      const res = await adminUpdateStudentCredentials({
+        userId: shailuConfig.userId,
+        username: shailuConfig.username || 'shailu',
+        newAccessCode: cleanCode || undefined,
+        newPassword: managePassword || undefined
+      });
+
+      if (res.success) {
+        const updated: StoredStudentAccount = {
+          ...shailuConfig,
+          accessCode: cleanCode || shailuConfig.accessCode || '2580'
+        };
+        setShailuConfig(updated);
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('spideyy_shailu_account', JSON.stringify(updated));
+        }
+        setOnboardSuccessMessage(res.message || `Credentials for Shailu updated successfully. Access code: ${cleanCode || shailuConfig.accessCode || '2580'}`);
+        setShowManageCredsModal(false);
+        setManagePassword('');
+        setManageConfirmPw('');
+        await onRefreshData();
+      } else {
+        setManageError(res.error || 'Failed to update student credentials.');
+      }
+    } catch (err) {
+      setManageError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setManageLoading(false);
+    }
   };
 
   // Handle Reset Action
@@ -123,7 +271,9 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
 
     setIsResetting(true);
     try {
-      const studentId = targetStudentForReset === 'Mahi' ? MAHI_STUDENT_ID : 'shailu-student-id';
+      const studentId = targetStudentForReset === 'Mahi'
+        ? MAHI_STUDENT_ID
+        : (shailuConfig.userId || 'shailu-student-id');
       const targetQuizId = resetScope === 'all' ? undefined : resetScope;
       await onResetStudent(studentId, targetStudentForReset, targetQuizId);
       setResetModalOpen(false);
@@ -266,18 +416,17 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-[#ff3366]" />
-                    <span>Topic & Championship Mastery</span>
+                    <span>Topic & Multi-Quiz Mastery</span>
                   </span>
                   <span className="text-[11px] text-[#a68690]">
-                    {TOPIC_CATEGORIES.filter(t => mahiStats.completedQuizIds.includes(t.id)).length} of 5 Topics
+                    {TOPIC_CATEGORIES.filter(t => t.isPublished && calculateTopicProgress(t.id, mahiAttempts, mahiStats.completedQuizIds).completionPercentage === 100).length} of {TOPIC_CATEGORIES.filter(t => t.isPublished).length} Topics Mastered
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {TOPIC_CATEGORIES.map(topic => {
-                    const isDone = mahiStats.completedQuizIds.includes(topic.id);
-                    const topicAttempts = mahiAttempts.filter(a => a.quizId === topic.id);
-                    const best = topicAttempts.length > 0 ? Math.max(...topicAttempts.map(a => a.percentage)) : 0;
+                  {TOPIC_CATEGORIES.filter(t => t.isPublished).map(topic => {
+                    const tProgress = calculateTopicProgress(topic.id, mahiAttempts, mahiStats.completedQuizIds);
+                    const isDone = tProgress.completionPercentage === 100;
 
                     return (
                       <div
@@ -285,14 +434,16 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                         className={`p-2.5 rounded-xl border text-xs transition-all ${
                           isDone
                             ? 'bg-emerald-950/30 border-emerald-800/60 text-emerald-200'
+                            : tProgress.completedQuizzes > 0
+                            ? 'bg-amber-950/20 border-amber-800/40 text-amber-200'
                             : 'bg-[#12040b] border-[#260c18] text-[#a68690]'
                         }`}
                       >
                         <div className="font-bold truncate text-white">{topic.title}</div>
                         <div className="text-[10px] flex items-center justify-between mt-1">
-                          <span>{topicAttempts.length} att.</span>
-                          <span className={isDone ? 'text-emerald-400 font-bold' : 'text-[#7a5b67]'}>
-                            {topicAttempts.length > 0 ? `${best}%` : 'Unattempted'}
+                          <span>{tProgress.completedQuizzes}/{tProgress.publishedQuizzes} Qzs</span>
+                          <span className={isDone ? 'text-emerald-400 font-bold' : tProgress.totalAttemptsCount > 0 ? 'text-[#ff8099] font-bold' : 'text-[#7a5b67]'}>
+                            {tProgress.totalAttemptsCount > 0 ? `${tProgress.accuracyPercentage}% Acc` : 'Unattempted'}
                           </span>
                         </div>
                       </div>
@@ -372,17 +523,38 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => {
-                      setShailuEmail(shailuConfig.email || '');
-                      setShailuPassword(shailuConfig.code || '2026');
-                      setShowOnboardModal(true);
-                    }}
-                    className="px-2.5 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 border border-purple-800 text-xs font-bold transition-all flex items-center gap-1.5"
-                  >
-                    <Key className="w-3.5 h-3.5" />
-                    <span>{shailuConfig.onboarded ? 'Edit Credentials' : 'Setup Credentials'}</span>
-                  </button>
+                  {shailuConfig.onboarded ? (
+                    <button
+                      onClick={() => {
+                        setManageAccessCode(shailuConfig.accessCode || '2580');
+                        setManagePassword('');
+                        setManageConfirmPw('');
+                        setManageError(null);
+                        setShowManageCredsModal(true);
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 border border-purple-800 text-xs font-bold transition-all flex items-center gap-1.5"
+                      title="Manage Access Code and Password"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Manage Credentials</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setDisplayName(shailuConfig.displayName || 'Shailu');
+                        setUsername(shailuConfig.username || 'shailu');
+                        setAccessCode(shailuConfig.accessCode || '2580');
+                        setInitialPassword('');
+                        setConfirmPassword('');
+                        setProvisionError(null);
+                        setShowOnboardModal(true);
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 border border-purple-800 text-xs font-bold transition-all flex items-center gap-1.5"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>Provision Shailu</span>
+                    </button>
+                  )}
 
                   {shailuStats.total > 0 && (
                     <button
@@ -417,7 +589,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                 </div>
                 <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
                   <div className="text-[10px] uppercase font-bold text-[#a68690]">Access Code</div>
-                  <div className="text-base font-black font-mono text-purple-300">{shailuConfig.code}</div>
+                  <div className="text-base font-black font-mono text-amber-300">{shailuConfig.accessCode || '2580'}</div>
                 </div>
               </div>
 
@@ -431,15 +603,22 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     Shailu hasn't attempted any quizzes yet.
                   </p>
                   <p className="text-[11px] text-[#a68690] max-w-sm mx-auto">
-                    Once she logs in and begins exploring topics, her scores, question analytics, and answer sheets will appear here independently.
+                    Initial progress is initialized to zero. Once she signs in using username <strong className="text-purple-300">shailu</strong>, her scores and answer sheets will appear here independently.
                   </p>
                   {!shailuConfig.onboarded && (
                     <button
-                      onClick={() => setShowOnboardModal(true)}
+                      onClick={() => {
+                        setDisplayName('Shailu');
+                        setUsername('shailu');
+                        setInitialPassword('');
+                        setConfirmPassword('');
+                        setProvisionError(null);
+                        setShowOnboardModal(true);
+                      }}
                       className="mt-2 px-3 py-1.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition-all shadow-md inline-flex items-center gap-1.5"
                     >
-                      <Key className="w-3.5 h-3.5" />
-                      <span>Configure Shailu's Account</span>
+                      <User className="w-3.5 h-3.5" />
+                      <span>Provision Shailu's Account</span>
                     </button>
                   )}
                 </div>
@@ -451,12 +630,13 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                       <span>Topic Mastery</span>
                     </span>
                     <span className="text-[11px] text-[#a68690]">
-                      {TOPIC_CATEGORIES.filter(t => shailuStats.completedQuizIds.includes(t.id)).length} of 5 Topics
+                      {TOPIC_CATEGORIES.filter(t => t.isPublished && calculateTopicProgress(t.id, shailuAttempts, shailuStats.completedQuizIds).completionPercentage === 100).length} of {TOPIC_CATEGORIES.filter(t => t.isPublished).length} Topics
                     </span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {TOPIC_CATEGORIES.map(topic => {
-                      const isDone = shailuStats.completedQuizIds.includes(topic.id);
+                    {TOPIC_CATEGORIES.filter(t => t.isPublished).map(topic => {
+                      const tProgress = calculateTopicProgress(topic.id, shailuAttempts, shailuStats.completedQuizIds);
+                      const isDone = tProgress.completionPercentage === 100;
                       return (
                         <div
                           key={topic.id}
@@ -465,7 +645,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                           }`}
                         >
                           <div className="font-bold truncate text-white">{topic.title}</div>
-                          <div className="text-[10px] mt-1 text-[#7a5b67]">{isDone ? 'Completed' : 'Pending'}</div>
+                          <div className="text-[10px] mt-1 text-[#7a5b67]">{isDone ? 'Completed' : `${tProgress.completedQuizzes}/${tProgress.publishedQuizzes} Qzs`}</div>
                         </div>
                       );
                     })}
@@ -520,10 +700,10 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
               <tr>
                 <td className="py-2.5 text-slate-300 font-semibold">Topics Mastered</td>
                 <td className="py-2.5 text-center font-bold text-white">
-                  {TOPIC_CATEGORIES.filter(t => mahiStats.completedQuizIds.includes(t.id)).length} / 5
+                  {TOPIC_CATEGORIES.filter(t => t.isPublished && calculateTopicProgress(t.id, mahiAttempts, mahiStats.completedQuizIds).completionPercentage === 100).length} / {TOPIC_CATEGORIES.filter(t => t.isPublished).length}
                 </td>
                 <td className="py-2.5 text-center font-bold text-white">
-                  {TOPIC_CATEGORIES.filter(t => shailuStats.completedQuizIds.includes(t.id)).length} / 5
+                  {TOPIC_CATEGORIES.filter(t => t.isPublished && calculateTopicProgress(t.id, shailuAttempts, shailuStats.completedQuizIds).completionPercentage === 100).length} / {TOPIC_CATEGORIES.filter(t => t.isPublished).length}
                 </td>
               </tr>
               <tr>
@@ -577,96 +757,343 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
         </div>
       </div>
 
-      {/* SHAILU ONBOARDING MODAL */}
+      {/* SECURE ADMIN PROVISIONING MODAL FOR SHAILU */}
       {showOnboardModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-[#14060d] border border-[#3a0d20] shadow-2xl space-y-4">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-[#14060d] border border-purple-900/60 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-[#260c18]">
               <div className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-purple-400" />
-                <h3 className="text-base font-extrabold text-white">Onboard Scholar: Shailu</h3>
+                <User className="w-5 h-5 text-purple-400" />
+                <h3 className="text-base font-extrabold text-white">Provision Student Account</h3>
               </div>
-              <button onClick={() => setShowOnboardModal(false)} className="text-[#a68690] hover:text-white">
+              <button
+                onClick={() => {
+                  setShowOnboardModal(false);
+                  setProvisionError(null);
+                }}
+                className="text-[#a68690] hover:text-white"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <p className="text-xs text-[#a68690]">
-              Configure Shailu's credentials. Once saved, Shailu can sign in on the student portal using this email and access code.
+              Create a dedicated student account for <strong className="text-white">Shailu</strong>.
+              Initial progress will be zero, curriculum will be shared, and all attempts will remain strictly isolated from Mahi.
             </p>
 
-            <form onSubmit={handleSaveShailuAccount} className="space-y-3.5">
+            {provisionError && (
+              <div className="p-3 rounded-xl bg-red-950/70 border border-red-800 text-red-200 text-xs flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span>{provisionError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleProvisionStudentSubmit} className="space-y-3.5">
+              {/* Field 1: Student Display Name */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Email Address
+                  Student Display Name
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
-                  <input
-                    type="email"
-                    required
-                    value={shailuEmail}
-                    onChange={e => setShailuEmail(e.target.value)}
-                    placeholder="e.g. shailu@gmail.com"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-slate-300">
-                    Access Code / Password
-                  </label>
-                  <button
-                    type="button"
-                    onClick={generateRandomCode}
-                    className="text-[11px] font-bold text-purple-400 hover:text-purple-300"
-                  >
-                    Generate Code
-                  </button>
-                </div>
-                <div className="relative">
-                  <Key className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
+                  <User className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     required
-                    value={shailuPassword}
-                    onChange={e => setShailuPassword(e.target.value)}
-                    placeholder="e.g. 2026"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-purple-300 focus:outline-none focus:border-purple-500"
+                    value={displayName}
+                    onChange={e => setDisplayName(e.target.value)}
+                    placeholder="e.g. Shailu"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500 font-semibold"
                   />
                 </div>
               </div>
 
+              {/* Field 2: Username (Prepopulated with shailu) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    Username
+                  </label>
+                  <span className="text-[10px] text-purple-400 font-mono">Lowercase normalized</span>
+                </div>
+                <div className="relative">
+                  <span className="text-xs font-bold text-purple-400 absolute left-3 top-2">@</span>
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                    placeholder="shailu"
+                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-purple-300 placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <p className="text-[10px] text-[#7a5b67] mt-1 font-mono">
+                  Internal synthetic identity: {username || 'shailu'}@users.spideyyquiz.invalid
+                </p>
+              </div>
+
+              {/* Field 3: 4-Digit Access Code */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    4-Digit Access Code
+                  </label>
+                  <span className="text-[10px] text-amber-300 font-mono">1-Click Login Code</span>
+                </div>
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    pattern="[0-9]*"
+                    maxLength={4}
+                    inputMode="numeric"
+                    required
+                    value={accessCode}
+                    onChange={e => setAccessCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="2580"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-amber-300 placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500 font-bold"
+                  />
+                </div>
+                <p className="text-[10px] text-[#7a5b67] mt-1">
+                  Default: <span className="text-amber-300 font-bold font-mono">2580</span>. Shailu can use this 4-digit code for 1-click access-code login.
+                </p>
+              </div>
+
+              {/* Field 4: Initial Password */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    Initial Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    className="text-[11px] font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                  >
+                    {showPw ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    <span>{showPw ? 'Hide' : 'Show'}</span>
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    required
+                    value={initialPassword}
+                    onChange={e => setInitialPassword(e.target.value)}
+                    placeholder="Enter password (min 4 characters)"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              {/* Field 5: Confirm Password */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">
-                  User Role
+                  Confirm Password
                 </label>
-                <select
-                  value={shailuRole}
-                  onChange={e => setShailuRole(e.target.value as 'student' | 'admin')}
-                  className="w-full px-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs text-white focus:outline-none focus:border-purple-500"
-                >
-                  <option value="student">Student (Scholar)</option>
-                  <option value="admin">Admin</option>
-                </select>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
+                  <input
+                    type={showPw ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter password to confirm"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              {/* Field 6: Enforced Role Badge */}
+              <div className="p-2.5 rounded-xl bg-[#0a0206] border border-[#260c18] space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Account Role</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-300 border border-emerald-800">
+                    Student (Scholar)
+                  </span>
+                </div>
+                <p className="text-[10px] text-[#7a5b67]">
+                  Role is strictly enforced server-side. Arbitrary roles cannot be assigned.
+                </p>
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#260c18]">
                 <button
                   type="button"
-                  onClick={() => setShowOnboardModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#1e0813] text-[#a68690] hover:text-white text-xs font-bold transition-colors"
+                  onClick={() => {
+                    setShowOnboardModal(false);
+                    setProvisionError(null);
+                  }}
+                  disabled={provisionLoading}
+                  className="px-4 py-2 rounded-xl bg-[#1e0813] text-[#a68690] hover:text-white text-xs font-bold transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                  disabled={provisionLoading}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-800 to-indigo-700 hover:from-purple-700 hover:to-indigo-600 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50"
                 >
-                  <Check className="w-4 h-4" />
-                  <span>Save & Onboard Shailu</span>
+                  {provisionLoading ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Provisioning Account…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Provision Scholar Shailu</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MANAGE CREDENTIALS / ACCESS CODE MODAL FOR SHAILU */}
+      {showManageCredsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-[#14060d] border border-purple-900/60 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-purple-900/40">
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-extrabold text-white">
+                  Manage Credentials: Shailu
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowManageCredsModal(false);
+                  setManageError(null);
+                }}
+                className="text-[#a68690] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#a68690]">
+              Assign a new 4-digit access code or update password for <strong className="text-white">Shailu</strong>.
+              All changes are authenticated server-side and take effect immediately.
+            </p>
+
+            {manageError && (
+              <div className="p-3 rounded-xl bg-red-950/70 border border-red-800 text-red-200 text-xs flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span>{manageError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateCredentialsSubmit} className="space-y-3.5">
+              {/* Field 1: Access Code */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    4-Digit Access Code
+                  </label>
+                  <span className="text-[10px] text-amber-300 font-mono">Current / New Code</span>
+                </div>
+                <div className="relative">
+                  <KeyRound className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    pattern="[0-9]*"
+                    maxLength={4}
+                    inputMode="numeric"
+                    required
+                    value={manageAccessCode}
+                    onChange={e => setManageAccessCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="2580"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-amber-300 placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500 font-bold"
+                  />
+                </div>
+                <p className="text-[10px] text-[#7a5b67] mt-1">
+                  Shailu uses this 4-digit code to log in via Access Code. Default is <span className="text-amber-300 font-bold font-mono">2580</span>.
+                </p>
+              </div>
+
+              {/* Field 2: New Password (Optional) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-300">
+                    New Password (Optional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowManagePw(!showManagePw)}
+                    className="text-[11px] font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1"
+                  >
+                    {showManagePw ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    <span>{showManagePw ? 'Hide' : 'Show'}</span>
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
+                  <input
+                    type={showManagePw ? 'text' : 'password'}
+                    value={managePassword}
+                    onChange={e => setManagePassword(e.target.value)}
+                    placeholder="Leave blank to keep existing password"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              {/* Field 3: Confirm New Password */}
+              {managePassword && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
+                    <input
+                      type={showManagePw ? 'text' : 'password'}
+                      required={!!managePassword}
+                      value={manageConfirmPw}
+                      onChange={e => setManageConfirmPw(e.target.value)}
+                      placeholder="Re-enter new password"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#260c18]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowManageCredsModal(false);
+                    setManageError(null);
+                  }}
+                  disabled={manageLoading}
+                  className="px-4 py-2 rounded-xl bg-[#1e0813] text-[#a68690] hover:text-white text-xs font-bold transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={manageLoading}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-800 to-indigo-700 hover:from-purple-700 hover:to-indigo-600 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {manageLoading ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Updating Credentials…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span>Save Credentials</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

@@ -18,7 +18,11 @@ import {
   BookOpen,
   Crown,
   UploadCloud,
-  Layers
+  Layers,
+  Zap,
+  XCircle,
+  Bookmark,
+  Sparkles
 } from 'lucide-react';
 
 export type StudentNavView =
@@ -35,7 +39,16 @@ export type StudentNavView =
   | 'review-mistakes'
   | 'achievements'
   | 'streak'
-  | 'help';
+  | 'help'
+  | 'mistake-notebook'
+  | 'smart-revision'
+  | 'mock-exam'
+  | 'weak-areas'
+  | 'study-planner'
+  | 'bookmarks'
+  | 'current-affairs'
+  | 'flashcards'
+  | 'support';
 
 export type AdminNavTab =
   | 'overview'
@@ -52,7 +65,9 @@ export type AdminNavTab =
   | 'notifications'
   | 'settings'
   | 'help'
-  | 'logs';
+  | 'logs'
+  | 'platform-settings'
+  | 'import-export';
 
 interface SidebarProps {
   role: 'student' | 'admin';
@@ -95,11 +110,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
     icon: React.ElementType;
     badge?: string | number;
   }> = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'dashboard', label: 'Learning Dashboard', icon: Home },
     { id: 'my-quizzes', label: 'My Quizzes', icon: Play },
+    { id: 'mistake-notebook', label: 'Mistake Notebook', icon: XCircle },
+    { id: 'smart-revision', label: 'Smart Revision', icon: RotateCcw },
+    { id: 'mock-exam', label: 'Mock Exam Mode', icon: Zap },
+    { id: 'weak-areas', label: 'Weak Area Analysis', icon: TrendingUp },
+    { id: 'flashcards', label: 'Rapid Flashcards', icon: Sparkles },
+    { id: 'current-affairs', label: 'Current Affairs', icon: Layers },
+    { id: 'bookmarks', label: 'Bookmarks & Notes', icon: Bookmark },
     { id: 'my-attempts', label: 'My Attempts', icon: FileText },
-    { id: 'progress', label: 'Progress', icon: BarChart3 },
-    { id: 'study-guide', label: 'Study Guide', icon: BookOpen },
+    { id: 'progress', label: 'Roadmap Progress', icon: BarChart3 },
+    { id: 'study-guide', label: 'National Parks Guide', icon: BookOpen },
     {
       id: 'notifications',
       label: 'Notifications',
@@ -130,6 +152,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badgeColor: 'bg-amber-500 text-amber-950 font-black'
     },
     { id: 'answer-sheets', label: 'Answer Sheets', icon: FileCheck },
+    { id: 'analytics', label: 'Analytics Centre', icon: TrendingUp },
+    { id: 'platform-settings', label: 'Platform Settings', icon: Settings },
+    { id: 'import-export', label: 'Import & Export', icon: UploadCloud },
     {
       id: 'inbox',
       label: 'Inbox',
@@ -137,8 +162,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: unreadInboxCount > 0 ? unreadInboxCount : undefined,
       badgeColor: 'bg-[#9e1030] text-white'
     },
-    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   const handleItemClick = (id: string) => {
@@ -186,10 +209,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-base font-black tracking-tight text-white">
-                  Quiz by
+                  Spideyy
                 </span>
                 <span className="text-base font-black tracking-tight text-[#ff3366]">
-                  Spideyy
+                  Quiz
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#2a0b16] text-[#ff8099] border border-[#52142a]">
                   {isStudent ? 'Portal' : 'Admin'}

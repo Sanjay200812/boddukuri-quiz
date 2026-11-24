@@ -31,7 +31,7 @@ export function formatWhatsAppMessage(attempt: QuizAttempt): string {
   const quizLabel = attempt.quizId === 'semi-final' ? 'Semi-Final Test' : attempt.quizId === 'grand-final' ? 'Grand Final Test' : attempt.quizId.toUpperCase();
 
   return [
-    `⚡ QUIZ BY SPIDEEYY`,
+    `⚡ SPIDEYY QUIZ`,
     ``,
     `🎉 ${studentName} – ${quizLabel} Completed!`,
     `📅 Date: ${dateStr}`,

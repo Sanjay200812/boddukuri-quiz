@@ -1,9 +1,10 @@
 import type { DailyQuiz, QuizQuestion, StateNationalParkInfo, QuizValidationResult } from '../types/quiz.ts';
 import { STATE_REPOSITORIES } from './stateRepositories.ts';
 import { ALL_30_STATES } from './states.ts';
+import { getQuizById } from './topics.ts';
 
 /**
- * CHAMPIONSHIP_CONFIGS: The authoritative configuration for Quiz by Spideyy Championship Assessments.
+ * CHAMPIONSHIP_CONFIGS: The authoritative configuration for Spideyy Quiz Championship Assessments.
  * As instructed, all 7 daily quiz modules (Day 01 - Day 07) have been removed.
  * Preserves ONLY:
  * - Semi-Final Test (Day 8 / 30 questions, 1 question per State/UT across all 30 States & UTs)
@@ -186,7 +187,12 @@ export function getQuizForDay(identifier: number | string): DailyQuiz {
       (idStr === 'semi-final' && q.dayNumber === 8) ||
       (idStr === 'grand-final' && q.dayNumber === 9)
   );
-  return found || ALL_SCHEDULED_QUIZZES[0];
+  if (found) return found;
+
+  const topicQuiz = getQuizById(idStr);
+  if (topicQuiz) return topicQuiz;
+
+  return ALL_SCHEDULED_QUIZZES[0];
 }
 
 /**

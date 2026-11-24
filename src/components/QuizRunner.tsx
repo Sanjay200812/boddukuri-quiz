@@ -387,7 +387,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
                 {quiz.title}
               </span>
               <h2 className="text-base sm:text-lg font-bold text-[#2b0c15]">
-                Quiz by Spideyy
+                Spideyy Quiz
               </h2>
             </div>
             <p className="text-xs text-[#76515b]">
