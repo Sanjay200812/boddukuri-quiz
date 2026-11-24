@@ -17,4 +17,6 @@ export default defineConfig({
     },
   },
   base: './', // Ensures assets load correctly on GitHub Pages and relative subpaths
+  // The 600-question bank is bundled on purpose so quizzes work offline once loaded.
+  build: { chunkSizeWarningLimit: 1200 },
 })
