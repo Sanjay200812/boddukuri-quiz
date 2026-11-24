@@ -840,7 +840,9 @@ export async function loadRetakeRequestsCloud(): Promise<RetakeRequest[]> {
       .select('*')
       .order('requested_at', { ascending: false });
     if (error) {
-      console.warn('loadRetakeRequestsCloud error:', error.message);
+      if (!error.message?.includes('Could not find the table') && error.code !== 'PGRST205') {
+        console.warn('loadRetakeRequestsCloud error:', error.message);
+      }
       return [];
     }
     return (data || []).map(row => ({

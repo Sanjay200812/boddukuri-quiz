@@ -23,16 +23,22 @@ interface QuestionEditorModalProps {
   adminName: string;
 }
 
-export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = ({
-  isOpen,
+export const QuestionEditorModal: React.FC<QuestionEditorModalProps> = (props) => {
+  if (!props.isOpen || !props.question) return null;
+  return <QuestionEditorContent key={props.question.id} {...props} question={props.question} />;
+};
+
+interface QuestionEditorContentProps extends Omit<QuestionEditorModalProps, 'question'> {
+  question: TopicQuestion;
+}
+
+const QuestionEditorContent: React.FC<QuestionEditorContentProps> = ({
   onClose,
   question,
   onSaveQuestion,
   adminId,
   adminName
 }) => {
-  if (!isOpen || !question) return null;
-
   const topics = getTopicsList();
   const allExistingQuestions = useMemo(() => getAllTopicQuestions(), []);
 

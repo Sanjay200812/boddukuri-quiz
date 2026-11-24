@@ -631,8 +631,8 @@ export const STARTER_FLASHCARDS: Flashcard[] = [
     category: 'banking',
     categoryLabel: 'NPA Classification',
     front: 'What constitutes a Sub-Standard vs Doubtful NPA asset?',
-    back: 'Sub-Standard: NPA for a period $\le 12$ months.\nDoubtful: An asset that has remained in the sub-standard category for $> 12$ months.',
-    keyFact: 'Sub-Standard $\le 12$mo | Doubtful $> 12$mo',
+    back: 'Sub-Standard: NPA for a period ≤ 12 months.\nDoubtful: An asset that has remained in the sub-standard category for > 12 months.',
+    keyFact: 'Sub-Standard ≤ 12mo | Doubtful > 12mo',
     source: 'RBI Master Circular on IRAC Norms',
     difficulty: 'medium'
   },

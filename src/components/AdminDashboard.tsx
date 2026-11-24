@@ -150,19 +150,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Handler for isolated student progress reset
   const handleResetStudent = async (studentId: string, studentName: string, quizId?: string) => {
-    try {
-      const res = await adminResetStudentProgressCloud(studentId, quizId, studentName);
-      await logAdminActionCloud('reset_student_progress', studentId, { studentName, quizId, resetVersion: res.resetVersion });
-      broadcastQuizEvent('progress_reset', {
-        quizId,
-        studentId,
-        message: `${studentName}'s progress was reset by Admin.`
-      });
-      await refreshAllData();
-      alert(`Success: ${studentName}'s progress has been safely reset.`);
-    } catch (err) {
-      throw err;
-    }
+    const res = await adminResetStudentProgressCloud(studentId, quizId, studentName);
+    await logAdminActionCloud('reset_student_progress', studentId, { studentName, quizId, resetVersion: res.resetVersion });
+    broadcastQuizEvent('progress_reset', {
+      quizId,
+      studentId,
+      message: `${studentName}'s progress was reset by Admin.`
+    });
+    await refreshAllData();
+    alert(`Success: ${studentName}'s progress has been safely reset.`);
   };
 
   // Reload cloud data authoritatively from Supabase (Single Source of Truth)
