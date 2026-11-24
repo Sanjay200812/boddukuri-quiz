@@ -58,11 +58,11 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
   };
 
   return (
-    <div className="space-y-6 text-slate-900 pb-16">
+    <div className="space-y-6 text-[#f2e6eb] pb-16">
       {onGoBack && (
         <button
           onClick={onGoBack}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#800020] hover:bg-slate-100 transition active:scale-95 min-h-[44px]"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#ff8099] hover:bg-white/5 transition active:scale-95 min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
@@ -70,16 +70,16 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
       )}
 
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#260c18] pb-5">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-[#800020] px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200">
+          <span className="text-xs font-black uppercase tracking-wider text-[#ff8099] px-2.5 py-0.5 rounded-full bg-[#2a0717] border border-[#52102c]">
             Spaced Repetition Scheduler
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1 flex items-center gap-2.5">
-            <Brain className="w-6 h-6 text-[#1e3a5f]" />
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex items-center gap-2.5">
+            <Brain className="w-6 h-6 text-[#ff3366]" />
             <span>Smart Revision Centre</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
             Scientifically spaced review intervals (1d $\to$ 3d $\to$ 7d $\to$ 14d $\to$ 30d) for {studentName}.
           </p>
         </div>
@@ -91,7 +91,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
               setSessionIndex(0);
               setIsAnswerRevealed(false);
             }}
-            className="px-5 py-3 min-h-[44px] rounded-xl bg-[#1e3a5f] hover:bg-[#102a43] text-white text-xs sm:text-sm font-bold transition-all shadow-soft flex items-center gap-2 cursor-pointer border border-[#1e3a5f]/30"
+            className="px-5 py-3 min-h-[44px] rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs sm:text-sm font-bold transition-all shadow-ruby flex items-center gap-2 cursor-pointer border border-[#ff3366]/40"
           >
             <Sparkles className="w-4 h-4 fill-white" />
             <span>Start Due Revision Session ({dueToday.length}) →</span>
@@ -100,13 +100,13 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto text-xs font-bold">
+      <div className="flex items-center gap-2 border-b border-[#2b0c18] pb-2 overflow-x-auto text-xs font-bold">
         <button
           onClick={() => setActiveTab('due')}
           className={`px-4 py-2 min-h-[44px] rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'due'
-              ? 'bg-[#1e3a5f] text-white shadow-soft'
-              : 'text-slate-500 hover:text-slate-900 bg-white'
+              ? 'bg-[#9e1030] text-white shadow-ruby'
+              : 'text-neutral-400 hover:text-white bg-[#14060d]'
           }`}
         >
           <Clock className="w-3.5 h-3.5" />
@@ -117,8 +117,8 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
           onClick={() => setActiveTab('upcoming')}
           className={`px-4 py-2 min-h-[44px] rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'upcoming'
-              ? 'bg-[#1e3a5f] text-white shadow-soft'
-              : 'text-slate-500 hover:text-slate-900 bg-white'
+              ? 'bg-[#9e1030] text-white shadow-ruby'
+              : 'text-neutral-400 hover:text-white bg-[#14060d]'
           }`}
         >
           <Calendar className="w-3.5 h-3.5" />
@@ -130,7 +130,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
           className={`px-4 py-2 min-h-[44px] rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === 'mastered'
               ? 'bg-emerald-900 text-emerald-100 shadow-sm'
-              : 'text-slate-500 hover:text-slate-900 bg-white'
+              : 'text-neutral-400 hover:text-white bg-[#14060d]'
           }`}
         >
           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
@@ -140,12 +140,12 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
 
       {/* VIEW: INTERACTIVE REVISION SESSION */}
       {activeTab === 'session' && currentSessionItem && (
-        <div className="max-w-2xl mx-auto p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#180510] to-[#0e0209] border border-slate-200 shadow-2xl space-y-6 animate-fadeIn">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-            <span className="text-xs font-extrabold text-[#800020]">
+        <div className="max-w-2xl mx-auto p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-[#180510] to-[#0e0209] border border-[#3a0d20] shadow-2xl space-y-6 animate-fadeIn">
+          <div className="flex items-center justify-between pb-3 border-b border-[#2b0c18]">
+            <span className="text-xs font-extrabold text-[#ff8099]">
               Question {sessionIndex + 1} of {dueToday.length}
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-amber-300 border border-amber-800/40">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#260817] text-amber-300 border border-amber-800/40">
               Level {currentSessionItem.repetitionLevel} (Interval: {currentSessionItem.intervalDays}d)
             </span>
           </div>
@@ -154,7 +154,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
             <span className="text-[10px] font-black uppercase tracking-wider text-rose-300">
               {currentSessionItem.topicId} • {currentSessionItem.quizId}
             </span>
-            <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+            <h3 className="text-base sm:text-lg font-extrabold text-white leading-relaxed">
               {currentSessionItem.question.question}
             </h3>
           </div>
@@ -169,10 +169,10 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
                   className={`p-3 rounded-xl border text-xs flex items-center gap-3 ${
                     isAnswerRevealed && isCorrect
                       ? 'bg-emerald-950/80 border-emerald-600 text-emerald-100 font-bold'
-                      : 'bg-slate-50 border-slate-200 text-slate-700'
+                      : 'bg-[#12040b] border-[#2b0c18] text-neutral-300'
                   }`}
                 >
-                  <span className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-[10px] shrink-0">
+                  <span className="w-5 h-5 rounded-full bg-[#1e0714] border border-[#470f25] flex items-center justify-center font-bold text-[10px] shrink-0">
                     {String.fromCharCode(65 + idx)}
                   </span>
                   <span>{opt}</span>
@@ -185,17 +185,17 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
           {!isAnswerRevealed ? (
             <button
               onClick={() => setIsAnswerRevealed(true)}
-              className="w-full py-3 min-h-[44px] rounded-xl bg-[#1e3a5f] hover:bg-[#102a43] text-white text-xs sm:text-sm font-bold transition-all shadow-soft cursor-pointer border border-[#1e3a5f]/30"
+              className="w-full py-3 min-h-[44px] rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs sm:text-sm font-bold transition-all shadow-ruby cursor-pointer border border-[#ff3366]/40"
             >
               Reveal Correct Answer & Explanation
             </button>
           ) : (
             <div className="space-y-4 animate-fadeIn">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+              <div className="p-4 rounded-xl bg-[#12040b] border border-[#2b0c18] space-y-2 text-xs">
                 <div className="font-extrabold text-emerald-400">
                   Correct Answer: Option {String.fromCharCode(65 + currentSessionItem.question.correctAnswer)}
                 </div>
-                <p className="text-slate-700 leading-relaxed">
+                <p className="text-neutral-300 leading-relaxed">
                   {currentSessionItem.question.explanation}
                 </p>
               </div>
@@ -226,12 +226,12 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
       {activeTab === 'due' && (
         <div className="space-y-3">
           {dueToday.length === 0 ? (
-            <div className="text-center py-16 px-4 rounded-3xl bg-white border border-slate-200 space-y-3">
+            <div className="text-center py-16 px-4 rounded-3xl bg-[#14060d] border border-[#2b0c18] space-y-3">
               <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-950/60 border border-emerald-700/50 flex items-center justify-center text-emerald-300">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">No questions due today!</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
+              <h3 className="text-lg font-black text-white">No questions due today!</h3>
+              <p className="text-xs text-neutral-400 max-w-md mx-auto">
                 You're completely up to date with your spaced repetition schedule. Check the upcoming tab to see future dates.
               </p>
             </div>
@@ -240,11 +240,11 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
               {dueToday.map(item => (
                 <div
                   key={item.id}
-                  className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-[#1e3a5f]/30 transition-all flex flex-col justify-between space-y-3"
+                  className="p-5 rounded-2xl bg-[#14060d] border border-[#2b0c18] hover:border-[#ff3366]/40 transition-all flex flex-col justify-between space-y-3"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-[#800020] border border-slate-200">
+                      <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#220713] text-[#ff8099] border border-[#470f25]">
                         {item.topicId}
                       </span>
                       <span className="text-[11px] font-bold text-rose-400">
@@ -252,14 +252,14 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
                       </span>
                     </div>
 
-                    <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                    <h4 className="text-sm font-extrabold text-white leading-snug">
                       {item.question.question}
                     </h4>
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-[#200814] text-xs">
-                    <span className="text-slate-500">
-                      Streak: <strong className="text-slate-900">{item.successStreak}x</strong>
+                    <span className="text-neutral-400">
+                      Streak: <strong className="text-white">{item.successStreak}x</strong>
                     </span>
                     <button
                       onClick={() => {
@@ -267,7 +267,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
                         setSessionIndex(dueToday.findIndex(i => i.id === item.id));
                         setIsAnswerRevealed(false);
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#800020] hover:text-slate-900 font-bold transition-all cursor-pointer border border-slate-200"
+                      className="px-3 py-1.5 rounded-xl bg-[#260817] hover:bg-[#380e22] text-[#ff8099] hover:text-white font-bold transition-all cursor-pointer border border-[#52102c]"
                     >
                       Review Now →
                     </button>
@@ -283,7 +283,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
       {activeTab === 'upcoming' && (
         <div className="space-y-3">
           {upcoming.length === 0 ? (
-            <div className="text-center py-12 px-4 rounded-3xl bg-white border border-slate-200 text-xs text-slate-500">
+            <div className="text-center py-12 px-4 rounded-3xl bg-[#14060d] border border-[#2b0c18] text-xs text-neutral-400">
               No upcoming scheduled revisions. Complete more practice quizzes to automatically populate your smart review queue.
             </div>
           ) : (
@@ -291,17 +291,17 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
               {upcoming.map(item => (
                 <div
                   key={item.id}
-                  className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5"
+                  className="p-4 rounded-2xl bg-[#12040b] border border-[#2b0c18] space-y-2.5"
                 >
                   <div className="flex items-center justify-between text-xs">
-                    <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700">
+                    <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#1e0714] text-neutral-300">
                       {item.topicId}
                     </span>
-                    <span className="text-slate-500">
+                    <span className="text-neutral-400">
                       Due: <strong className="text-amber-300">{item.nextDueDate}</strong> ({item.intervalDays}d interval)
                     </span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 line-clamp-2">
+                  <h4 className="text-xs font-bold text-white line-clamp-2">
                     {item.question.question}
                   </h4>
                 </div>
@@ -315,7 +315,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
       {activeTab === 'mastered' && (
         <div className="space-y-3">
           {mastered.length === 0 ? (
-            <div className="text-center py-12 px-4 rounded-3xl bg-white border border-slate-200 text-xs text-slate-500">
+            <div className="text-center py-12 px-4 rounded-3xl bg-[#14060d] border border-[#2b0c18] text-xs text-neutral-400">
               No mastered questions yet. Successfully review due questions across all spaced intervals to permanently master concepts.
             </div>
           ) : (
@@ -323,7 +323,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
               {mastered.map(item => (
                 <div
                   key={item.id}
-                  className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-900/40 space-y-2"
+                  className="p-4 rounded-2xl bg-[#0f1412] border border-emerald-900/40 space-y-2"
                 >
                   <div className="flex items-center justify-between text-xs">
                     <span className="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-emerald-950 text-emerald-300">
@@ -334,7 +334,7 @@ export const SmartRevisionCentre: React.FC<SmartRevisionCentreProps> = ({
                       <span>Permanently Mastered</span>
                     </span>
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900 line-clamp-2">
+                  <h4 className="text-xs font-bold text-white line-clamp-2">
                     {item.question.question}
                   </h4>
                 </div>

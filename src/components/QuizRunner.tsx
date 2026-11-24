@@ -629,7 +629,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => setShowSubmitModal(true)}
-            className="px-5 py-3 rounded-2xl font-black text-sm bg-[#1e3a5f] hover:bg-[#102a43] text-white shadow-soft flex items-center gap-2 cursor-pointer border border-[#1e3a5f]/30"
+            className="px-5 py-3 rounded-2xl font-black text-sm bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white shadow-ruby flex items-center gap-2 cursor-pointer border border-[#ff3366]/30"
           >
             <Send className="w-4 h-4" />
             <span className="hidden sm:inline">Submit Quiz</span>
@@ -642,7 +642,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleNext}
-              className="px-6 py-3 rounded-2xl font-black text-sm bg-[#1e3a5f] hover:bg-[#102a43] text-white shadow-soft flex items-center gap-2 cursor-pointer border border-[#1e3a5f]/30"
+              className="px-6 py-3 rounded-2xl font-black text-sm bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white shadow-ruby flex items-center gap-2 cursor-pointer border border-[#ff3366]/30"
             >
               <span>Next</span>
               <ArrowRight className="w-4 h-4" />
@@ -652,7 +652,7 @@ export const QuizRunner: React.FC<QuizRunnerProps> = ({
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowSubmitModal(true)}
-              className="px-6 py-3 rounded-2xl font-black text-sm bg-[#1e3a5f] hover:bg-[#102a43] text-white shadow-soft flex items-center gap-2 cursor-pointer border border-[#1e3a5f]/30"
+              className="px-6 py-3 rounded-2xl font-black text-sm bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white shadow-ruby flex items-center gap-2 cursor-pointer border border-[#ff3366]/30"
             >
               <span>Finish & Review</span>
               <ArrowRight className="w-4 h-4" />

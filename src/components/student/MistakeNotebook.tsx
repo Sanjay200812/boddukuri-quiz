@@ -87,11 +87,11 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
   };
 
   return (
-    <div className="space-y-6 text-slate-900 pb-16">
+    <div className="space-y-6 text-[#f2e6eb] pb-16">
       {onGoBack && (
         <button
           onClick={onGoBack}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#800020] hover:bg-slate-100 transition active:scale-95 min-h-[44px]"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-[#ff8099] hover:bg-white/5 transition active:scale-95 min-h-[44px]"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
@@ -99,49 +99,49 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
       )}
 
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#260c18] pb-5">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-[#800020] px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200">
+          <span className="text-xs font-black uppercase tracking-wider text-[#ff8099] px-2.5 py-0.5 rounded-full bg-[#2a0717] border border-[#52102c]">
             Learning & Retention Engine
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-1 flex items-center gap-2.5">
-            <BookOpen className="w-6 h-6 text-[#1e3a5f]" />
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex items-center gap-2.5">
+            <BookOpen className="w-6 h-6 text-[#ff3366]" />
             <span>Mistake Notebook</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+          <p className="text-xs sm:text-sm text-neutral-400 mt-0.5">
             Personalized record of questions missed during practice for {studentName}.
           </p>
         </div>
 
         {/* Quick Stats Pills */}
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs">
-            <span className="text-slate-500">Needs Review: </span>
+          <div className="px-3 py-1.5 rounded-xl bg-[#14060d] border border-[#2b0c18] text-xs">
+            <span className="text-neutral-400">Needs Review: </span>
             <span className="text-rose-400 font-extrabold">{activeMistakesCount}</span>
           </div>
-          <div className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs">
-            <span className="text-slate-500">Understood: </span>
+          <div className="px-3 py-1.5 rounded-xl bg-[#14060d] border border-[#2b0c18] text-xs">
+            <span className="text-neutral-400">Understood: </span>
             <span className="text-emerald-400 font-extrabold">{understoodCount}</span>
           </div>
-          <div className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs">
-            <span className="text-slate-500">Mastery: </span>
-            <span className="text-[#800020] font-extrabold">{resolvedRate}%</span>
+          <div className="px-3 py-1.5 rounded-xl bg-[#14060d] border border-[#2b0c18] text-xs">
+            <span className="text-neutral-400">Mastery: </span>
+            <span className="text-[#ff8099] font-extrabold">{resolvedRate}%</span>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3">
+      <div className="p-4 rounded-2xl bg-[#14060d] border border-[#2b0c18] space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-3" />
             <input
               type="text"
               placeholder="Search in questions or notes…"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#1e3a5f]"
+              className="w-full pl-9 pr-3 py-2 bg-[#0c0407] border border-[#2b0c18] rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff3366]"
             />
           </div>
 
@@ -153,7 +153,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                 setSelectedTopicId(e.target.value);
                 setSelectedQuizId('all');
               }}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-[#1e3a5f]"
+              className="w-full px-3 py-2 bg-[#0c0407] border border-[#2b0c18] rounded-xl text-xs text-white focus:outline-none focus:border-[#ff3366]"
             >
               <option value="all">All Topics ({topics.length})</option>
               {topics.map(t => (
@@ -170,7 +170,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
               value={selectedQuizId}
               onChange={e => setSelectedQuizId(e.target.value)}
               disabled={selectedTopicId === 'all'}
-              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 disabled:opacity-50 focus:outline-none focus:border-[#1e3a5f]"
+              className="w-full px-3 py-2 bg-[#0c0407] border border-[#2b0c18] rounded-xl text-xs text-white disabled:opacity-50 focus:outline-none focus:border-[#ff3366]"
             >
               <option value="all">All Quizzes</option>
               {availableQuizzes.map(q => (
@@ -182,11 +182,11 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center gap-1 p-1 bg-white border border-slate-200 rounded-xl text-xs font-bold">
+          <div className="flex items-center gap-1 p-1 bg-[#0c0407] border border-[#2b0c18] rounded-xl text-xs font-bold">
             <button
               onClick={() => setStatusFilter('active')}
               className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer ${
-                statusFilter === 'active' ? 'bg-[#1e3a5f] text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                statusFilter === 'active' ? 'bg-[#9e1030] text-white shadow-sm' : 'text-neutral-400 hover:text-white'
               }`}
             >
               Active ({activeMistakesCount})
@@ -194,7 +194,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
             <button
               onClick={() => setStatusFilter('understood')}
               className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer ${
-                statusFilter === 'understood' ? 'bg-emerald-900 text-emerald-100 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                statusFilter === 'understood' ? 'bg-emerald-900 text-emerald-100 shadow-sm' : 'text-neutral-400 hover:text-white'
               }`}
             >
               Understood ({understoodCount})
@@ -202,7 +202,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
             <button
               onClick={() => setStatusFilter('all')}
               className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer ${
-                statusFilter === 'all' ? 'bg-slate-100 text-rose-200 shadow-sm' : 'text-slate-500 hover:text-slate-900'
+                statusFilter === 'all' ? 'bg-[#260817] text-rose-200 shadow-sm' : 'text-neutral-400 hover:text-white'
               }`}
             >
               All ({totalMistakes})
@@ -213,14 +213,14 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
 
       {/* Mistakes Feed */}
       {filteredMistakes.length === 0 ? (
-        <div className="text-center py-16 px-4 rounded-3xl bg-white border border-slate-200 space-y-3">
+        <div className="text-center py-16 px-4 rounded-3xl bg-[#14060d]/80 border border-[#2b0c18] space-y-3">
           <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-950/60 border border-emerald-700/50 flex items-center justify-center text-emerald-300">
             <CheckCircle2 className="w-7 h-7" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900">
+          <h3 className="text-lg font-black text-white">
             {statusFilter === 'active' ? 'No active mistakes!' : 'No mistake records matching filters.'}
           </h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
+          <p className="text-xs text-neutral-400 max-w-md mx-auto">
             {statusFilter === 'active'
               ? 'Excellent progress! Every question you missed has been understood or retried correctly.'
               : 'Mistakes made during quizzes will automatically appear here for review and retry.'}
@@ -238,21 +238,21 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                 key={mistake.id}
                 className={`p-5 sm:p-6 rounded-2xl border transition-all space-y-4 ${
                   isUnderstood
-                    ? 'bg-emerald-50/60 border-emerald-900/40'
-                    : 'bg-white border-slate-200 hover:border-[#1e3a5f]/30 shadow-lg'
+                    ? 'bg-[#0f1412] border-emerald-900/40'
+                    : 'bg-[#15050e] border-[#3a0d20] hover:border-[#ff3366]/40 shadow-lg'
                 }`}
               >
                 {/* Card Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-[#260c18]">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-slate-100 text-[#800020] border border-slate-200">
+                    <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider bg-[#220713] text-[#ff8099] border border-[#470f25]">
                       {mistake.topicId}
                     </span>
-                    <span className="text-xs text-slate-500">
-                      Quiz: <strong className="text-slate-800">{mistake.quizId}</strong>
+                    <span className="text-xs text-neutral-400">
+                      Quiz: <strong className="text-neutral-200">{mistake.quizId}</strong>
                     </span>
                     {mistake.retriedCount > 0 && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-300 border border-amber-800/40">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1d0714] text-amber-300 border border-amber-800/40">
                         Retried {mistake.retriedCount}x
                       </span>
                     )}
@@ -264,7 +264,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                         isUnderstood
                           ? 'bg-emerald-950/80 text-emerald-300 border-emerald-700/60 hover:bg-emerald-900'
-                          : 'bg-slate-100 text-slate-700 border-slate-200 hover:text-slate-900 hover:bg-slate-200'
+                          : 'bg-[#200713] text-neutral-300 border-[#470f25] hover:text-white hover:bg-[#330c1f]'
                       }`}
                     >
                       <Check className="w-3.5 h-3.5" />
@@ -275,7 +275,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
 
                 {/* Question Text */}
                 <div>
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-relaxed">
+                  <h3 className="text-sm sm:text-base font-extrabold text-white leading-relaxed">
                     <span className="text-rose-400 mr-2">Q{idx + 1}.</span>
                     {mistake.question.question}
                   </h3>
@@ -283,7 +283,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
 
                 {/* Interactive Retry Options Palette */}
                 <div className="space-y-2">
-                  <div className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                  <div className="text-[11px] font-black uppercase tracking-wider text-neutral-400">
                     Select & Retry:
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -292,7 +292,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                       const isOriginalMistake = mistake.selectedAnswer === optIdx;
                       const isTheCorrectAnswer = mistake.correctAnswer === optIdx;
 
-                      let optClass = 'bg-slate-50 border-slate-200 text-slate-800 hover:border-[#1e3a5f]/30';
+                      let optClass = 'bg-[#12040b] border-[#2b0c18] text-neutral-200 hover:border-[#ff3366]/40';
                       if (retryRes) {
                         if (isTheCorrectAnswer) {
                           optClass = 'bg-emerald-950/80 border-emerald-600 text-emerald-100 font-bold';
@@ -300,7 +300,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                           optClass = 'bg-rose-950/80 border-rose-600 text-rose-100 font-bold';
                         }
                       } else if (isSelected) {
-                        optClass = 'bg-blue-50 border-[#1e3a5f] text-white shadow-sm';
+                        optClass = 'bg-[#2b0918] border-[#ff3366] text-white shadow-sm';
                       }
 
                       return (
@@ -310,7 +310,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                           onClick={() => handleSelectOption(mistake.questionId, optIdx)}
                           className={`p-3 rounded-xl border text-left text-xs transition-all flex items-start gap-2.5 cursor-pointer ${optClass}`}
                         >
-                          <span className="w-5 h-5 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                          <span className="w-5 h-5 rounded-full bg-[#1e0714] border border-[#470f25] flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                             {String.fromCharCode(65 + optIdx)}
                           </span>
                           <span className="flex-1">{opt}</span>
@@ -348,19 +348,19 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                       )}
                     </div>
 
-                    <p className="text-xs text-slate-800 leading-relaxed pt-1">
+                    <p className="text-xs text-neutral-200 leading-relaxed pt-1">
                       {mistake.explanation}
                     </p>
 
                     {mistake.source && (
-                      <div className="text-[11px] text-slate-500 pt-1 border-t border-white/10 flex items-center gap-2">
+                      <div className="text-[11px] text-neutral-400 pt-1 border-t border-white/10 flex items-center gap-2">
                         <span>Source: <strong>{mistake.source}</strong></span>
                         {mistake.sourceUrl && (
                           <a
                             href={mistake.sourceUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#800020] hover:underline inline-flex items-center gap-1"
+                            className="text-[#ff8099] hover:underline inline-flex items-center gap-1"
                           >
                             <span>Verify Source</span>
                             <ExternalLink className="w-3 h-3" />
@@ -371,7 +371,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-3 pt-2">
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-neutral-400">
                       Original choice: Option {mistake.selectedAnswer !== undefined && mistake.selectedAnswer >= 0
                         ? String.fromCharCode(65 + mistake.selectedAnswer)
                         : 'Skipped'}
@@ -379,7 +379,7 @@ export const MistakeNotebook: React.FC<MistakeNotebookProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRetrySubmit(mistake)}
-                      className="px-4 py-2 min-h-[44px] rounded-xl bg-[#1e3a5f] hover:bg-[#102a43] text-white text-xs font-bold transition-all shadow-soft flex items-center gap-1.5 cursor-pointer border border-[#1e3a5f]/30"
+                      className="px-4 py-2 min-h-[44px] rounded-xl bg-gradient-to-r from-[#9e1030] to-[#750720] hover:from-[#b31238] hover:to-[#8a0e28] text-white text-xs font-bold transition-all shadow-ruby flex items-center gap-1.5 cursor-pointer border border-[#ff3366]/40"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Check Retry Answer</span>

@@ -289,30 +289,30 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Section Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#260c18]">
         <div>
           <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-[#1e3a5f]" />
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+            <Users className="w-5 h-5 text-[#ff3366]" />
+            <h2 className="text-xl font-black text-white tracking-tight">
               Multi-Student Workspace
             </h2>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-[#800020] border border-slate-200">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#2a0b16] text-[#ff8099] border border-[#52142a]">
               2 Scholars
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[#a68690] mt-0.5">
             Independent topic learning, separate test attempts, answer sheets, and isolated progress resets for Mahi and Shailu.
           </p>
         </div>
 
         {/* Student Selector Switcher */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white border border-slate-200">
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#14060d] border border-[#2b0c18]">
           <button
             onClick={() => setSelectedStudentTab('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
               selectedStudentTab === 'all'
-                ? 'bg-[#1e3a5f] text-white shadow-soft'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby'
+                : 'text-[#a68690] hover:text-white'
             }`}
           >
             All Scholars
@@ -321,8 +321,8 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
             onClick={() => setSelectedStudentTab('mahi')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               selectedStudentTab === 'mahi'
-                ? 'bg-[#1e3a5f] text-white shadow-soft'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby'
+                : 'text-[#a68690] hover:text-white'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -332,8 +332,8 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
             onClick={() => setSelectedStudentTab('shailu')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               selectedStudentTab === 'shailu'
-                ? 'bg-[#1e3a5f] text-white shadow-soft'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-[#9e1030] to-[#750720] text-white shadow-ruby'
+                : 'text-[#a68690] hover:text-white'
             }`}
           >
             <span className={`w-2 h-2 rounded-full ${shailuConfig.onboarded ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`} />
@@ -348,7 +348,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{onboardSuccessMessage}</span>
           </div>
-          <button onClick={() => setOnboardSuccessMessage(null)} className="text-emerald-400 hover:text-slate-900">
+          <button onClick={() => setOnboardSuccessMessage(null)} className="text-emerald-400 hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -359,21 +359,21 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
         {/* STUDENT 1: MAHI */}
         {(selectedStudentTab === 'all' || selectedStudentTab === 'mahi') && (
           <Card3D intensity={6} depth={8}>
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-slate-200 shadow-lg flex flex-col justify-between space-y-4">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-[#3a0d20] shadow-lg flex flex-col justify-between space-y-4">
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#9e1030] to-[#ff3366] text-white flex items-center justify-center font-black text-xl shadow-soft">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#9e1030] to-[#ff3366] text-white flex items-center justify-center font-black text-xl shadow-ruby">
                     M
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-slate-900">Mahi</h3>
+                      <h3 className="text-base font-extrabold text-white">Mahi</h3>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
                         Active Scholar
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 font-mono">boddukurimahima1234@gmail.com</p>
+                    <p className="text-xs text-[#a68690] font-mono">boddukurimahima1234@gmail.com</p>
                   </div>
                 </div>
 
@@ -383,7 +383,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     setResetScope('all');
                     setResetModalOpen(true);
                   }}
-                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-[#3a0d20] text-[#800020] border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5"
+                  className="px-2.5 py-1.5 rounded-xl bg-[#2a0717] hover:bg-[#3a0d20] text-[#ff8099] border border-[#52102c] text-xs font-bold transition-all flex items-center gap-1.5"
                   title="Reset Mahi's Progress"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -392,21 +392,21 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
               </div>
 
               {/* Stats Strip */}
-              <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-200 text-center">
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Attempts</div>
-                  <div className="text-base font-bold text-slate-900">{mahiStats.total}</div>
+              <div className="grid grid-cols-4 gap-2 pt-2 border-t border-[#260c18] text-center">
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Attempts</div>
+                  <div className="text-base font-black text-white">{mahiStats.total}</div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Avg Score</div>
-                  <div className="text-base font-black text-[#800020]">{mahiStats.avgScore}%</div>
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Avg Score</div>
+                  <div className="text-base font-black text-[#ff8099]">{mahiStats.avgScore}%</div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Best Score</div>
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Best Score</div>
                   <div className="text-base font-black text-emerald-400">{mahiStats.bestScore}%</div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Access Code</div>
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Access Code</div>
                   <div className="text-base font-black font-mono text-amber-300">2002</div>
                 </div>
               </div>
@@ -415,10 +415,10 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-[#1e3a5f]" />
+                    <Layers className="w-3.5 h-3.5 text-[#ff3366]" />
                     <span>Topic & Multi-Quiz Mastery</span>
                   </span>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-[11px] text-[#a68690]">
                     {TOPIC_CATEGORIES.filter(t => t.isPublished && calculateTopicProgress(t.id, mahiAttempts, mahiStats.completedQuizIds).completionPercentage === 100).length} of {TOPIC_CATEGORIES.filter(t => t.isPublished).length} Topics Mastered
                   </span>
                 </div>
@@ -436,13 +436,13 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                             ? 'bg-emerald-950/30 border-emerald-800/60 text-emerald-200'
                             : tProgress.completedQuizzes > 0
                             ? 'bg-amber-950/20 border-amber-800/40 text-amber-200'
-                            : 'bg-slate-50 border-slate-200 text-slate-500'
+                            : 'bg-[#12040b] border-[#260c18] text-[#a68690]'
                         }`}
                       >
                         <div className="font-bold truncate text-white">{topic.title}</div>
                         <div className="text-[10px] flex items-center justify-between mt-1">
                           <span>{tProgress.completedQuizzes}/{tProgress.publishedQuizzes} Qzs</span>
-                          <span className={isDone ? 'text-emerald-400 font-bold' : tProgress.totalAttemptsCount > 0 ? 'text-[#800020] font-bold' : 'text-slate-400'}>
+                          <span className={isDone ? 'text-emerald-400 font-bold' : tProgress.totalAttemptsCount > 0 ? 'text-[#ff8099] font-bold' : 'text-[#7a5b67]'}>
                             {tProgress.totalAttemptsCount > 0 ? `${tProgress.accuracyPercentage}% Acc` : 'Unattempted'}
                           </span>
                         </div>
@@ -454,13 +454,13 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     className={`p-2.5 rounded-xl border text-xs transition-all ${
                       mahiStats.completedQuizIds.includes('semi-final')
                         ? 'bg-emerald-950/30 border-emerald-800/60 text-emerald-200'
-                        : 'bg-slate-50 border-slate-200 text-slate-500'
+                        : 'bg-[#12040b] border-[#260c18] text-[#a68690]'
                     }`}
                   >
                     <div className="font-bold truncate text-amber-300">Semi-Final Test</div>
                     <div className="text-[10px] flex items-center justify-between mt-1">
                       <span>{mahiAttempts.filter(a => a.quizId === 'semi-final').length} att.</span>
-                      <span className={mahiStats.completedQuizIds.includes('semi-final') ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
+                      <span className={mahiStats.completedQuizIds.includes('semi-final') ? 'text-emerald-400 font-bold' : 'text-[#7a5b67]'}>
                         {mahiStats.completedQuizIds.includes('semi-final') ? 'Completed' : 'Pending'}
                       </span>
                     </div>
@@ -470,22 +470,22 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
 
               {/* Recent Activity footer */}
               {mahiStats.lastAttempt ? (
-                <div className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-[#14060d] border border-[#260c18] text-xs flex items-center justify-between">
                   <div className="truncate">
-                    <span className="text-slate-500">Latest: </span>
-                    <strong className="text-slate-900">{mahiStats.lastAttempt.quizId.toUpperCase()}</strong>
+                    <span className="text-[#a68690]">Latest: </span>
+                    <strong className="text-white">{mahiStats.lastAttempt.quizId.toUpperCase()}</strong>
                     <span className="text-emerald-400 ml-1.5 font-bold">({mahiStats.lastAttempt.percentage}%)</span>
                   </div>
                   <button
                     onClick={() => onViewAnswerSheet(mahiStats.lastAttempt!)}
-                    className="text-[#1e3a5f] hover:text-[#800020] font-bold text-xs flex items-center gap-1"
+                    className="text-[#ff3366] hover:text-[#ff8099] font-bold text-xs flex items-center gap-1"
                   >
                     <span>View Sheet</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
               ) : (
-                <div className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-500 text-center">
+                <div className="p-2.5 rounded-xl bg-[#14060d] border border-[#260c18] text-xs text-[#a68690] text-center">
                   Mahi is ready for her first topic test.
                 </div>
               )}
@@ -496,7 +496,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
         {/* STUDENT 2: SHAILU */}
         {(selectedStudentTab === 'all' || selectedStudentTab === 'shailu') && (
           <Card3D intensity={6} depth={8}>
-            <div className="p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-slate-200 shadow-lg flex flex-col justify-between space-y-4">
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-[#16050e]/95 to-[#0e0208]/95 border border-[#3a0d20] shadow-lg flex flex-col justify-between space-y-4">
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
@@ -505,7 +505,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-slate-900">Shailu</h3>
+                      <h3 className="text-base font-extrabold text-white">Shailu</h3>
                       {shailuConfig.onboarded ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800">
                           Onboarded Scholar
@@ -516,7 +516,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 font-mono">
+                    <p className="text-xs text-[#a68690] font-mono">
                       {shailuConfig.email || 'Awaiting Admin setup'}
                     </p>
                   </div>
@@ -563,7 +563,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                         setResetScope('all');
                         setResetModalOpen(true);
                       }}
-                      className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-[#3a0d20] text-[#800020] border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5"
+                      className="px-2.5 py-1.5 rounded-xl bg-[#2a0717] hover:bg-[#3a0d20] text-[#ff8099] border border-[#52102c] text-xs font-bold transition-all flex items-center gap-1.5"
                       title="Reset Shailu's Progress"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -574,35 +574,35 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
               </div>
 
               {/* Stats Strip */}
-              <div className="grid grid-cols-4 gap-2 pt-2 border-t border-slate-200 text-center">
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Attempts</div>
-                  <div className="text-base font-bold text-slate-900">{shailuStats.total}</div>
+              <div className="grid grid-cols-4 gap-2 pt-2 border-t border-[#260c18] text-center">
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Attempts</div>
+                  <div className="text-base font-black text-white">{shailuStats.total}</div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Avg Score</div>
-                  <div className="text-base font-black text-[#800020]">{shailuStats.avgScore}%</div>
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Avg Score</div>
+                  <div className="text-base font-black text-[#ff8099]">{shailuStats.avgScore}%</div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Best Score</div>
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Best Score</div>
                   <div className="text-base font-black text-emerald-400">{shailuStats.bestScore}%</div>
                 </div>
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Access Code</div>
+                <div className="p-2 rounded-xl bg-[#12040b] border border-[#260c18]">
+                  <div className="text-[10px] uppercase font-bold text-[#a68690]">Access Code</div>
                   <div className="text-base font-black font-mono text-amber-300">{shailuConfig.accessCode || '2580'}</div>
                 </div>
               </div>
 
               {/* Shailu Empty State or Progress */}
               {shailuStats.total === 0 ? (
-                <div className="p-5 rounded-xl bg-slate-50/80 border border-dashed border-slate-200 text-center space-y-2">
+                <div className="p-5 rounded-xl bg-[#12040b]/80 border border-dashed border-[#3a0d20] text-center space-y-2">
                   <div className="w-10 h-10 mx-auto rounded-full bg-purple-950/60 border border-purple-800 text-purple-300 flex items-center justify-center">
                     <BookOpen className="w-5 h-5" />
                   </div>
                   <p className="text-xs text-slate-300 font-semibold">
                     Shailu hasn't attempted any quizzes yet.
                   </p>
-                  <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+                  <p className="text-[11px] text-[#a68690] max-w-sm mx-auto">
                     Initial progress is initialized to zero. Once she signs in using username <strong className="text-purple-300">shailu</strong>, her scores and answer sheets will appear here independently.
                   </p>
                   {!shailuConfig.onboarded && (
@@ -629,7 +629,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                       <Layers className="w-3.5 h-3.5 text-purple-400" />
                       <span>Topic Mastery</span>
                     </span>
-                    <span className="text-[11px] text-slate-500">
+                    <span className="text-[11px] text-[#a68690]">
                       {TOPIC_CATEGORIES.filter(t => t.isPublished && calculateTopicProgress(t.id, shailuAttempts, shailuStats.completedQuizIds).completionPercentage === 100).length} of {TOPIC_CATEGORIES.filter(t => t.isPublished).length} Topics
                     </span>
                   </div>
@@ -641,11 +641,11 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                         <div
                           key={topic.id}
                           className={`p-2.5 rounded-xl border text-xs ${
-                            isDone ? 'bg-emerald-950/30 border-emerald-800 text-emerald-200' : 'bg-slate-50 border-slate-200 text-slate-500'
+                            isDone ? 'bg-emerald-950/30 border-emerald-800 text-emerald-200' : 'bg-[#12040b] border-[#260c18] text-[#a68690]'
                           }`}
                         >
                           <div className="font-bold truncate text-white">{topic.title}</div>
-                          <div className="text-[10px] mt-1 text-slate-400">{isDone ? 'Completed' : `${tProgress.completedQuizzes}/${tProgress.publishedQuizzes} Qzs`}</div>
+                          <div className="text-[10px] mt-1 text-[#7a5b67]">{isDone ? 'Completed' : `${tProgress.completedQuizzes}/${tProgress.publishedQuizzes} Qzs`}</div>
                         </div>
                       );
                     })}
@@ -654,8 +654,8 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
               )}
 
               {/* Shailu Bottom Action */}
-              <div className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs flex items-center justify-between">
-                <span className="text-slate-500">Onboarding Status:</span>
+              <div className="p-2.5 rounded-xl bg-[#14060d] border border-[#260c18] text-xs flex items-center justify-between">
+                <span className="text-[#a68690]">Onboarding Status:</span>
                 <span className="font-bold text-purple-300">
                   {shailuConfig.onboarded ? 'Ready for Login' : 'Credentials Not Set'}
                 </span>
@@ -666,21 +666,21 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
       </div>
 
       {/* SIDE-BY-SIDE SCHOLAR COMPARISON MATRIX */}
-      <div className="p-5 sm:p-6 rounded-2xl bg-[#12050c]/90 border border-slate-200 shadow-lg space-y-4">
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#12050c]/90 border border-[#2b0c18] shadow-lg space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#1e3a5f]" />
-            <h3 className="text-base font-bold text-slate-900">Side-by-Side Scholar Comparison</h3>
+            <TrendingUp className="w-4 h-4 text-[#ff3366]" />
+            <h3 className="text-base font-extrabold text-white">Side-by-Side Scholar Comparison</h3>
           </div>
-          <span className="text-xs text-slate-500">Real-time Evaluation</span>
+          <span className="text-xs text-[#a68690]">Real-time Evaluation</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left">
             <thead>
-              <tr className="border-b border-slate-200 text-slate-500">
+              <tr className="border-b border-[#260c18] text-[#a68690]">
                 <th className="pb-2.5 font-bold uppercase tracking-wider">Metric</th>
-                <th className="pb-2.5 font-bold uppercase tracking-wider text-center text-[#800020]">Mahi</th>
+                <th className="pb-2.5 font-bold uppercase tracking-wider text-center text-[#ff8099]">Mahi</th>
                 <th className="pb-2.5 font-bold uppercase tracking-wider text-center text-purple-400">Shailu</th>
               </tr>
             </thead>
@@ -717,7 +717,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
               </tr>
               <tr>
                 <td className="py-2.5 text-slate-300 font-semibold">Average Score</td>
-                <td className="py-2.5 text-center font-bold text-[#800020]">{mahiStats.avgScore}%</td>
+                <td className="py-2.5 text-center font-bold text-[#ff8099]">{mahiStats.avgScore}%</td>
                 <td className="py-2.5 text-center font-bold text-purple-300">{shailuStats.avgScore}%</td>
               </tr>
               <tr>
@@ -734,7 +734,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                       setResetScope('all');
                       setResetModalOpen(true);
                     }}
-                    className="text-xs font-bold text-[#1e3a5f] hover:underline"
+                    className="text-xs font-bold text-[#ff3366] hover:underline"
                   >
                     Reset Mahi Progress
                   </button>
@@ -760,25 +760,25 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
       {/* SECURE ADMIN PROVISIONING MODAL FOR SHAILU */}
       {showOnboardModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-white border border-purple-900/60 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-[#14060d] border border-purple-900/60 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#260c18]">
               <div className="flex items-center gap-2">
                 <User className="w-5 h-5 text-purple-400" />
-                <h3 className="text-base font-bold text-slate-900">Provision Student Account</h3>
+                <h3 className="text-base font-extrabold text-white">Provision Student Account</h3>
               </div>
               <button
                 onClick={() => {
                   setShowOnboardModal(false);
                   setProvisionError(null);
                 }}
-                className="text-slate-500 hover:text-slate-900"
+                className="text-[#a68690] hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500">
-              Create a dedicated student account for <strong className="text-slate-900">Shailu</strong>.
+            <p className="text-xs text-[#a68690]">
+              Create a dedicated student account for <strong className="text-white">Shailu</strong>.
               Initial progress will be zero, curriculum will be shared, and all attempts will remain strictly isolated from Mahi.
             </p>
 
@@ -796,14 +796,14 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   Student Display Name
                 </label>
                 <div className="relative">
-                  <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <User className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     required
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
                     placeholder="e.g. Shailu"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-purple-500 font-semibold"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500 font-semibold"
                   />
                 </div>
               </div>
@@ -824,10 +824,10 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
                     placeholder="shailu"
-                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs font-mono text-purple-300 placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
+                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-purple-300 placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1 font-mono">
+                <p className="text-[10px] text-[#7a5b67] mt-1 font-mono">
                   Internal synthetic identity: {username || 'shailu'}@users.spideyyquiz.invalid
                 </p>
               </div>
@@ -841,7 +841,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   <span className="text-[10px] text-amber-300 font-mono">1-Click Login Code</span>
                 </div>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <KeyRound className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     pattern="[0-9]*"
@@ -851,10 +851,10 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     value={accessCode}
                     onChange={e => setAccessCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
                     placeholder="2580"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs font-mono text-amber-300 placeholder:text-slate-400 focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-amber-300 placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-[#7a5b67] mt-1">
                   Default: <span className="text-amber-300 font-bold font-mono">2580</span>. Shailu can use this 4-digit code for 1-click access-code login.
                 </p>
               </div>
@@ -875,14 +875,14 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                   <input
                     type={showPw ? 'text' : 'password'}
                     required
                     value={initialPassword}
                     onChange={e => setInitialPassword(e.target.value)}
                     placeholder="Enter password (min 4 characters)"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs font-mono text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
@@ -893,20 +893,20 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                   <input
                     type={showPw ? 'text' : 'password'}
                     required
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter password to confirm"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs font-mono text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
 
               {/* Field 6: Enforced Role Badge */}
-              <div className="p-2.5 rounded-xl bg-[#0a0206] border border-slate-200 space-y-1">
+              <div className="p-2.5 rounded-xl bg-[#0a0206] border border-[#260c18] space-y-1">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-300 flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
@@ -916,12 +916,12 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     Student (Scholar)
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-[#7a5b67]">
                   Role is strictly enforced server-side. Arbitrary roles cannot be assigned.
                 </p>
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200">
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#260c18]">
                 <button
                   type="button"
                   onClick={() => {
@@ -929,7 +929,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     setProvisionError(null);
                   }}
                   disabled={provisionLoading}
-                  className="px-4 py-2 rounded-xl bg-[#1e0813] text-slate-500 hover:text-slate-900 text-xs font-bold transition-colors disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-[#1e0813] text-[#a68690] hover:text-white text-xs font-bold transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -959,11 +959,11 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
       {/* MANAGE CREDENTIALS / ACCESS CODE MODAL FOR SHAILU */}
       {showManageCredsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-white border border-purple-900/60 shadow-2xl space-y-4">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-[#14060d] border border-purple-900/60 shadow-2xl space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-purple-900/40">
               <div className="flex items-center gap-2">
                 <KeyRound className="w-5 h-5 text-amber-400" />
-                <h3 className="text-base font-bold text-slate-900">
+                <h3 className="text-base font-extrabold text-white">
                   Manage Credentials: Shailu
                 </h3>
               </div>
@@ -973,14 +973,14 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   setShowManageCredsModal(false);
                   setManageError(null);
                 }}
-                className="text-slate-500 hover:text-slate-900"
+                className="text-[#a68690] hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-500">
-              Assign a new 4-digit access code or update password for <strong className="text-slate-900">Shailu</strong>.
+            <p className="text-xs text-[#a68690]">
+              Assign a new 4-digit access code or update password for <strong className="text-white">Shailu</strong>.
               All changes are authenticated server-side and take effect immediately.
             </p>
 
@@ -1001,7 +1001,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   <span className="text-[10px] text-amber-300 font-mono">Current / New Code</span>
                 </div>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <KeyRound className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                   <input
                     type="text"
                     pattern="[0-9]*"
@@ -1011,10 +1011,10 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     value={manageAccessCode}
                     onChange={e => setManageAccessCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
                     placeholder="2580"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs font-mono text-amber-300 placeholder:text-slate-400 focus:outline-none focus:border-purple-500 font-bold"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-amber-300 placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500 font-bold"
                   />
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-[#7a5b67] mt-1">
                   Shailu uses this 4-digit code to log in via Access Code. Default is <span className="text-amber-300 font-bold font-mono">2580</span>.
                 </p>
               </div>
@@ -1035,13 +1035,13 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                  <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                   <input
                     type={showManagePw ? 'text' : 'password'}
                     value={managePassword}
                     onChange={e => setManagePassword(e.target.value)}
                     placeholder="Leave blank to keep existing password"
-                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs font-mono text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </div>
@@ -1053,20 +1053,20 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     Confirm New Password
                   </label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                    <Lock className="w-4 h-4 text-[#a68690] absolute left-3 top-2.5" />
                     <input
                       type={showManagePw ? 'text' : 'password'}
                       required={!!managePassword}
                       value={manageConfirmPw}
                       onChange={e => setManageConfirmPw(e.target.value)}
                       placeholder="Re-enter new password"
-                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs font-mono text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500"
+                      className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs font-mono text-white placeholder:text-[#7a5b67] focus:outline-none focus:border-purple-500"
                     />
                   </div>
                 </div>
               )}
 
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200">
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#260c18]">
                 <button
                   type="button"
                   onClick={() => {
@@ -1074,7 +1074,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                     setManageError(null);
                   }}
                   disabled={manageLoading}
-                  className="px-4 py-2 rounded-xl bg-[#1e0813] text-slate-500 hover:text-slate-900 text-xs font-bold transition-colors disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl bg-[#1e0813] text-[#a68690] hover:text-white text-xs font-bold transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -1104,16 +1104,16 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
       {/* INDEPENDENT PROGRESS RESET MODAL */}
       {resetModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-white border border-red-900/60 shadow-2xl space-y-4">
+          <div className="w-full max-w-md p-6 rounded-3xl bg-[#14060d] border border-red-900/60 shadow-2xl space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-red-900/40 text-red-500">
               <AlertTriangle className="w-5 h-5 shrink-0" />
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-extrabold text-white">
                 Reset Progress: {targetStudentForReset}
               </h3>
             </div>
 
             <p className="text-xs text-slate-300">
-              You are about to reset progress for <strong className="text-slate-900">{targetStudentForReset}</strong>.
+              You are about to reset progress for <strong className="text-white">{targetStudentForReset}</strong>.
               This operation is strictly isolated and will <strong>NOT</strong> affect the other scholar.
             </p>
 
@@ -1123,7 +1123,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                 <select
                   value={resetScope}
                   onChange={e => setResetScope(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#0e0208] border border-slate-200 text-xs text-slate-900"
+                  className="w-full px-3 py-2 rounded-xl bg-[#0e0208] border border-[#2b0c18] text-xs text-white"
                 >
                   <option value="all">Full Reset (All attempts, topics & badges)</option>
                   {TOPIC_CATEGORIES.map(t => (
@@ -1148,12 +1148,12 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-200">
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#260c18]">
               <button
                 type="button"
                 onClick={() => setResetModalOpen(false)}
                 disabled={isResetting}
-                className="px-4 py-2 rounded-xl bg-[#1e0813] text-slate-500 hover:text-slate-900 text-xs font-bold"
+                className="px-4 py-2 rounded-xl bg-[#1e0813] text-[#a68690] hover:text-white text-xs font-bold"
               >
                 Cancel
               </button>
@@ -1161,7 +1161,7 @@ export const MultiStudentHub: React.FC<MultiStudentHubProps> = ({
                 type="button"
                 onClick={handleExecuteReset}
                 disabled={isResetting || resetConfirmWord.trim().toUpperCase() !== 'RESET'}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-800 to-red-600 hover:from-red-700 hover:to-red-500 text-white text-xs font-bold transition-all shadow-soft disabled:opacity-50 flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-800 to-red-600 hover:from-red-700 hover:to-red-500 text-white text-xs font-bold transition-all shadow-ruby disabled:opacity-50 flex items-center gap-1.5"
               >
                 <RotateCcw className={`w-3.5 h-3.5 ${isResetting ? 'animate-spin' : ''}`} />
                 <span>{isResetting ? 'Resetting...' : `Confirm Reset for ${targetStudentForReset}`}</span>

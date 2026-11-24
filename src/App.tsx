@@ -566,7 +566,7 @@ export const App: React.FC = () => {
   // STUDENT LEARNING PORTAL (OR ADMIN PREVIEWING STUDENT VIEW)
   // -------------------------------------------------------------
   return (
-    <div className="portal-classic min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 font-sans selection:bg-[#1e3a5f] selection:text-white">
+    <div className="portal-luxury min-h-screen flex flex-col bg-[#090306] text-[#e8d5db] font-sans selection:bg-[#9e1030] selection:text-white">
 
       {/* Responsive Sidebar for Student */}
       <Sidebar
@@ -590,14 +590,14 @@ export const App: React.FC = () => {
 
         {/* Admin Preview Mode Floating Bar */}
         {userRole === 'admin' && isAdminPreviewingStudent && (
-          <div className="bg-slate-900 text-slate-100 px-4 py-2.5 text-xs font-semibold flex items-center justify-between border-b border-slate-800 sticky top-0 z-50 shadow-sm">
+          <div className="bg-[#2b0c15] text-rose-200 px-4 py-2.5 text-xs font-bold flex items-center justify-between border-b border-[#800020] sticky top-0 z-50 shadow-md">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <ShieldCheck className="w-4 h-4 text-rose-400" />
               <span>Sanju Admin: Previewing Student Interface</span>
             </div>
             <button
               onClick={() => setIsAdminPreviewingStudent(false)}
-              className="px-3 py-1 rounded-lg bg-[#800020] hover:bg-[#5c0017] text-white text-xs font-semibold transition-colors flex items-center gap-1"
+              className="px-3 py-1 rounded-lg bg-[#800020] hover:bg-[#68001a] text-white text-xs font-bold transition-colors flex items-center gap-1 shadow-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Return to Admin Dashboard</span>
