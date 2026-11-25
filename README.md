@@ -4,7 +4,7 @@ Topic-wise practice quizzes for Mahi and Shailu, managed by Sanju.
 
 - **10 topics, 22 sets, 660 questions** — every set has 30 questions.
 - Questions come from the study PDFs (June / September MCQ sets, PIB one-liners, SBI Clerk static GK notes), GI Registry updates up to November 2026, and the earlier topic notes.
-- National Parks uses only the state-wise National Parks syllabus cards; Ramsar Sites covers only sites 97–103 (January–October 2026).
+- National Parks asks which state each park is in, using only the state-wise National Parks syllabus cards; Ramsar Sites covers only sites 97–103 (January–October 2026).
 - Each answer is explained in the review after submitting.
 
 ## Accounts
