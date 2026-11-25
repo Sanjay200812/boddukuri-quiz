@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { motion, AnimatePresence, animate } from 'motion/react';
 import {
-  Trees, Newspaper, Landmark, Users, Waves, Castle, ListChecks, Music, Scale, BookOpen, LoaderCircle, X,
+  Trees, Newspaper, Landmark, Users, Waves, Castle, ListChecks, Music, Scale, BadgeCheck, Library, BookOpen, LoaderCircle, X,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -15,6 +15,8 @@ const ICONS: Record<string, LucideIcon> = {
   'list-checks': ListChecks,
   music: Music,
   scale: Scale,
+  'badge-check': BadgeCheck,
+  library: Library,
 };
 
 export function TopicIcon({ icon, className = 'w-4 h-4' }: { icon: string; className?: string }) {

@@ -2,8 +2,8 @@
 
 Topic-wise practice quizzes for Mahi and Shailu, managed by Sanju.
 
-- **9 topics, 20 sets, 600 questions** — every set has 30 questions.
-- Questions come from the study PDFs (June / September MCQ sets, PIB one-liners) and the earlier topic notes.
+- **10 topics, 25 sets, 750 questions** — every set has 30 questions.
+- Questions come from the study PDFs (June / September MCQ sets, PIB one-liners, SBI Clerk static GK notes), GI Registry updates up to November 2026, and the earlier topic notes.
 - Each answer is explained in the review after submitting.
 
 ## Accounts
